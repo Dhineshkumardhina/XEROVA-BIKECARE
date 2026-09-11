@@ -1,0 +1,6 @@
+{
+  "name": "BIKE ERP - Parts & POS",
+  "description": "Comprehensive Indian motorcycle spare-parts ERP with fast counter POS, multi-tiered accounts, GST compliance (GSTR-1, GSTR-3B, HSN), and operational business intelligence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
