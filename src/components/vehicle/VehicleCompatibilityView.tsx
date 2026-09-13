@@ -12,10 +12,10 @@ export const VehicleCompatibilityView: React.FC<VehicleCompatibilityViewProps> =
   onOpenItemDetails,
   onAddToCart
 }) => {
-  const [vehicleSearch, setVehicleSearch] = useState('Pulsar 150');
-  const [selectedMake, setSelectedMake] = useState<string>('Bajaj');
-  const [selectedModel, setSelectedModel] = useState<string>('Pulsar');
-  const [selectedVariant, setSelectedVariant] = useState<string>('150 (Twin Spark DTS-i)');
+  const [vehicleSearch, setVehicleSearch] = useState('');
+  const [selectedMake, setSelectedMake] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [selectedVariant, setSelectedVariant] = useState<string>('');
 
   // Mock vehicle hierarchy (Requirement 15)
   const vehicleDatabase = [

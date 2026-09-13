@@ -7,6 +7,7 @@ interface ReceiptSuccessModalProps {
   onClose: () => void;
   onPrint: (r: ReceiptVoucher) => void;
   onNewReceipt: () => void;
+  onViewLedger?: (customerId: string) => void;
 }
 
 export const ReceiptSuccessModal: React.FC<ReceiptSuccessModalProps> = ({
@@ -14,7 +15,8 @@ export const ReceiptSuccessModal: React.FC<ReceiptSuccessModalProps> = ({
   isOpen,
   onClose,
   onPrint,
-  onNewReceipt
+  onNewReceipt,
+  onViewLedger
 }) => {
   if (!isOpen || !receipt) return null;
 
@@ -66,7 +68,7 @@ export const ReceiptSuccessModal: React.FC<ReceiptSuccessModalProps> = ({
           </div>
         </div>
 
-        {/* Modal Action Buttons: [ Print ] [ PDF ] [ Share ] [ New Receipt ] */}
+        {/* Modal Action Buttons: [ Print ] [ PDF ] [ View Ledger ] [ New Receipt ] */}
         <div className="p-4 bg-surface-container border-t border-surface-container-high grid grid-cols-2 gap-2">
           <button
             onClick={() => onPrint(receipt)}
@@ -84,13 +86,26 @@ export const ReceiptSuccessModal: React.FC<ReceiptSuccessModalProps> = ({
             <span>Download PDF</span>
           </button>
 
-          <button
-            onClick={() => alert(`Shared receipt via WhatsApp & SMS to ${receipt.customerMobile}`)}
-            className="py-2 px-3 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface rounded font-semibold flex items-center justify-center gap-1.5 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[16px]">share</span>
-            <span>WhatsApp / Share</span>
-          </button>
+          {onViewLedger ? (
+            <button
+              onClick={() => {
+                onClose();
+                onViewLedger(receipt.customerId);
+              }}
+              className="py-2 px-3 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-secondary rounded font-bold flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">menu_book</span>
+              <span>View Ledger</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => alert(`Shared receipt via WhatsApp & SMS to ${receipt.customerMobile}`)}
+              className="py-2 px-3 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface rounded font-semibold flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">share</span>
+              <span>Share Receipt</span>
+            </button>
+          )}
 
           <button
             onClick={() => {

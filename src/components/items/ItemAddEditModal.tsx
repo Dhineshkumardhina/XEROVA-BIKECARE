@@ -24,29 +24,29 @@ export const ItemAddEditModal: React.FC<ItemAddEditModalProps> = ({
   const [barcode, setBarcode] = useState('');
 
   // Classification
-  const [brand, setBrand] = useState('TVS Genuine');
-  const [category, setCategory] = useState('Clutch & Transmission');
-  const [subcategory, setSubcategory] = useState('Friction Plates');
+  const [brand, setBrand] = useState('');
+  const [category, setCategory] = useState('');
+  const [subcategory, setSubcategory] = useState('');
   const [unit, setUnit] = useState('Pcs');
   const [hsn, setHsn] = useState('8714');
   const [gstRate, setGstRate] = useState<number>(18);
 
   // Pricing
-  const [mrp, setMrp] = useState<number>(850);
-  const [purchasePrice, setPurchasePrice] = useState<number>(560);
-  const [counterPrice, setCounterPrice] = useState<number>(720); // Selling Rate
+  const [mrp, setMrp] = useState<number>(0);
+  const [purchasePrice, setPurchasePrice] = useState<number>(0);
+  const [counterPrice, setCounterPrice] = useState<number>(0); // Selling Rate
   const [previousSellingRate, setPreviousSellingRate] = useState<number | undefined>(undefined);
   const [isRateLocked, setIsRateLocked] = useState<boolean>(false);
 
   // Inventory
   const [maintainStock, setMaintainStock] = useState<boolean>(true);
-  const [openingStock, setOpeningStock] = useState<number>(20);
-  const [minimumStock, setMinimumStock] = useState<number>(10);
-  const [minReorder, setMinReorder] = useState<number>(15);
-  const [rackBin, setRackBin] = useState<string>('B-04-T2');
+  const [openingStock, setOpeningStock] = useState<number>(0);
+  const [minimumStock, setMinimumStock] = useState<number>(5);
+  const [minReorder, setMinReorder] = useState<number>(10);
+  const [rackBin, setRackBin] = useState<string>('');
 
   // Vehicle Compatibility
-  const [vehicles, setVehicles] = useState<string[]>(['Pulsar 150', 'Apache RTR 160']);
+  const [vehicles, setVehicles] = useState<string[]>([]);
   const [newVehicleInput, setNewVehicleInput] = useState('');
 
   // Custom Fields (Requirement 5)
@@ -99,25 +99,25 @@ export const ItemAddEditModal: React.FC<ItemAddEditModalProps> = ({
       setShortName('');
       setPartNumber(String(randomSkuNum));
       setBarcode(`890${Math.floor(100000000 + Math.random() * 900000000)}`);
-      setBrand('TVS Genuine');
-      setCategory('Clutch & Transmission');
-      setSubcategory('Friction Plates');
+      setBrand('');
+      setCategory('');
+      setSubcategory('');
       setUnit('Pcs');
       setHsn('8714');
       setGstRate(18);
-      setMrp(850);
-      setPurchasePrice(560);
-      setCounterPrice(720);
+      setMrp(0);
+      setPurchasePrice(0);
+      setCounterPrice(0);
       setPreviousSellingRate(undefined);
       setIsRateLocked(false);
       setMaintainStock(true);
-      setOpeningStock(15);
-      setMinimumStock(8);
-      setMinReorder(12);
-      setRackBin('A-12-R1');
-      setVehicles(['Pulsar 150', 'Apache RTR 160']);
-      setCustomField1('OEM Standard');
-      setCustomField2('BS-VI Compliant');
+      setOpeningStock(0);
+      setMinimumStock(5);
+      setMinReorder(10);
+      setRackBin('');
+      setVehicles([]);
+      setCustomField1('');
+      setCustomField2('');
       setCustomField3('');
       setCustomField4('');
       setCustomField5('');

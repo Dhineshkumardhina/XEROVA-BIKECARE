@@ -54,19 +54,11 @@ export const AccountsDashboard: React.FC<AccountsDashboardProps> = ({
   const bankAcc = bankAccounts.find(a => a.type === 'Bank');
   const upiAcc = bankAccounts.find(a => a.type === 'UPI');
 
-  const cashBalance = cashAcc ? cashAcc.balance : 85400;
-  const bankBalance = bankAcc ? bankAcc.balance : 428600;
-  const upiBalance = upiAcc ? upiAcc.balance : 62300;
-  const todaysCollections = 45800;
+  const cashBalance = cashAcc ? cashAcc.balance : 0;
+  const bankBalance = bankAcc ? bankAcc.balance : 0;
+  const upiBalance = upiAcc ? upiAcc.balance : 0;
+  const todaysCollections = receipts.reduce((sum, r) => sum + (r.amount || 0), 0);
 
-  // Monthly trend mock data
-  const trendMonths = [
-    { month: 'May', rec: 280000, pay: 140000, net: 140000 },
-    { month: 'Jun', rec: 310000, pay: 165000, net: 145000 },
-    { month: 'Jul', rec: 295000, pay: 152000, net: 143000 },
-    { month: 'Aug', rec: 360000, pay: 190000, net: 170000 },
-    { month: 'Sep (Current)', rec: 342800, pay: 186200, net: 156600 }
-  ];
 
   // Accounting Search Results
   const filteredSearchResults = () => {

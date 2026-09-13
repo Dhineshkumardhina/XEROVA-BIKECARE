@@ -7,6 +7,7 @@ interface BankingDashboardViewProps {
   onOpenDeposit: () => void;
   onOpenWithdrawal: () => void;
   onOpenTransfer: () => void;
+  onToggleReconcile?: (txId: string) => void;
   userRole: UserRole;
 }
 
@@ -81,70 +82,78 @@ export const BankingDashboardView: React.FC<BankingDashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Account Balances Cards (Cash, Bank, UPI) matching prompt */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
+      {/* Account Balances & Daily Flow KPI Cards (6 Metrics) matching prompt */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-space-sm">
         {/* Cash Balance */}
-        <div className="bg-surface-container-lowest p-4 rounded shadow-xs border-l-4 border-l-emerald-600 space-y-2">
+        <div className="bg-surface-container-lowest p-3.5 rounded shadow-xs border-l-4 border-l-emerald-600 space-y-1">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-emerald-600 text-[20px]">point_of_sale</span>
-              <span className="text-xs font-bold text-on-surface">Physical Cash in Drawer</span>
-            </div>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">
-              VERIFIED
-            </span>
+            <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Cash Balance</span>
+            <span className="material-symbols-outlined text-emerald-600 text-[16px]">point_of_sale</span>
           </div>
-          <div className="font-mono text-2xl font-bold text-emerald-700">
+          <div className="font-mono text-lg font-bold text-emerald-700">
             ₹{cashAcc.balance.toLocaleString('en-IN')}
           </div>
-          <div className="flex items-center justify-between text-[11px] text-outline pt-1 border-t border-surface-container">
-            <span>Billing Counter Register #1</span>
-            <button onClick={onOpenDeposit} className="text-secondary font-bold hover:underline">
-              Deposit to Bank →
-            </button>
-          </div>
+          <div className="text-[10px] text-outline">Counter Register</div>
         </div>
 
         {/* Bank Balance */}
-        <div className="bg-surface-container-lowest p-4 rounded shadow-xs border-l-4 border-l-secondary space-y-2">
+        <div className="bg-surface-container-lowest p-3.5 rounded shadow-xs border-l-4 border-l-secondary space-y-1">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary text-[20px]">account_balance</span>
-              <span className="text-xs font-bold text-on-surface">HDFC Bank Current A/c</span>
-            </div>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold">
-              ONLINE
-            </span>
+            <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Bank Balance</span>
+            <span className="material-symbols-outlined text-secondary text-[16px]">account_balance</span>
           </div>
-          <div className="font-mono text-2xl font-bold text-secondary">
+          <div className="font-mono text-lg font-bold text-secondary">
             ₹{bankAcc.balance.toLocaleString('en-IN')}
           </div>
-          <div className="flex items-center justify-between text-[11px] text-outline pt-1 border-t border-surface-container font-mono">
-            <span>A/c: 50200018294</span>
-            <button onClick={onOpenTransfer} className="text-secondary font-bold hover:underline">
-              NEFT / Transfer →
-            </button>
-          </div>
+          <div className="text-[10px] text-outline">HDFC Current A/c</div>
         </div>
 
         {/* UPI Balance */}
-        <div className="bg-surface-container-lowest p-4 rounded shadow-xs border-l-4 border-l-blue-500 space-y-2">
+        <div className="bg-surface-container-lowest p-3.5 rounded shadow-xs border-l-4 border-l-blue-500 space-y-1">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-blue-500 text-[20px]">qr_code_2</span>
-              <span className="text-xs font-bold text-on-surface">ICICI Merchant UPI QR Hub</span>
-            </div>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-bold">
-              INSTANT
-            </span>
+            <span className="text-[10px] font-bold text-outline uppercase tracking-wider">UPI Balance</span>
+            <span className="material-symbols-outlined text-blue-500 text-[16px]">qr_code_2</span>
           </div>
-          <div className="font-mono text-2xl font-bold text-blue-600">
+          <div className="font-mono text-lg font-bold text-blue-600">
             ₹{upiAcc.balance.toLocaleString('en-IN')}
           </div>
-          <div className="flex items-center justify-between text-[11px] text-outline pt-1 border-t border-surface-container font-mono">
-            <span>VPA: bikeerp@icici</span>
-            <span className="text-outline text-[10px]">Auto-Settles at 11:59 PM</span>
+          <div className="text-[10px] text-outline">ICICI QR Hub</div>
+        </div>
+
+        {/* Today's Cash In */}
+        <div className="bg-surface-container-lowest p-3.5 rounded shadow-xs border-l-4 border-l-teal-600 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Today's Cash In</span>
+            <span className="material-symbols-outlined text-teal-600 text-[16px]">arrow_downward</span>
           </div>
+          <div className="font-mono text-lg font-bold text-teal-700">
+            +₹43,000
+          </div>
+          <div className="text-[10px] text-outline">Counter Collections</div>
+        </div>
+
+        {/* Today's Cash Out */}
+        <div className="bg-surface-container-lowest p-3.5 rounded shadow-xs border-l-4 border-l-amber-600 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Today's Cash Out</span>
+            <span className="material-symbols-outlined text-amber-600 text-[16px]">arrow_upward</span>
+          </div>
+          <div className="font-mono text-lg font-bold text-amber-700">
+            -₹20,000
+          </div>
+          <div className="text-[10px] text-outline">Bank Drops &amp; Freight</div>
+        </div>
+
+        {/* Today's Bank Transactions */}
+        <div className="bg-surface-container-lowest p-3.5 rounded shadow-xs border-l-4 border-l-purple-600 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-outline uppercase tracking-wider">Today's Bank Tx</span>
+            <span className="material-symbols-outlined text-purple-600 text-[16px]">receipt_long</span>
+          </div>
+          <div className="font-mono text-lg font-bold text-purple-700">
+            5 Cleared
+          </div>
+          <div className="text-[10px] text-outline">100% Reconciled</div>
         </div>
       </div>
 
@@ -297,9 +306,23 @@ export const BankingDashboardView: React.FC<BankingDashboardViewProps> = ({
                         ₹{t.balance.toLocaleString('en-IN')}
                       </td>
                       <td className="p-2.5 text-center">
-                        <span className="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-bold text-[10px]">
-                          {t.status}
-                        </span>
+                        <button
+                          onClick={() => {
+                            if (userRole === 'billing_operator') {
+                              alert('Reconciliation permissions restricted for Billing Operators.');
+                              return;
+                            }
+                            if (onToggleReconcile) onToggleReconcile(t.id);
+                          }}
+                          className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase tracking-wider transition-colors ${
+                            t.status === 'Reconciled'
+                              ? 'bg-tertiary-fixed text-on-tertiary-fixed hover:bg-tertiary-fixed/80'
+                              : 'bg-amber-500/20 text-amber-800 hover:bg-amber-500/30'
+                          }`}
+                          title={userRole !== 'billing_operator' ? 'Click to toggle reconciliation state' : 'Restricted'}
+                        >
+                          {t.status === 'Reconciled' ? '✓ RECONCILED' : 'UNRECONCILED'}
+                        </button>
                       </td>
                     </tr>
                   ))}

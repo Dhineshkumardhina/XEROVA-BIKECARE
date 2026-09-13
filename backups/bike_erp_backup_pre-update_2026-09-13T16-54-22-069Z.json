@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "system": "BIKE ERP Database Snapshot",
+    "version": "1.0.0",
+    "createdAt": "2026-09-13T16:54:22.069Z",
+    "createdBy": "superadmin (System Automated)",
+    "backupType": "Pre-Update",
+    "totalRecords": 0,
+    "schemaVersion": "2026.1"
+  },
+  "data": {
+    "companies": [],
+    "branches": [],
+    "roles": [],
+    "users": [],
+    "items": [],
+    "categories": [],
+    "brands": [],
+    "stocks": [],
+    "stockMovements": [],
+    "customers": [],
+    "suppliers": [],
+    "sales": [],
+    "purchases": [],
+    "quotations": [],
+    "accounts": [],
+    "ledgerEntries": [],
+    "taxRates": [],
+    "templates": [],
+    "settings": []
+  }
+}

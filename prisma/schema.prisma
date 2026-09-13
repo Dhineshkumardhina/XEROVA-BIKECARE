@@ -1,0 +1,1134 @@
+// ==============================================================================
+// BIKE ERP - PostgreSQL Normalized Database Schema
+// Optimized for High-Volume Motorcycle Spare-Parts & Auditable Stock Ledger
+// ==============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==============================================================================
+// 1. ENUMS
+// ==============================================================================
+
+enum UserRoleType {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  BILLING_OPERATOR
+  PURCHASE_OPERATOR
+  ACCOUNTS_OPERATOR
+  INVENTORY_OPERATOR
+  VIEWER
+}
+
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+  PENDING
+  APPROVED
+  COMPLETED
+  CANCELLED
+  VOID
+  REVERSED
+  EXPIRED
+}
+
+enum StockMovementType {
+  PURCHASE
+  SALE
+  SALE_RETURN
+  PURCHASE_RETURN
+  ADJUSTMENT
+  OPENING_STOCK
+  TRANSFER
+  DAMAGE
+}
+
+enum StockDirection {
+  IN
+  OUT
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  CARD
+  NEFT_RTGS
+  CHEQUE
+  CREDIT
+}
+
+enum GstTaxType {
+  CGST_SGST
+  IGST
+  EXEMPT
+  NIL
+}
+
+enum CustomerType {
+  RETAIL
+  WORKSHOP_GARAGE
+  WHOLESALE_DEALER
+  COMMERCIAL_FLEET
+}
+
+enum ReferralStatus {
+  PENDING
+  CONVERTED
+  REWARDED
+  EXPIRED
+}
+
+enum AuditSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+// ==============================================================================
+// 2. SECURITY, AUTHENTICATION & RBAC
+// ==============================================================================
+
+model User {
+  id              String         @id @default(uuid()) @db.Uuid
+  username        String         @unique @db.VarChar(50)
+  email           String         @unique @db.VarChar(100)
+  fullName        String         @db.VarChar(100)
+  phone           String?        @db.VarChar(20)
+  passwordHash    String         @db.VarChar(255)
+  roleId          String         @db.Uuid
+  role            Role           @relation(fields: [roleId], references: [id])
+  branchId        String?        @db.Uuid
+  branch          Branch?        @relation(fields: [branchId], references: [id])
+  status          RecordStatus   @default(ACTIVE)
+  failedAttempts  Int            @default(0)
+  lockedUntil     DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  refreshTokens   RefreshToken[]
+  auditLogs       AuditLog[]
+  sessions        SystemSession[]
+  stockMovements  StockMovement[]
+  salesCreated    Sale[]         @relation("SaleCreatedBy")
+  purchasesCreated Purchase[]    @relation("PurchaseCreatedBy")
+  receiptsCreated ReceiptVoucher[]
+  paymentsCreated PaymentVoucher[]
+
+  @@index([username])
+  @@index([email])
+  @@index([roleId])
+}
+
+model Role {
+  id              String           @id @default(uuid()) @db.Uuid
+  name            UserRoleType     @unique
+  displayName     String           @db.VarChar(100)
+  description     String?          @db.VarChar(255)
+  isSystem        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  users           User[]
+  permissions     RolePermission[]
+
+  @@index([name])
+}
+
+model Permission {
+  id              String           @id @default(uuid()) @db.Uuid
+  code            String           @unique @db.VarChar(100) // e.g. "sales.create", "inventory.adjust_stock"
+  module          String           @db.VarChar(50)  // "Sales", "Inventory", "Accounts", "Admin"
+  description     String           @db.VarChar(255)
+  createdAt       DateTime         @default(now())
+
+  rolePermissions RolePermission[]
+
+  @@index([code])
+  @@index([module])
+}
+
+model RolePermission {
+  id              String      @id @default(uuid()) @db.Uuid
+  roleId          String      @db.Uuid
+  role            Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId    String      @db.Uuid
+  permission      Permission  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt       DateTime    @default(now())
+
+  @@unique([roleId, permissionId])
+}
+
+model RefreshToken {
+  id              String      @id @default(uuid()) @db.Uuid
+  tokenHash       String      @unique @db.VarChar(255)
+  userId          String      @db.Uuid
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isRevoked       Boolean     @default(false)
+  expiresAt       DateTime
+  createdAt       DateTime    @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model SystemSession {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @db.Uuid
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress       String?     @db.VarChar(45)
+  userAgent       String?     @db.VarChar(255)
+  lastActivityAt  DateTime    @default(now())
+  expiresAt       DateTime
+  createdAt       DateTime    @default(now())
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id              String        @id @default(uuid()) @db.Uuid
+  userId          String?       @db.Uuid
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  username        String        @db.VarChar(50)
+  action          String        @db.VarChar(100) // "Invoice Created", "Invoice Voided", "Stock Adjusted"
+  module          String        @db.VarChar(50)  // "Billing", "Inventory", "Accounts", "Security"
+  entity          String        @db.VarChar(50)  // "Sale", "StockMovement", "User", "ReceiptVoucher"
+  entityId        String?       @db.VarChar(100)
+  previousValue   Json?
+  newValue        Json?
+  notes           String?       @db.Text
+  severity        AuditSeverity @default(INFO)
+  ipAddress       String?       @db.VarChar(45)
+  userAgent       String?       @db.VarChar(255)
+  createdAt       DateTime      @default(now())
+
+  @@index([userId])
+  @@index([module])
+  @@index([action])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+// ==============================================================================
+// 3. COMPANY, BRANCHES & CONFIGURATION
+// ==============================================================================
+
+model Company {
+  id              String         @id @default(uuid()) @db.Uuid
+  tradeName       String         @db.VarChar(150)
+  legalName       String         @db.VarChar(150)
+  gstin           String         @unique @db.VarChar(15)
+  pan             String         @db.VarChar(10)
+  email           String         @db.VarChar(100)
+  phone           String         @db.VarChar(20)
+  addressLine1    String         @db.VarChar(200)
+  addressLine2    String?        @db.VarChar(200)
+  city            String         @db.VarChar(100)
+  state           String         @db.VarChar(100)
+  pincode         String         @db.VarChar(10)
+  stateCode       String         @db.VarChar(2) // e.g. "33" for Tamil Nadu
+  currencySymbol  String         @default("₹") @db.VarChar(10)
+  financialYear   String         @db.VarChar(20) // e.g. "2026-2027"
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  branches        Branch[]
+}
+
+model Branch {
+  id              String         @id @default(uuid()) @db.Uuid
+  companyId       String         @db.Uuid
+  company         Company        @relation(fields: [companyId], references: [id])
+  branchCode      String         @unique @db.VarChar(20)
+  name            String         @db.VarChar(100)
+  isMainBranch    Boolean        @default(false)
+  phone           String         @db.VarChar(20)
+  address         String         @db.Text
+  status          RecordStatus   @default(ACTIVE)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  users           User[]
+  stocks          Stock[]
+  sales           Sale[]
+  purchases       Purchase[]
+  rackBins        RackBinLocation[]
+
+  @@index([companyId])
+}
+
+model NumberingSequence {
+  id              String      @id @default(uuid()) @db.Uuid
+  documentType    String      @unique @db.VarChar(50) // "INVOICE", "PURCHASE", "RECEIPT", "PAYMENT", "QUOTATION", "CREDIT_NOTE", "DEBIT_NOTE"
+  prefix          String      @db.VarChar(20)          // "INV/2026-27/"
+  suffix          String?     @db.VarChar(20)
+  nextNumber      Int         @default(1)
+  paddingZeros    Int         @default(5)
+  updatedAt       DateTime    @updatedAt
+}
+
+model InvoiceTemplate {
+  id              String      @id @default(uuid()) @db.Uuid
+  name            String      @db.VarChar(100)
+  templateType    String      @db.VarChar(50) // "A4_TAX_INVOICE", "THERMAL_3_INCH", "THERMAL_2_INCH"
+  headerText      String?     @db.Text
+  footerTerms     String?     @db.Text
+  showGstBreakdown Boolean    @default(true)
+  showVehicleNo   Boolean     @default(true)
+  showBarcode     Boolean     @default(true)
+  isDefault       Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model SystemSetting {
+  id              String      @id @default(uuid()) @db.Uuid
+  key             String      @unique @db.VarChar(100)
+  value           String      @db.Text
+  category        String      @db.VarChar(50)
+  description     String?     @db.VarChar(255)
+  updatedAt       DateTime    @updatedAt
+
+  @@index([key])
+  @@index([category])
+}
+
+// ==============================================================================
+// 4. MASTER CATALOG, VEHICLE COMPATIBILITY & INVENTORY
+// ==============================================================================
+
+model Category {
+  id              String      @id @default(uuid()) @db.Uuid
+  name            String      @unique @db.VarChar(100)
+  code            String      @unique @db.VarChar(20)
+  description     String?     @db.VarChar(255)
+  parentId        String?     @db.Uuid
+  parent          Category?   @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children        Category[]  @relation("CategoryHierarchy")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items           Item[]
+
+  @@index([name])
+}
+
+model Brand {
+  id              String      @id @default(uuid()) @db.Uuid
+  name            String      @unique @db.VarChar(100)
+  code            String      @unique @db.VarChar(20)
+  isOem           Boolean     @default(false)
+  originCountry   String?     @db.VarChar(50)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items           Item[]
+
+  @@index([name])
+}
+
+model Unit {
+  id              String      @id @default(uuid()) @db.Uuid
+  code            String      @unique @db.VarChar(20) // "PCS", "SETS", "BOX", "LTR", "MTR"
+  name            String      @db.VarChar(50)
+  allowDecimals   Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+
+  items           Item[]
+}
+
+model Manufacturer {
+  id              String         @id @default(uuid()) @db.Uuid
+  name            String         @unique @db.VarChar(100) // "Bajaj", "Hero", "TVS", "Honda", "Yamaha", "Royal Enfield"
+  country         String         @default("India") @db.VarChar(50)
+  createdAt       DateTime       @default(now())
+
+  models          VehicleModel[]
+
+  @@index([name])
+}
+
+model VehicleModel {
+  id              String           @id @default(uuid()) @db.Uuid
+  manufacturerId  String           @db.Uuid
+  manufacturer    Manufacturer     @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  modelName       String           @db.VarChar(100) // "Pulsar", "Splendor", "Apache", "Activa"
+  cc              Int?
+  type            String?          @db.VarChar(50)  // "Motorcycle", "Scooter", "Moped", "Superbike"
+  createdAt       DateTime         @default(now())
+
+  variants        VehicleVariant[]
+
+  @@unique([manufacturerId, modelName])
+  @@index([modelName])
+}
+
+model VehicleVariant {
+  id              String           @id @default(uuid()) @db.Uuid
+  modelId         String           @db.Uuid
+  model           VehicleModel     @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  variantName     String           @db.VarChar(100) // "Pulsar 150 BS6", "Pulsar 220F", "Splendor Plus i3S"
+  yearFrom        Int?
+  yearTo          Int?
+  fuelSystem      String?          @db.VarChar(50)  // "Carburetor", "FI (Fuel Injected)"
+  createdAt       DateTime         @default(now())
+
+  compatibilities ItemVehicleCompatibility[]
+
+  @@unique([modelId, variantName])
+  @@index([variantName])
+}
+
+model Item {
+  id                  String         @id @default(uuid()) @db.Uuid
+  sku                 String         @unique @db.VarChar(50)
+  name                String         @db.VarChar(200)
+  shortName           String?        @db.VarChar(100)
+  oemPartNumber       String?        @db.VarChar(100)
+  hsnCode             String         @db.VarChar(10) // e.g. "8714"
+  categoryId          String         @db.Uuid
+  category            Category       @relation(fields: [categoryId], references: [id])
+  brandId             String         @db.Uuid
+  brand               Brand          @relation(fields: [brandId], references: [id])
+  unitId              String         @db.Uuid
+  unit                Unit           @relation(fields: [unitId], references: [id])
+  gstRate             Decimal        @default(18.00) @db.Decimal(5, 2)
+  maintainStock       Boolean        @default(true)
+  minReorderLevel     Decimal        @default(5.00) @db.Decimal(12, 2)
+  maxReorderLevel     Decimal?       @db.Decimal(12, 2)
+  imageUrl            String?        @db.VarChar(500)
+  customField1        String?        @db.VarChar(100)
+  customField2        String?        @db.VarChar(100)
+  customField3        String?        @db.VarChar(100)
+  customField4        String?        @db.VarChar(100)
+  customField5        String?        @db.VarChar(100)
+  status              RecordStatus   @default(ACTIVE)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  prices              ItemPrice[]
+  barcodes            ItemBarcode[]
+  images              ItemImage[]
+  compatibilities     ItemVehicleCompatibility[]
+  stocks              Stock[]
+  stockMovements      StockMovement[]
+  saleItems           SaleItem[]
+  purchaseItems       PurchaseItem[]
+  quotationItems      QuotationItem[]
+
+  @@index([sku])
+  @@index([name])
+  @@index([shortName])
+  @@index([oemPartNumber])
+  @@index([hsnCode])
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([status])
+}
+
+model ItemPrice {
+  id              String      @id @default(uuid()) @db.Uuid
+  itemId          String      @db.Uuid
+  item            Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  mrp             Decimal     @db.Decimal(12, 2)
+  purchaseRate    Decimal     @db.Decimal(12, 2)
+  sellingRate     Decimal     @db.Decimal(12, 2) // Standard Counter Sale
+  garageRate      Decimal?    @db.Decimal(12, 2) // Workshop / B2B Rate
+  wholesaleRate   Decimal?    @db.Decimal(12, 2) // Bulk Distributor Rate
+  effectiveDate   DateTime    @default(now())
+  isCurrent       Boolean     @default(true)
+
+  @@index([itemId, isCurrent])
+}
+
+model ItemBarcode {
+  id              String      @id @default(uuid()) @db.Uuid
+  itemId          String      @db.Uuid
+  item            Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  barcode         String      @unique @db.VarChar(100)
+  barcodeType     String      @default("CODE128") @db.VarChar(50)
+  isPrimary       Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+
+  @@index([barcode])
+}
+
+model ItemImage {
+  id              String      @id @default(uuid()) @db.Uuid
+  itemId          String      @db.Uuid
+  item            Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  imageUrl        String      @db.VarChar(500)
+  isPrimary       Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+}
+
+model ItemVehicleCompatibility {
+  id              String          @id @default(uuid()) @db.Uuid
+  itemId          String          @db.Uuid
+  item            Item            @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  variantId       String          @db.Uuid
+  variant         VehicleVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  fitmentNotes    String?         @db.VarChar(255) // "Front brake caliper only", "150cc models 2012-2020"
+  createdAt       DateTime        @default(now())
+
+  @@unique([itemId, variantId])
+  @@index([itemId])
+  @@index([variantId])
+}
+
+model RackBinLocation {
+  id              String      @id @default(uuid()) @db.Uuid
+  branchId        String      @db.Uuid
+  branch          Branch      @relation(fields: [branchId], references: [id])
+  zone            String      @db.VarChar(20) // "Zone A", "Zone B"
+  rack            String      @db.VarChar(20) // "R-01", "R-04"
+  shelf           String      @db.VarChar(20) // "S-02"
+  binCode         String      @unique @db.VarChar(50) // "A-01-S2-B4"
+  description     String?     @db.VarChar(150)
+  createdAt       DateTime    @default(now())
+
+  stocks          Stock[]
+
+  @@index([binCode])
+  @@index([branchId])
+}
+
+model Stock {
+  id              String           @id @default(uuid()) @db.Uuid
+  itemId          String           @db.Uuid
+  item            Item             @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  branchId        String           @db.Uuid
+  branch          Branch           @relation(fields: [branchId], references: [id])
+  rackBinId       String?          @db.Uuid
+  rackBin         RackBinLocation? @relation(fields: [rackBinId], references: [id])
+  quantity        Decimal          @default(0.00) @db.Decimal(12, 2)
+  avgCostRate     Decimal          @default(0.00) @db.Decimal(12, 2)
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([itemId, branchId])
+  @@index([itemId])
+  @@index([branchId])
+}
+
+// ==============================================================================
+// 5. AUDITABLE STOCK LEDGER (Core Inventory Architecture)
+// ==============================================================================
+
+model StockMovement {
+  id              String            @id @default(uuid()) @db.Uuid
+  itemId          String            @db.Uuid
+  item            Item              @relation(fields: [itemId], references: [id])
+  branchId        String?           @db.Uuid
+  userId          String?           @db.Uuid
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  movementType    StockMovementType
+  direction       StockDirection
+  quantity        Decimal           @db.Decimal(12, 2)
+  unitRate        Decimal           @db.Decimal(12, 2)
+  previousBalance Decimal           @db.Decimal(12, 2)
+  newBalance      Decimal           @db.Decimal(12, 2)
+  referenceType   String            @db.VarChar(50) // "SALE", "PURCHASE", "SALE_RETURN", "ADJUSTMENT"
+  referenceId     String            @db.VarChar(100) // Invoice #, PO #, ADJ #
+  reason          String?           @db.VarChar(255)
+  notes           String?           @db.Text
+  createdAt       DateTime          @default(now())
+
+  @@index([itemId])
+  @@index([referenceId])
+  @@index([movementType])
+  @@index([createdAt])
+}
+
+// ==============================================================================
+// 6. CUSTOMERS, MECHANICS & CRM
+// ==============================================================================
+
+model Customer {
+  id              String            @id @default(uuid()) @db.Uuid
+  customerCode    String            @unique @db.VarChar(30)
+  name            String            @db.VarChar(150)
+  mobile          String            @db.VarChar(20)
+  email           String?           @db.VarChar(100)
+  gstin           String?           @db.VarChar(15)
+  customerType    CustomerType      @default(RETAIL)
+  creditLimit     Decimal           @default(0.00) @db.Decimal(12, 2)
+  outstanding     Decimal           @default(0.00) @db.Decimal(12, 2)
+  address         String?           @db.Text
+  city            String?           @db.VarChar(100)
+  status          RecordStatus      @default(ACTIVE)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  vehicles        CustomerVehicle[]
+  sales           Sale[]
+  quotations      Quotation[]
+  receipts        ReceiptVoucher[]
+  loyaltyAccount  LoyaltyAccount?
+  referrals       Referral[]        @relation("CustomerReferrals")
+
+  @@index([name])
+  @@index([mobile])
+  @@index([gstin])
+}
+
+model CustomerVehicle {
+  id              String      @id @default(uuid()) @db.Uuid
+  customerId      String      @db.Uuid
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  regNo           String      @unique @db.VarChar(20) // e.g. "TN 01 AB 1234"
+  manufacturer    String      @db.VarChar(100)
+  model           String      @db.VarChar(100)
+  year            Int?
+  chassisNo       String?     @db.VarChar(50)
+  engineNo        String?     @db.VarChar(50)
+  lastServiceKm   Int?
+  createdAt       DateTime    @default(now())
+
+  sales           Sale[]
+
+  @@index([regNo])
+  @@index([customerId])
+}
+
+model Mechanic {
+  id                  String         @id @default(uuid()) @db.Uuid
+  mechanicCode        String         @unique @db.VarChar(30)
+  name                String         @db.VarChar(150)
+  workshopName        String         @db.VarChar(150)
+  mobile              String         @unique @db.VarChar(20)
+  area                String?        @db.VarChar(100)
+  commissionRatePct   Decimal        @default(5.00) @db.Decimal(5, 2)
+  totalReferredSales  Decimal        @default(0.00) @db.Decimal(12, 2)
+  pendingCommission   Decimal        @default(0.00) @db.Decimal(12, 2)
+  status              RecordStatus   @default(ACTIVE)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  referrals           Referral[]     @relation("MechanicReferrals")
+
+  @@index([name])
+  @@index([mobile])
+}
+
+// ==============================================================================
+// 7. SUPPLIERS & PURCHASES
+// ==============================================================================
+
+model Supplier {
+  id              String            @id @default(uuid()) @db.Uuid
+  supplierCode    String            @unique @db.VarChar(30)
+  name            String            @db.VarChar(150)
+  contactPerson   String?           @db.VarChar(100)
+  mobile          String            @db.VarChar(20)
+  email           String?           @db.VarChar(100)
+  gstin           String            @unique @db.VarChar(15)
+  pan             String?           @db.VarChar(10)
+  openingBalance  Decimal           @default(0.00) @db.Decimal(12, 2)
+  creditLimit     Decimal           @default(0.00) @db.Decimal(12, 2)
+  brandFocus      String?           @db.VarChar(150)
+  creditDays      Int               @default(30)
+  outstanding     Decimal           @default(0.00) @db.Decimal(12, 2)
+  address         String?           @db.Text
+  city            String?           @db.VarChar(100)
+  state           String?           @db.VarChar(100)
+  status          RecordStatus      @default(ACTIVE)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  purchases       Purchase[]
+  payments        PaymentVoucher[]
+
+  @@index([name])
+  @@index([gstin])
+}
+
+model Purchase {
+  id                  String             @id @default(uuid()) @db.Uuid
+  poNumber            String             @unique @db.VarChar(50)
+  supplierInvoiceNo   String?            @db.VarChar(100)
+  supplierId          String             @db.Uuid
+  supplier            Supplier           @relation(fields: [supplierId], references: [id])
+  branchId            String             @db.Uuid
+  branch              Branch             @relation(fields: [branchId], references: [id])
+  createdById         String?            @db.Uuid
+  createdBy           User?              @relation("PurchaseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  invoiceDate         DateTime           @default(now())
+  dueDate             DateTime?
+  taxableAmount       Decimal            @db.Decimal(12, 2)
+  cgstAmount          Decimal            @default(0.00) @db.Decimal(12, 2)
+  sgstAmount          Decimal            @default(0.00) @db.Decimal(12, 2)
+  igstAmount          Decimal            @default(0.00) @db.Decimal(12, 2)
+  totalAmount         Decimal            @db.Decimal(12, 2)
+  paidAmount          Decimal            @default(0.00) @db.Decimal(12, 2)
+  status              RecordStatus       @default(APPROVED)
+  grnVerified         Boolean            @default(false)
+  notes               String?            @db.Text
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  items               PurchaseItem[]
+  payments            PurchasePayment[]
+  returns             PurchaseReturn[]
+
+  @@index([poNumber])
+  @@index([supplierId])
+  @@index([invoiceDate])
+}
+
+model PurchaseItem {
+  id              String      @id @default(uuid()) @db.Uuid
+  purchaseId      String      @db.Uuid
+  purchase        Purchase    @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  itemId          String      @db.Uuid
+  item            Item        @relation(fields: [itemId], references: [id])
+  quantity        Decimal     @db.Decimal(12, 2)
+  unitPrice       Decimal     @db.Decimal(12, 2)
+  discountAmount  Decimal     @default(0.00) @db.Decimal(12, 2)
+  taxRate         Decimal     @db.Decimal(5, 2)
+  taxableAmount   Decimal     @db.Decimal(12, 2)
+  cgst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  sgst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  igst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  totalAmount     Decimal     @db.Decimal(12, 2)
+
+  @@index([purchaseId])
+  @@index([itemId])
+}
+
+model PurchasePayment {
+  id              String      @id @default(uuid()) @db.Uuid
+  purchaseId      String      @db.Uuid
+  purchase        Purchase    @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  paymentMode     PaymentMode
+  amount          Decimal     @db.Decimal(12, 2)
+  referenceNo     String?     @db.VarChar(100)
+  paymentDate     DateTime    @default(now())
+
+  @@index([purchaseId])
+}
+
+model PurchaseReturn {
+  id              String               @id @default(uuid()) @db.Uuid
+  debitNoteNumber String               @unique @db.VarChar(50)
+  purchaseId      String               @db.Uuid
+  purchase        Purchase             @relation(fields: [purchaseId], references: [id])
+  returnDate      DateTime             @default(now())
+  totalAmount     Decimal              @db.Decimal(12, 2)
+  reason          String               @db.VarChar(255)
+  status          RecordStatus         @default(APPROVED)
+  createdAt       DateTime             @default(now())
+
+  items           PurchaseReturnItem[]
+
+  @@index([debitNoteNumber])
+}
+
+model PurchaseReturnItem {
+  id              String          @id @default(uuid()) @db.Uuid
+  returnId        String          @db.Uuid
+  purchaseReturn  PurchaseReturn  @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  itemId          String          @db.Uuid
+  quantity        Decimal         @db.Decimal(12, 2)
+  unitPrice       Decimal         @db.Decimal(12, 2)
+  totalAmount     Decimal         @db.Decimal(12, 2)
+  defectNote      String?         @db.VarChar(255)
+}
+
+// ==============================================================================
+// 8. SALES, POS & QUOTATIONS
+// ==============================================================================
+
+model Sale {
+  id                  String             @id @default(uuid()) @db.Uuid
+  invoiceNumber       String             @unique @db.VarChar(50)
+  customerId          String?            @db.Uuid
+  customer            Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerVehicleId   String?            @db.Uuid
+  customerVehicle     CustomerVehicle?   @relation(fields: [customerVehicleId], references: [id], onDelete: SetNull)
+  customerName        String             @db.VarChar(150)
+  customerMobile      String?            @db.VarChar(20)
+  branchId            String             @db.Uuid
+  branch              Branch             @relation(fields: [branchId], references: [id])
+  createdById         String?            @db.Uuid
+  createdBy           User?              @relation("SaleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  invoiceDate         DateTime           @default(now())
+  taxableAmount       Decimal            @db.Decimal(12, 2)
+  cgstAmount          Decimal            @default(0.00) @db.Decimal(12, 2)
+  sgstAmount          Decimal            @default(0.00) @db.Decimal(12, 2)
+  igstAmount          Decimal            @default(0.00) @db.Decimal(12, 2)
+  discountTotal       Decimal            @default(0.00) @db.Decimal(12, 2)
+  roundOff            Decimal            @default(0.00) @db.Decimal(5, 2)
+  totalAmount         Decimal            @db.Decimal(12, 2)
+  paidAmount          Decimal            @default(0.00) @db.Decimal(12, 2)
+  paymentMode         PaymentMode        @default(CASH)
+  status              RecordStatus       @default(COMPLETED)
+  isB2B               Boolean            @default(false)
+  fittingCharges      Decimal            @default(0.00) @db.Decimal(12, 2)
+  notes               String?            @db.Text
+  voidReason          String?            @db.Text
+  voidedAt            DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  items               SaleItem[]
+  payments            SalePayment[]
+  returns             SaleReturn[]
+
+  @@index([invoiceNumber])
+  @@index([customerId])
+  @@index([invoiceDate])
+  @@index([status])
+}
+
+model SaleItem {
+  id              String      @id @default(uuid()) @db.Uuid
+  saleId          String      @db.Uuid
+  sale            Sale        @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  itemId          String      @db.Uuid
+  item            Item        @relation(fields: [itemId], references: [id])
+  quantity        Decimal     @db.Decimal(12, 2)
+  unitRate        Decimal     @db.Decimal(12, 2)
+  mrp             Decimal     @db.Decimal(12, 2)
+  discountAmount  Decimal     @default(0.00) @db.Decimal(12, 2)
+  taxRate         Decimal     @db.Decimal(5, 2)
+  taxableAmount   Decimal     @db.Decimal(12, 2)
+  cgst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  sgst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  igst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  totalAmount     Decimal     @db.Decimal(12, 2)
+
+  @@index([saleId])
+  @@index([itemId])
+}
+
+model SalePayment {
+  id              String      @id @default(uuid()) @db.Uuid
+  saleId          String      @db.Uuid
+  sale            Sale        @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  paymentMode     PaymentMode
+  amount          Decimal     @db.Decimal(12, 2)
+  referenceNo     String?     @db.VarChar(100)
+  paymentDate     DateTime    @default(now())
+
+  @@index([saleId])
+}
+
+model SaleReturn {
+  id              String           @id @default(uuid()) @db.Uuid
+  creditNoteNumber String          @unique @db.VarChar(50)
+  saleId          String           @db.Uuid
+  sale            Sale             @relation(fields: [saleId], references: [id])
+  returnDate      DateTime         @default(now())
+  refundAmount    Decimal          @db.Decimal(12, 2)
+  reason          String           @db.VarChar(255)
+  status          RecordStatus     @default(COMPLETED)
+  createdAt       DateTime         @default(now())
+
+  items           SaleReturnItem[]
+
+  @@index([creditNoteNumber])
+}
+
+model SaleReturnItem {
+  id              String      @id @default(uuid()) @db.Uuid
+  returnId        String      @db.Uuid
+  saleReturn      SaleReturn  @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  itemId          String      @db.Uuid
+  quantity        Decimal     @db.Decimal(12, 2)
+  unitRate        Decimal     @db.Decimal(12, 2)
+  totalAmount     Decimal     @db.Decimal(12, 2)
+  isRestocked     Boolean     @default(true)
+}
+
+model Quotation {
+  id                  String          @id @default(uuid()) @db.Uuid
+  quotationNumber     String          @unique @db.VarChar(50)
+  customerId          String?         @db.Uuid
+  customer            Customer?       @relation(fields: [customerId], references: [id])
+  customerName        String          @db.VarChar(150)
+  customerMobile      String?         @db.VarChar(20)
+  customerGstin       String?         @db.VarChar(15)
+  vehicleDetails      String?         @db.VarChar(150)
+  validUntil          DateTime
+  taxableAmount       Decimal         @default(0.00) @db.Decimal(12, 2)
+  cgstAmount          Decimal         @default(0.00) @db.Decimal(12, 2)
+  sgstAmount          Decimal         @default(0.00) @db.Decimal(12, 2)
+  igstAmount          Decimal         @default(0.00) @db.Decimal(12, 2)
+  discountTotal       Decimal         @default(0.00) @db.Decimal(12, 2)
+  fittingCharges      Decimal         @default(0.00) @db.Decimal(12, 2)
+  roundOff            Decimal         @default(0.00) @db.Decimal(5, 2)
+  subtotal            Decimal         @db.Decimal(12, 2)
+  taxAmount           Decimal         @db.Decimal(12, 2)
+  totalAmount         Decimal         @db.Decimal(12, 2)
+  status              RecordStatus    @default(PENDING)
+  remarks             String?         @db.Text
+  termsConditions     String?         @db.Text
+  convertedInvoiceNo  String?         @db.VarChar(50)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  items               QuotationItem[]
+
+  @@index([quotationNumber])
+  @@index([customerId])
+  @@index([status])
+}
+
+model QuotationItem {
+  id              String      @id @default(uuid()) @db.Uuid
+  quotationId     String      @db.Uuid
+  quotation       Quotation   @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  itemId          String      @db.Uuid
+  item            Item        @relation(fields: [itemId], references: [id])
+  quantity        Decimal     @db.Decimal(12, 2)
+  unitRate        Decimal     @db.Decimal(12, 2)
+  mrp             Decimal     @default(0.00) @db.Decimal(12, 2)
+  discountAmount  Decimal     @default(0.00) @db.Decimal(12, 2)
+  taxRate         Decimal     @default(18.00) @db.Decimal(5, 2)
+  taxableAmount   Decimal     @default(0.00) @db.Decimal(12, 2)
+  cgst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  sgst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  igst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  totalAmount     Decimal     @db.Decimal(12, 2)
+
+  @@index([quotationId])
+  @@index([itemId])
+}
+
+// ==============================================================================
+// 9. ACCOUNTS, LEDGERS, BANKING & GST
+// ==============================================================================
+
+model LedgerAccount {
+  id              String         @id @default(uuid()) @db.Uuid
+  accountCode     String         @unique @db.VarChar(50)
+  name            String         @db.VarChar(150)
+  group           String         @db.VarChar(100) // "Sundry Debtors", "Sundry Creditors", "Cash-in-hand", "Bank Accounts"
+  openingBalance  Decimal        @default(0.00) @db.Decimal(12, 2)
+  currentBalance  Decimal        @default(0.00) @db.Decimal(12, 2)
+  createdAt       DateTime       @default(now())
+
+  entries         LedgerEntry[]
+
+  @@index([name])
+}
+
+model LedgerEntry {
+  id              String        @id @default(uuid()) @db.Uuid
+  accountId       String        @db.Uuid
+  account         LedgerAccount @relation(fields: [accountId], references: [id])
+  date            DateTime      @default(now())
+  particulars     String        @db.VarChar(255)
+  voucherType     String        @db.VarChar(50) // "Receipt", "Payment", "Sales Invoice", "Purchase Bill", "Contra"
+  voucherNo       String        @db.VarChar(50)
+  debit           Decimal       @default(0.00) @db.Decimal(12, 2)
+  credit          Decimal       @default(0.00) @db.Decimal(12, 2)
+  balanceAfter    Decimal       @db.Decimal(12, 2)
+  createdAt       DateTime      @default(now())
+
+  @@index([accountId])
+  @@index([voucherNo])
+  @@index([date])
+}
+
+model ReceiptVoucher {
+  id              String       @id @default(uuid()) @db.Uuid
+  receiptNo       String       @unique @db.VarChar(50)
+  customerId      String       @db.Uuid
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  createdById     String?      @db.Uuid
+  createdBy       User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  date            DateTime     @default(now())
+  amount          Decimal      @db.Decimal(12, 2)
+  paymentMode     PaymentMode
+  referenceNo     String?      @db.VarChar(100)
+  remarks         String?      @db.Text
+  status          RecordStatus @default(COMPLETED)
+  createdAt       DateTime     @default(now())
+
+  @@index([receiptNo])
+  @@index([customerId])
+}
+
+model PaymentVoucher {
+  id              String       @id @default(uuid()) @db.Uuid
+  paymentNo       String       @unique @db.VarChar(50)
+  supplierId      String       @db.Uuid
+  supplier        Supplier     @relation(fields: [supplierId], references: [id])
+  createdById     String?      @db.Uuid
+  createdBy       User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  date            DateTime     @default(now())
+  amount          Decimal      @db.Decimal(12, 2)
+  paymentMode     PaymentMode
+  referenceNo     String?      @db.VarChar(100)
+  remarks         String?      @db.Text
+  status          RecordStatus @default(COMPLETED)
+  createdAt       DateTime     @default(now())
+
+  @@index([paymentNo])
+  @@index([supplierId])
+}
+
+model BankAccount {
+  id              String            @id @default(uuid()) @db.Uuid
+  bankName        String            @db.VarChar(100)
+  accountNumber   String            @unique @db.VarChar(50)
+  ifscCode        String            @db.VarChar(20)
+  branch          String            @db.VarChar(100)
+  accountType     String            @default("Current") @db.VarChar(50)
+  balance         Decimal           @default(0.00) @db.Decimal(12, 2)
+  createdAt       DateTime          @default(now())
+
+  transactions    BankTransaction[]
+
+  @@index([accountNumber])
+}
+
+model BankTransaction {
+  id              String       @id @default(uuid()) @db.Uuid
+  bankAccountId   String       @db.Uuid
+  bankAccount     BankAccount  @relation(fields: [bankAccountId], references: [id])
+  date            DateTime     @default(now())
+  type            String       @db.VarChar(50) // "DEPOSIT", "WITHDRAWAL", "TRANSFER", "CHARGES"
+  reference       String       @db.VarChar(100)
+  debit           Decimal      @default(0.00) @db.Decimal(12, 2)
+  credit          Decimal      @default(0.00) @db.Decimal(12, 2)
+  balanceAfter    Decimal      @db.Decimal(12, 2)
+  party           String?      @db.VarChar(150)
+  notes           String?      @db.Text
+  createdAt       DateTime     @default(now())
+
+  @@index([bankAccountId])
+  @@index([reference])
+}
+
+model TaxRate {
+  id              String      @id @default(uuid()) @db.Uuid
+  rateName        String      @unique @db.VarChar(50) // "GST 18%", "GST 28%"
+  cgstRate        Decimal     @db.Decimal(5, 2)
+  sgstRate        Decimal     @db.Decimal(5, 2)
+  igstRate        Decimal     @db.Decimal(5, 2)
+  isDefault       Boolean     @default(false)
+}
+
+model GSTTransaction {
+  id              String      @id @default(uuid()) @db.Uuid
+  returnPeriod    String      @db.VarChar(10) // "09-2026"
+  documentType    String      @db.VarChar(50) // "B2B_INVOICE", "B2C_INVOICE", "PURCHASE_ITC", "CREDIT_NOTE"
+  documentNumber  String      @db.VarChar(50)
+  date            DateTime
+  partyGstin      String?     @db.VarChar(15)
+  partyName       String      @db.VarChar(150)
+  hsnCode         String      @db.VarChar(10)
+  taxableValue    Decimal     @db.Decimal(12, 2)
+  cgst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  sgst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  igst            Decimal     @default(0.00) @db.Decimal(12, 2)
+  totalValue      Decimal     @db.Decimal(12, 2)
+  isFiled         Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+
+  @@index([returnPeriod])
+  @@index([documentNumber])
+}
+
+// ==============================================================================
+// 10. LOYALTY, REFERRALS, MESSAGING & BACKUPS
+// ==============================================================================
+
+model LoyaltyRule {
+  id                      String      @id @default(uuid()) @db.Uuid
+  pointsPerRupeesSpent    Decimal     @default(100.00) @db.Decimal(12, 2) // e.g. 1 point for every ₹100 spent
+  redemptionValuePerPoint Decimal     @default(1.00) @db.Decimal(12, 2)   // e.g. 1 point = ₹1 discount
+  minRedemptionPoints     Int         @default(50)
+  maxRedemptionPct        Decimal     @default(30.00) @db.Decimal(5, 2)
+  expiryDays              Int         @default(365)
+  isActive                Boolean     @default(true)
+  updatedAt               DateTime    @updatedAt
+}
+
+model LoyaltyAccount {
+  id              String               @id @default(uuid()) @db.Uuid
+  customerId      String               @unique @db.Uuid
+  customer        Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  currentPoints   Int                  @default(0)
+  totalEarned     Int                  @default(0)
+  totalRedeemed   Int                  @default(0)
+  updatedAt       DateTime             @updatedAt
+
+  transactions    LoyaltyTransaction[]
+}
+
+model LoyaltyTransaction {
+  id              String          @id @default(uuid()) @db.Uuid
+  accountId       String          @db.Uuid
+  loyaltyAccount  LoyaltyAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  type            String          @db.VarChar(50) // "EARN", "REDEEM", "ADJUSTMENT", "EXPIRE"
+  pointsDelta     Int
+  balanceAfter    Int
+  reference       String          @db.VarChar(100) // Invoice #, Return #
+  notes           String?         @db.Text
+  createdAt       DateTime        @default(now())
+
+  @@index([accountId])
+}
+
+model Referral {
+  id              String          @id @default(uuid()) @db.Uuid
+  mechanicId      String?         @db.Uuid
+  mechanic        Mechanic?       @relation("MechanicReferrals", fields: [mechanicId], references: [id], onDelete: SetNull)
+  referredCustId  String?         @db.Uuid
+  referredCustomer Customer?      @relation("CustomerReferrals", fields: [referredCustId], references: [id], onDelete: SetNull)
+  invoiceNumber   String          @db.VarChar(50)
+  saleAmount      Decimal         @db.Decimal(12, 2)
+  rewardCash      Decimal         @default(0.00) @db.Decimal(12, 2)
+  rewardPoints    Int             @default(0)
+  status          ReferralStatus  @default(PENDING)
+  createdAt       DateTime        @default(now())
+
+  @@index([mechanicId])
+  @@index([invoiceNumber])
+}
+
+model MessageTemplate {
+  id              String      @id @default(uuid()) @db.Uuid
+  name            String      @db.VarChar(100)
+  channel         String      @db.VarChar(20) // "WHATSAPP", "SMS"
+  category        String      @db.VarChar(50) // "INVOICE", "REMINDER", "PROMOTIONAL", "SERVICE"
+  bodyText        String      @db.Text
+  placeholders    String[]
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+}
+
+model MessageLog {
+  id              String      @id @default(uuid()) @db.Uuid
+  recipientMobile String      @db.VarChar(20)
+  recipientName   String?     @db.VarChar(150)
+  channel         String      @db.VarChar(20)
+  category        String      @db.VarChar(50)
+  messageText     String      @db.Text
+  status          String      @default("DELIVERED") @db.VarChar(50)
+  sentAt          DateTime    @default(now())
+
+  @@index([recipientMobile])
+  @@index([sentAt])
+}
+
+model BackupRecord {
+  id              String      @id @default(uuid()) @db.Uuid
+  filename        String      @unique @db.VarChar(200)
+  fileSizeBytes   BigInt
+  backupType      String      @default("MANUAL") @db.VarChar(50) // "AUTO_DAILY", "MANUAL", "PRE_UPDATE"
+  status          String      @default("COMPLETED") @db.VarChar(50)
+  checksum        String?     @db.VarChar(100)
+  createdAt       DateTime    @default(now())
+}

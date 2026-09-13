@@ -43,74 +43,18 @@ export const FastPOSView: React.FC<FastPOSViewProps> = ({
 }) => {
   // --- Customers & Accounts State ---
   const [customers, setCustomers] = useState<CustomerAccount[]>(INITIAL_CUSTOMERS);
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerAccount | null>(INITIAL_CUSTOMERS[0]); // ABC Auto Works
-  const [selectedVehicle, setSelectedVehicle] = useState<CustomerVehicle | null>(
-    INITIAL_CUSTOMERS[0]?.vehicles?.[0] || null
-  );
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerAccount | null>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<CustomerVehicle | null>(null);
 
   // Walk-in fallback state
-  const [isWalkIn, setIsWalkIn] = useState<boolean>(false);
+  const [isWalkIn, setIsWalkIn] = useState<boolean>(true);
   const [walkInName, setWalkInName] = useState<string>('');
   const [walkInPhone, setWalkInPhone] = useState<string>('');
   const [walkInVehicleNo, setWalkInVehicleNo] = useState<string>('');
   const [walkInBikeModel, setWalkInBikeModel] = useState<string>('');
 
   // --- Cart State ---
-  // Seed initial realistic cart with Clutch Plate and Motul Oil
-  const [cart, setCart] = useState<CartLineItem[]>([
-    {
-      id: 'cart-line-1',
-      part: parts[0] || {
-        id: 'part-1',
-        sku: 'SKU-1302',
-        barcode: '8901234567890',
-        name: 'Clutch Plate Friction Disc Set (6 pcs)',
-        brand: 'TVS / Gabriel',
-        category: 'Engine & Clutch',
-        rackBin: 'A-12',
-        hsn: '87141090',
-        currentStock: 18,
-        minReorder: 10,
-        mrp: 850,
-        counterPrice: 720,
-        wholesalePrice: 650,
-        gstRate: 18,
-        unit: 'Set',
-        vehicles: ['Bajaj Pulsar 150', 'TVS Apache RTR 160']
-      },
-      qty: 2,
-      rate: 690, // Customer specific agreed rate for ABC Auto Works
-      discount: 0,
-      discountType: 'flat',
-      selectedVehicle: 'Bajaj Pulsar 150'
-    },
-    {
-      id: 'cart-line-2',
-      part: parts[3] || {
-        id: 'part-4',
-        sku: 'SKU-4011',
-        barcode: '8904455667788',
-        name: 'Motul 4T 7100 10W50 100% Synthetic 1L',
-        brand: 'Motul',
-        category: 'Lubricants & Oils',
-        rackBin: 'B-04',
-        hsn: '27101981',
-        currentStock: 32,
-        minReorder: 12,
-        mrp: 925,
-        counterPrice: 790,
-        wholesalePrice: 720,
-        gstRate: 18,
-        unit: 'Can',
-        vehicles: ['Universal', 'KTM Duke 200', 'Yamaha R15']
-      },
-      qty: 1,
-      rate: 730,
-      discount: 20,
-      discountType: 'flat',
-      selectedVehicle: 'Universal'
-    }
-  ]);
+  const [cart, setCart] = useState<CartLineItem[]>([]);
 
   // Selected item details drawer
   const [selectedPartForDetails, setSelectedPartForDetails] = useState<SparePart | null>(null);

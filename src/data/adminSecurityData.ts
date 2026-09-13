@@ -23,107 +23,42 @@ import {
 export const INITIAL_USERS: ERPUser[] = [
   {
     id: 'usr-1',
-    fullName: 'Suresh Babu',
-    username: 'suresh.superadmin',
+    fullName: 'System Administrator',
+    username: 'admin',
     mobile: '+91 98401 11223',
-    email: 'suresh@sribalajimotors.com',
+    email: 'admin@bikecare.erp',
     role: 'super_admin',
     roleDisplayName: 'Super Admin',
     branch: 'Main Branch - Chennai Central',
     status: 'Active',
-    lastLogin: '11 Oct 2024, 09:30 AM',
-    createdDate: '01 Jan 2024'
+    lastLogin: 'Today',
+    createdDate: '01 Jan 2026'
   },
   {
     id: 'usr-2',
-    fullName: 'Rajesh Kumar',
-    username: 'rajesh.admin',
-    mobile: '+91 98402 33445',
-    email: 'rajesh@sribalajimotors.com',
-    role: 'admin',
-    roleDisplayName: 'Admin / Store Manager',
-    branch: 'Main Branch - Chennai Central',
-    status: 'Active',
-    lastLogin: '11 Oct 2024, 10:15 AM',
-    createdDate: '15 Jan 2024'
-  },
-  {
-    id: 'usr-3',
-    fullName: 'Kavitha M',
-    username: 'kavitha.billing',
+    fullName: 'Counter Billing Operator',
+    username: 'billing',
     mobile: '+91 98403 55667',
-    email: 'kavitha@sribalajimotors.com',
+    email: 'billing@bikecare.erp',
     role: 'billing_operator',
     roleDisplayName: 'Billing Operator',
     branch: 'Main Branch - Chennai Central',
     status: 'Active',
-    lastLogin: '11 Oct 2024, 11:45 AM',
-    createdDate: '01 Feb 2024'
+    lastLogin: 'Today',
+    createdDate: '01 Jan 2026'
   },
   {
-    id: 'usr-4',
-    fullName: 'Karthik V',
-    username: 'karthik.inventory',
-    mobile: '+91 98404 77889',
-    email: 'karthik@sribalajimotors.com',
-    role: 'inventory_operator',
-    roleDisplayName: 'Inventory Operator',
-    branch: 'Main Branch - Chennai Central',
-    status: 'Active',
-    lastLogin: '11 Oct 2024, 08:45 AM',
-    createdDate: '10 Feb 2024'
-  },
-  {
-    id: 'usr-5',
-    fullName: 'Ramesh Sundaram',
-    username: 'ramesh.accounts',
-    mobile: '+91 98405 99001',
-    email: 'ramesh@sribalajimotors.com',
-    role: 'accounts_operator',
-    roleDisplayName: 'Accounts Operator',
-    branch: 'Main Branch - Chennai Central',
-    status: 'Active',
-    lastLogin: '10 Oct 2024, 05:20 PM',
-    createdDate: '01 Mar 2024'
-  },
-  {
-    id: 'usr-6',
-    fullName: 'Praveen S',
-    username: 'praveen.purchase',
+    id: 'usr-3',
+    fullName: 'Purchase & Inventory Manager',
+    username: 'purchase',
     mobile: '+91 98406 12345',
-    email: 'praveen@sribalajimotors.com',
+    email: 'purchase@bikecare.erp',
     role: 'purchase_operator',
     roleDisplayName: 'Purchase Operator',
-    branch: 'Ambattur Hub',
-    status: 'Active',
-    lastLogin: '11 Oct 2024, 09:10 AM',
-    createdDate: '15 Mar 2024'
-  },
-  {
-    id: 'usr-7',
-    fullName: 'Vijay Anand',
-    username: 'vijay.manager',
-    mobile: '+91 98407 67890',
-    email: 'vijay@sribalajimotors.com',
-    role: 'manager',
-    roleDisplayName: 'Branch Manager',
-    branch: 'Ambattur Hub',
-    status: 'Active',
-    lastLogin: '11 Oct 2024, 10:00 AM',
-    createdDate: '01 Apr 2024'
-  },
-  {
-    id: 'usr-8',
-    fullName: 'Priya R',
-    username: 'priya.auditor',
-    mobile: '+91 98408 24680',
-    email: 'priya@sribalajimotors.com',
-    role: 'viewer',
-    roleDisplayName: 'Auditor / Viewer',
     branch: 'Main Branch - Chennai Central',
-    status: 'Inactive',
-    lastLogin: '28 Sep 2024, 04:30 PM',
-    createdDate: '01 Jun 2024'
+    status: 'Active',
+    lastLogin: 'Today',
+    createdDate: '01 Jan 2026'
   }
 ];
 
@@ -306,21 +241,21 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, PermissionKey[]> = {
 // 3. COMPANY PROFILE INITIAL DATA
 // ==========================================
 export const INITIAL_COMPANY_PROFILE: CompanyProfile = {
-  firmName: 'SRI BALAJI MOTORS & SPARES',
-  tagline: 'Genuine OEM Two-Wheeler Parts & Accessories',
+  firmName: 'XEROVA BIKE SOFTWARE',
+  tagline: 'Professional Two-Wheeler Care & Genuine Spares ERP',
   address: 'No. 42/B, 100 Feet Road, Vadapalani',
   city: 'Chennai',
   state: 'Tamil Nadu',
   pinCode: '600026',
   phone: '+91 98401 23456',
   altPhone: '+91 44 2489 1234',
-  email: 'billing@sribalajimotors.com',
-  website: 'www.sribalajimotors.com',
+  email: 'support@xerovabikesoftware.com',
+  website: 'www.xerovabikesoftware.com',
   gstin: '33AAAAA0000A1Z5',
   pan: 'AAAAA0000A',
   logoUrl: 'https://lh3.googleusercontent.com/aida/AEtjO1UQrVlh6FYKk4LuySvgRIsF8nn74XIEttFLLvqIpALmbsblikHweqTVsVsfbyz9CVQec99jOSCQi0-6w200SnJJhKug1sBznsIbEqp6YwcGcKFz_sosQqSzjJj3uqsw4lOrN4hwOHYnnJA4EECm_o6bWCkSgQv6_GVLKOn9swzB2r6g4YC8UpHG4hjMzUlz4wLPBD5LcQDBG9v2yWQ8bqrylGSXlacstksl38Nsul6WQDjYAXXG73NPFog',
   bankName: 'HDFC Bank Ltd',
-  accountName: 'SRI BALAJI MOTORS AND SPARES',
+  accountName: 'XEROVA BIKE SOFTWARE',
   accountNumber: '50200049281928',
   ifsc: 'HDFC0001234',
   bankBranch: 'Vadapalani Branch, Chennai',
@@ -407,7 +342,7 @@ export const INITIAL_NUMBERING: DocumentNumberingConfig[] = [
     docType: 'Sales Invoice',
     prefix: 'INV',
     startingNumber: 1001,
-    currentNumber: 1125,
+    currentNumber: 1001,
     financialYear: '2026-27',
     separator: '/',
     padding: 6
@@ -417,7 +352,7 @@ export const INITIAL_NUMBERING: DocumentNumberingConfig[] = [
     docType: 'Purchase Invoice',
     prefix: 'PUR',
     startingNumber: 2001,
-    currentNumber: 2084,
+    currentNumber: 2001,
     financialYear: '2026-27',
     separator: '/',
     padding: 5
@@ -427,7 +362,7 @@ export const INITIAL_NUMBERING: DocumentNumberingConfig[] = [
     docType: 'Quotation',
     prefix: 'QTN',
     startingNumber: 501,
-    currentNumber: 542,
+    currentNumber: 501,
     financialYear: '2026-27',
     separator: '/',
     padding: 4
@@ -437,7 +372,7 @@ export const INITIAL_NUMBERING: DocumentNumberingConfig[] = [
     docType: 'Sales Return',
     prefix: 'CN',
     startingNumber: 101,
-    currentNumber: 118,
+    currentNumber: 101,
     financialYear: '2026-27',
     separator: '/',
     padding: 4
@@ -447,7 +382,7 @@ export const INITIAL_NUMBERING: DocumentNumberingConfig[] = [
     docType: 'Purchase Return',
     prefix: 'DN',
     startingNumber: 101,
-    currentNumber: 107,
+    currentNumber: 101,
     financialYear: '2026-27',
     separator: '/',
     padding: 4
@@ -457,7 +392,7 @@ export const INITIAL_NUMBERING: DocumentNumberingConfig[] = [
     docType: 'Receipt',
     prefix: 'REC',
     startingNumber: 3001,
-    currentNumber: 3140,
+    currentNumber: 3001,
     financialYear: '2026-27',
     separator: '/',
     padding: 5
@@ -467,7 +402,7 @@ export const INITIAL_NUMBERING: DocumentNumberingConfig[] = [
     docType: 'Payment',
     prefix: 'PAY',
     startingNumber: 4001,
-    currentNumber: 4092,
+    currentNumber: 4001,
     financialYear: '2026-27',
     separator: '/',
     padding: 5
@@ -477,7 +412,7 @@ export const INITIAL_NUMBERING: DocumentNumberingConfig[] = [
     docType: 'Stock Adjustment',
     prefix: 'ADJ',
     startingNumber: 101,
-    currentNumber: 134,
+    currentNumber: 101,
     financialYear: '2026-27',
     separator: '/',
     padding: 4
@@ -706,247 +641,17 @@ export const INITIAL_PRINTER_CONFIG: PrinterConfig = {
 // ==========================================
 // 10. BACKUP & RESTORE DATA
 // ==========================================
-export const INITIAL_BACKUPS: BackupRecord[] = [
-  {
-    id: 'bk-1',
-    filename: 'BIKE_ERP_BACKUP_20241024_080000.sql.gz',
-    date: '24 Oct 2024',
-    time: '08:00 AM',
-    size: '48.6 MB',
-    createdBy: 'Automated Daily Cron',
-    status: 'Success',
-    type: 'Scheduled',
-    location: 'Local (D:\\Backups) + Cloud S3 Mirror'
-  },
-  {
-    id: 'bk-2',
-    filename: 'BIKE_ERP_BACKUP_20241023_200000.sql.gz',
-    date: '23 Oct 2024',
-    time: '08:00 PM',
-    size: '48.2 MB',
-    createdBy: 'Rajesh Kumar',
-    status: 'Success',
-    type: 'Manual',
-    location: 'Local (D:\\Backups)'
-  },
-  {
-    id: 'bk-3',
-    filename: 'BIKE_ERP_BACKUP_20241022_080000.sql.gz',
-    date: '22 Oct 2024',
-    time: '08:00 AM',
-    size: '47.9 MB',
-    createdBy: 'Automated Daily Cron',
-    status: 'Success',
-    type: 'Scheduled',
-    location: 'Local (D:\\Backups) + Cloud S3 Mirror'
-  },
-  {
-    id: 'bk-4',
-    filename: 'BIKE_ERP_BACKUP_20241020_193000.sql.gz',
-    date: '20 Oct 2024',
-    time: '07:30 PM',
-    size: '47.5 MB',
-    createdBy: 'Suresh Babu',
-    status: 'Success',
-    type: 'Pre-Update',
-    location: 'Encrypted Cloud Vault'
-  }
-];
+export const INITIAL_BACKUPS: BackupRecord[] = [];
 
 // ==========================================
 // 11. AUDIT LOGS DATA
 // ==========================================
-export const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
-  {
-    id: 'aud-1',
-    timestamp: '24 Oct 2024, 11:45:12 AM',
-    user: 'Kavitha M (Billing Operator)',
-    action: 'Invoice Created',
-    module: 'Sales',
-    record: 'INV/2026-27/001125',
-    previousValue: 'None (New Record)',
-    newValue: 'Total ₹1,850.00 (Customer: Royal Riders Clinic)',
-    ipDevice: '192.168.1.104 (POS Terminal 1)',
-    status: 'Success'
-  },
-  {
-    id: 'aud-2',
-    timestamp: '24 Oct 2024, 11:32:05 AM',
-    user: 'Rajesh Kumar (Admin)',
-    action: 'Rate Changed',
-    module: 'Inventory',
-    record: 'SKU-1302 (Pulsar Clutch Plate)',
-    previousValue: 'Selling Rate: ₹620.00',
-    newValue: 'Selling Rate: ₹650.00 (OEM Hike)',
-    ipDevice: '192.168.1.101 (Manager Desktop)',
-    status: 'Success'
-  },
-  {
-    id: 'aud-3',
-    timestamp: '24 Oct 2024, 11:15:40 AM',
-    user: 'Ramesh Sundaram (Accounts)',
-    action: 'Receipt Created',
-    module: 'Accounts',
-    record: 'REC/2026-27/03140',
-    previousValue: 'Pending Due: ₹12,450.00',
-    newValue: 'Receipt ₹4,500.00 via UPI (Ref: 429810294812)',
-    ipDevice: '192.168.1.103 (Accounts PC)',
-    status: 'Success'
-  },
-  {
-    id: 'aud-4',
-    timestamp: '24 Oct 2024, 10:48:22 AM',
-    user: 'Karthik V (Inventory)',
-    action: 'Stock Adjusted',
-    module: 'Inventory',
-    record: 'SKU-1405 (Motul 7100 10W50 1L)',
-    previousValue: 'Physical Count: 18 units',
-    newValue: 'Adjusted: +6 units (Found in Bay 2 Bins)',
-    ipDevice: '192.168.1.102 (Warehouse Handheld)',
-    status: 'Success'
-  },
-  {
-    id: 'aud-5',
-    timestamp: '24 Oct 2024, 10:12:18 AM',
-    user: 'Suresh Babu (Super Admin)',
-    action: 'Permission Changed',
-    module: 'Security',
-    record: 'Role: Billing Operator',
-    previousValue: 'Apply Discount: Up to 5%',
-    newValue: 'Apply Discount: Up to 10%',
-    ipDevice: '192.168.1.100 (Super Admin Terminal)',
-    status: 'Success'
-  },
-  {
-    id: 'aud-6',
-    timestamp: '24 Oct 2024, 09:55:01 AM',
-    user: 'Kavitha M (Billing Operator)',
-    action: 'Access Denied',
-    module: 'Reports',
-    record: 'Profitability & Margins Dashboard',
-    previousValue: 'Permission Check',
-    newValue: 'Denied: Operator role restricted from viewing profit margins',
-    ipDevice: '192.168.1.104 (POS Terminal 1)',
-    status: 'Denied'
-  },
-  {
-    id: 'aud-7',
-    timestamp: '24 Oct 2024, 09:20:15 AM',
-    user: 'Praveen S (Purchase)',
-    action: 'Payment Created',
-    module: 'Purchase',
-    record: 'PAY/2026-27/04092',
-    previousValue: 'Outstanding: ₹48,600.00',
-    newValue: 'Payment ₹25,000.00 to Bajaj Auto Genuine Parts Hub',
-    ipDevice: '192.168.2.105 (Ambattur Hub Desktop)',
-    status: 'Success'
-  },
-  {
-    id: 'aud-8',
-    timestamp: '24 Oct 2024, 08:00:02 AM',
-    user: 'System Automated Daemon',
-    action: 'Backup Created',
-    module: 'Admin',
-    record: 'BIKE_ERP_BACKUP_20241024_080000.sql.gz',
-    previousValue: 'None',
-    newValue: 'Snapshot 48.6 MB generated & verified',
-    ipDevice: '127.0.0.1 (Local Database Host)',
-    status: 'Success'
-  },
-  {
-    id: 'aud-9',
-    timestamp: '23 Oct 2024, 06:14:22 PM',
-    user: 'Rajesh Kumar (Admin)',
-    action: 'Invoice Cancelled',
-    module: 'Sales',
-    record: 'INV/2026-27/001112',
-    previousValue: 'Status: Active',
-    newValue: 'Cancelled: Wrong model cable issued by mistake',
-    ipDevice: '192.168.1.101 (Manager Desktop)',
-    status: 'Warning'
-  },
-  {
-    id: 'aud-10',
-    timestamp: '23 Oct 2024, 04:30:10 PM',
-    user: 'Suresh Babu (Super Admin)',
-    action: 'User Created',
-    module: 'Admin',
-    record: 'User: praveen.purchase',
-    previousValue: 'None',
-    newValue: 'Praveen S assigned to Ambattur Hub with Purchase Operator role',
-    ipDevice: '192.168.1.100 (Super Admin Terminal)',
-    status: 'Success'
-  }
-];
+export const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [];
 
 // ==========================================
 // 12. USER ACTIVITY TIMELINE
 // ==========================================
-export const INITIAL_USER_ACTIVITIES: UserActivityItem[] = [
-  {
-    id: 'act-1',
-    timestamp: '11:45 AM',
-    user: 'Kavitha M',
-    action: 'Invoice created',
-    relatedRecord: 'INV/2026-27/001125',
-    device: 'POS Counter 1',
-    details: '₹1,850.00 cash counter bill for Royal Riders Clinic'
-  },
-  {
-    id: 'act-2',
-    timestamp: '11:32 AM',
-    user: 'Rajesh Kumar',
-    action: 'Selling rate changed',
-    relatedRecord: 'SKU-1302 (Pulsar Clutch Plate)',
-    device: 'Manager PC',
-    details: 'Increased from ₹620.00 to ₹650.00 following Bajaj price revision'
-  },
-  {
-    id: 'act-3',
-    timestamp: '11:15 AM',
-    user: 'Ramesh Sundaram',
-    action: 'Payment received',
-    relatedRecord: 'REC/2026-27/03140',
-    device: 'Accounts PC',
-    details: '₹4,500.00 credited via UPI from Speed Motors'
-  },
-  {
-    id: 'act-4',
-    timestamp: '10:48 AM',
-    user: 'Karthik V',
-    action: 'Stock adjusted',
-    relatedRecord: 'SKU-1405 (Motul 7100)',
-    device: 'Warehouse Tab',
-    details: '+6 units re-shelved into Rack B-04'
-  },
-  {
-    id: 'act-5',
-    timestamp: '10:12 AM',
-    user: 'Suresh Babu',
-    action: 'Permission policy updated',
-    relatedRecord: 'Role: Billing Operator',
-    device: 'Admin Terminal',
-    details: 'Allowed discount authorization up to 10%'
-  },
-  {
-    id: 'act-6',
-    timestamp: '09:40 AM',
-    user: 'Praveen S',
-    action: 'PO dispatched',
-    relatedRecord: 'PO-8492',
-    device: 'Ambattur Hub',
-    details: 'Order placed with TVS Motor Genuine Parts for 40 spark plugs'
-  },
-  {
-    id: 'act-7',
-    timestamp: '08:00 AM',
-    user: 'System Bot',
-    action: 'Database backed up',
-    relatedRecord: 'Daily Snapshot',
-    device: 'Cloud Storage Server',
-    details: 'Daily automated incremental snapshot 48.6 MB verified'
-  }
-];
+export const INITIAL_USER_ACTIVITIES: UserActivityItem[] = [];
 
 // ==========================================
 // 13. SECURITY SETTINGS INITIAL DATA

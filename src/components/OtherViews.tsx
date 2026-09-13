@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { Invoice, SparePart } from '../types';
+import { formatCurrency, formatQuantity, formatDate } from '../utils/formatters';
+import { EmptyState } from './common/EmptyState';
+import { Breadcrumbs } from './common/Breadcrumbs';
 
 interface OtherViewsProps {
   view: string;
@@ -9,6 +12,8 @@ interface OtherViewsProps {
   onPrintInvoice: (inv: Invoice) => void;
   onOpenNewBill: () => void;
   onOpenPoModal: (partName: string) => void;
+  onNavigate?: (screen: string) => void;
+  onRequestVoidInvoice?: (invoice: Invoice) => void;
 }
 
 export const OtherViews: React.FC<OtherViewsProps> = ({
@@ -18,82 +23,154 @@ export const OtherViews: React.FC<OtherViewsProps> = ({
   onViewInvoice,
   onPrintInvoice,
   onOpenNewBill,
-  onOpenPoModal
+  onOpenPoModal,
+  onNavigate = (_screen: string) => {},
+  onRequestVoidInvoice
 }) => {
-  // Invoices Register
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+
+  // ==========================================
+  // 1. SALES INVOICES REGISTER
+  // ==========================================
   if (view === 'invoices') {
+    const filtered = invoices.filter((inv) => {
+      const matchesSearch =
+        !searchTerm ||
+        inv.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inv.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (inv.vehicleNo && inv.vehicleNo.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesStatus = statusFilter === 'ALL' || inv.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+
     return (
-      <div className="flex flex-col w-full pb-10 space-y-gutter animate-in fade-in duration-150">
-        <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-gutter rounded shadow-xs gap-3">
+      <div className="flex flex-col w-full pb-10 space-y-3 animate-in fade-in duration-100">
+        <Breadcrumbs activeScreen="invoices" onNavigate={onNavigate} />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-4 rounded border border-surface-container-high shadow-xs gap-3">
           <div>
-            <h1 className="font-headline-lg text-headline-lg text-on-surface">Sales Invoices &amp; Counter Register</h1>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Complete chronological ledger of B2C counter sales and B2B garage invoices
+            <h1 className="font-headline-md text-base font-bold text-on-surface">
+              Sales Invoices &amp; Counter Register
+            </h1>
+            <p className="text-xs text-outline mt-0.5">
+              Chronological ledger of retail counter bills, B2B workshop invoices, and credit sales
             </p>
           </div>
-          <button
-            onClick={onOpenNewBill}
-            className="px-4 py-2 bg-secondary hover:bg-secondary-container text-on-secondary rounded font-table-cell text-table-cell font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            <span>New Counter Bill [F4]</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onOpenNewBill}
+              className="px-3.5 py-1.5 bg-secondary hover:bg-secondary-container text-on-secondary rounded text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+            >
+              <span className="material-symbols-outlined text-[16px]">add</span>
+              <span>New POS Sale [F4]</span>
+            </button>
+          </div>
         </div>
 
-        <div className="bg-surface-container-lowest rounded shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
+        {/* Filters and Search Bar */}
+        <div className="bg-surface-container-lowest p-3 rounded border border-surface-container-high shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="relative flex-1 min-w-[240px] max-w-md">
+            <span className="material-symbols-outlined absolute left-2.5 top-2 text-outline text-[16px]">
+              search
+            </span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by Invoice #, Customer, Vehicle Reg No..."
+              className="w-full pl-8 pr-3 py-1.5 bg-surface-container-low border border-surface-container-highest rounded text-xs text-on-surface focus:outline-none focus:border-secondary"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-2.5 py-1.5 bg-surface-container-low border border-surface-container-highest rounded text-xs text-on-surface focus:outline-none font-medium"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="PAID">PAID</option>
+              <option value="CREDIT">CREDIT / DUE</option>
+              <option value="PARTIAL">PARTIALLY PAID</option>
+              <option value="VOID">VOID / CANCELLED</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Table / Empty state */}
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon="receipt_long"
+            title="No Invoices Found"
+            description="No sales invoices have been recorded yet. Launch the POS counter to create your first invoice."
+            actionLabel="Start New Sale [F4]"
+            onAction={onOpenNewBill}
+          />
+        ) : (
+          <div className="bg-surface-container-lowest rounded border border-surface-container-high shadow-xs overflow-hidden">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-surface-container font-label-caps text-label-caps text-on-surface-variant uppercase">
+              <thead className="bg-surface-container font-label-caps text-[10px] text-outline uppercase tracking-wider">
                 <tr>
                   <th className="py-2.5 px-3">Invoice #</th>
-                  <th className="py-2.5 px-3">Date / Time</th>
-                  <th className="py-2.5 px-3">Customer / Garage</th>
-                  <th className="py-2.5 px-3">Vehicle Model</th>
-                  <th className="py-2.5 px-3 text-right">Taxable</th>
-                  <th className="py-2.5 px-3 text-right">CGST + SGST</th>
-                  <th className="py-2.5 px-3 text-right">Total Amount</th>
-                  <th className="py-2.5 px-3">Pay Mode</th>
+                  <th className="py-2.5 px-3">Date &amp; Time</th>
+                  <th className="py-2.5 px-3">Customer / Party</th>
+                  <th className="py-2.5 px-3">Vehicle #</th>
+                  <th className="py-2.5 px-3 text-right">Items</th>
+                  <th className="py-2.5 px-3 text-right">Subtotal</th>
+                  <th className="py-2.5 px-3 text-right">GST</th>
+                  <th className="py-2.5 px-3 text-right">Grand Total</th>
+                  <th className="py-2.5 px-3">Tender Mode</th>
                   <th className="py-2.5 px-3 text-center">Status</th>
                   <th className="py-2.5 px-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-high font-table-cell">
-                {invoices.map(inv => (
+                {filtered.map((inv) => (
                   <tr key={inv.id} className="hover:bg-surface-container-low transition-colors">
                     <td className="py-2 px-3 font-mono font-bold text-secondary">{inv.id}</td>
-                    <td className="py-2 px-3 text-outline">{inv.createdAt}</td>
+                    <td className="py-2 px-3 text-outline">{inv.date}</td>
                     <td className="py-2 px-3 font-semibold text-on-surface">{inv.customerName}</td>
-                    <td className="py-2 px-3 text-outline">{inv.vehicleNo} ({inv.bikeModel})</td>
-                    <td className="py-2 px-3 text-right font-mono">₹{inv.subtotal.toFixed(2)}</td>
-                    <td className="py-2 px-3 text-right font-mono text-outline">₹{(inv.cgst + inv.sgst).toFixed(2)}</td>
-                    <td className="py-2 px-3 text-right font-mono font-bold text-on-surface">₹{inv.totalAmount.toFixed(2)}</td>
+                    <td className="py-2 px-3 font-mono text-outline">{inv.vehicleNo || '—'}</td>
+                    <td className="py-2 px-3 text-right font-mono">{inv.items.length}</td>
+                    <td className="py-2 px-3 text-right font-mono">{formatCurrency(inv.subtotal)}</td>
+                    <td className="py-2 px-3 text-right font-mono">{formatCurrency(inv.tax)}</td>
+                    <td className="py-2 px-3 text-right font-mono font-bold text-on-surface">
+                      {formatCurrency(inv.total)}
+                    </td>
                     <td className="py-2 px-3">
-                      <span className="px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-mono text-[11px]">
-                        {inv.payMode}
+                      <span className="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface font-semibold text-[10px]">
+                        {inv.paymentMethod}
                       </span>
                     </td>
                     <td className="py-2 px-3 text-center">
-                      <span className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${
-                        inv.status === 'PAID' ? 'bg-tertiary-fixed text-on-tertiary-fixed' : 'bg-error-container text-on-error-container'
-                      }`}>
+                      <span
+                        className={`px-2 py-0.5 rounded font-bold text-[9px] uppercase ${
+                          inv.status === 'PAID'
+                            ? 'bg-tertiary-fixed text-on-tertiary-fixed'
+                            : inv.status === 'CREDIT'
+                            ? 'bg-error-container text-on-error-container'
+                            : 'bg-surface-container-high text-outline'
+                        }`}
+                      >
                         {inv.status}
                       </span>
                     </td>
                     <td className="py-2 px-3 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => onPrintInvoice(inv)}
-                          className="p-1 rounded hover:bg-surface-container text-secondary"
-                          title="Print Bill"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">print</span>
-                        </button>
+                      <div className="flex items-center justify-center gap-1">
                         <button
                           onClick={() => onViewInvoice(inv)}
-                          className="p-1 rounded hover:bg-surface-container text-on-surface-variant"
+                          className="p-1 rounded hover:bg-surface-container text-outline hover:text-on-surface"
                           title="View Invoice"
                         >
                           <span className="material-symbols-outlined text-[16px]">visibility</span>
+                        </button>
+                        <button
+                          onClick={() => onPrintInvoice(inv)}
+                          className="p-1 rounded hover:bg-surface-container text-secondary"
+                          title="Print Thermal / A4"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">print</span>
                         </button>
                       </div>
                     </td>
@@ -102,319 +179,315 @@ export const OtherViews: React.FC<OtherViewsProps> = ({
               </tbody>
             </table>
           </div>
-        </div>
+        )}
       </div>
     );
   }
 
-  // Purchase Orders & GRN
+  // ==========================================
+  // 2. QUOTATIONS / ESTIMATES
+  // ==========================================
+  if (view === 'quotations') {
+    return (
+      <div className="flex flex-col w-full pb-10 space-y-3 animate-in fade-in duration-100">
+        <Breadcrumbs activeScreen="quotations" onNavigate={onNavigate} />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-4 rounded border border-surface-container-high shadow-xs gap-3">
+          <div>
+            <h1 className="font-headline-md text-base font-bold text-on-surface">
+              Quotations &amp; Spare Estimates
+            </h1>
+            <p className="text-xs text-outline mt-0.5">
+              Draft formal proforma quotations with price lock and convert directly to sales invoices
+            </p>
+          </div>
+          <button
+            onClick={onOpenNewBill}
+            className="px-3.5 py-1.5 bg-secondary hover:bg-secondary-container text-on-secondary rounded text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <span className="material-symbols-outlined text-[16px]">add</span>
+            <span>+ Create Quotation</span>
+          </button>
+        </div>
+
+        <EmptyState
+          icon="request_quote"
+          title="No Quotations Recorded"
+          description="Create proforma spare-part estimates for customers and workshops."
+          actionLabel="Create First Quotation"
+          onAction={onOpenNewBill}
+        />
+      </div>
+    );
+  }
+
+  // ==========================================
+  // 3. SALES RETURNS & CREDIT NOTES
+  // ==========================================
+  if (view === 'sales-returns') {
+    return (
+      <div className="flex flex-col w-full pb-10 space-y-3 animate-in fade-in duration-100">
+        <Breadcrumbs activeScreen="sales-returns" onNavigate={onNavigate} />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-4 rounded border border-surface-container-high shadow-xs gap-3">
+          <div>
+            <h1 className="font-headline-md text-base font-bold text-on-surface">
+              Sales Returns &amp; Credit Notes
+            </h1>
+            <p className="text-xs text-outline mt-0.5">
+              Audited counter returns register, automatic inventory restock, and GST credit note generation
+            </p>
+          </div>
+          <button
+            onClick={() => onNavigate('pos')}
+            className="px-3.5 py-1.5 bg-secondary hover:bg-secondary-container text-on-secondary rounded text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <span className="material-symbols-outlined text-[16px]">assignment_return</span>
+            <span>+ Process POS Return</span>
+          </button>
+        </div>
+
+        <EmptyState
+          icon="assignment_return"
+          title="No Sales Returns Recorded"
+          description="Returns processed at the POS counter will be recorded here with complete audit trail and restock notes."
+          actionLabel="Go to POS Counter"
+          onAction={() => onNavigate('pos')}
+        />
+      </div>
+    );
+  }
+
+  // ==========================================
+  // 4. PURCHASE ENTRY / PO & GRN
+  // ==========================================
   if (view === 'purchase-orders') {
     return (
-      <div className="flex flex-col w-full pb-10 space-y-gutter animate-in fade-in duration-150">
-        <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-gutter rounded shadow-xs gap-3">
+      <div className="flex flex-col w-full pb-10 space-y-3 animate-in fade-in duration-100">
+        <Breadcrumbs activeScreen="purchase-orders" onNavigate={onNavigate} />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-4 rounded border border-surface-container-high shadow-xs gap-3">
           <div>
-            <h1 className="font-headline-lg text-headline-lg text-on-surface">Purchase Orders (PO) &amp; Goods Receipt (GRN)</h1>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Inward stock verification, supplier bills reconciliation, and automatic rack allocation
+            <h1 className="font-headline-md text-base font-bold text-on-surface">
+              Purchase Orders (PO) &amp; Goods Receipt (GRN)
+            </h1>
+            <p className="text-xs text-outline mt-0.5">
+              Inward stock verification, supplier invoice reconciliation, and automatic rack allocation
             </p>
           </div>
           <button
             onClick={() => onOpenPoModal('New Spares Bulk Purchase Inward')}
-            className="px-4 py-2 bg-secondary hover:bg-secondary-container text-on-secondary rounded font-table-cell text-table-cell font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+            className="px-3.5 py-1.5 bg-secondary hover:bg-secondary-container text-on-secondary rounded text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
           >
-            <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+            <span className="material-symbols-outlined text-[16px]">add_shopping_cart</span>
             <span>+ Create Supplier PO</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
-          <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-            <span className="text-[11px] font-bold text-outline uppercase">Active Purchase Orders</span>
-            <div className="font-mono text-xl font-bold text-on-surface mt-1">12 Orders</div>
-            <span className="text-[11px] text-secondary">₹4,86,200 in transit</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="bg-surface-container-lowest p-3.5 rounded border border-surface-container-high shadow-xs">
+            <span className="text-[10px] font-bold text-outline uppercase tracking-wider">
+              Active Purchase Orders
+            </span>
+            <div className="font-mono text-lg font-bold text-on-surface mt-1">0 Orders</div>
+            <span className="text-[11px] text-secondary">₹0.00 in transit</span>
           </div>
-          <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-            <span className="text-[11px] font-bold text-outline uppercase">Pending GRN Inward</span>
-            <div className="font-mono text-xl font-bold text-error mt-1">3 Shipments</div>
-            <span className="text-[11px] text-outline">Arriving at Central Bay today</span>
+          <div className="bg-surface-container-lowest p-3.5 rounded border border-surface-container-high shadow-xs">
+            <span className="text-[10px] font-bold text-outline uppercase tracking-wider">
+              Pending GRN Inward
+            </span>
+            <div className="font-mono text-lg font-bold text-on-surface mt-1">0 Shipments</div>
+            <span className="text-[11px] text-outline">All shipments inwarded</span>
           </div>
-          <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-            <span className="text-[11px] font-bold text-outline uppercase">Monthly Purchases</span>
-            <div className="font-mono text-xl font-bold text-on-surface mt-1">₹14,28,000</div>
-            <span className="text-[11px] text-on-tertiary-container">99.2% on-time delivery</span>
+          <div className="bg-surface-container-lowest p-3.5 rounded border border-surface-container-high shadow-xs">
+            <span className="text-[10px] font-bold text-outline uppercase tracking-wider">
+              Month Purchases
+            </span>
+            <div className="font-mono text-lg font-bold text-on-surface mt-1">₹0.00</div>
+            <span className="text-[11px] text-on-tertiary-container">Clean procurement cycle</span>
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest rounded shadow-xs overflow-hidden">
-          <div className="p-3 bg-surface-container border-b border-surface-container-high font-headline-md text-sm font-bold text-on-surface">
-            Recent Inward Shipments &amp; GRN Logs
-          </div>
-          <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-surface-container-low font-label-caps text-on-surface-variant uppercase text-[10px]">
-              <tr>
-                <th className="p-2.5">PO #</th>
-                <th className="p-2.5">Supplier Agency</th>
-                <th className="p-2.5">Items / SKUs</th>
-                <th className="p-2.5 text-right">Invoice Value</th>
-                <th className="p-2.5">Target Rack Bin</th>
-                <th className="p-2.5 text-center">GRN Status</th>
-                <th className="p-2.5 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container-high font-table-cell">
-              <tr className="hover:bg-surface-container-low">
-                <td className="p-2.5 font-mono font-bold text-secondary">PO-8412</td>
-                <td className="p-2.5 font-semibold">Bajaj Auto Genuine Spares Ltd</td>
-                <td className="p-2.5">Pulsar Clutch Plates (50), Disc Pads (30)</td>
-                <td className="p-2.5 text-right font-mono font-bold">₹48,200.00</td>
-                <td className="p-2.5 font-mono">B-04-T2 &amp; B-01-A1</td>
-                <td className="p-2.5 text-center">
-                  <span className="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-bold text-[10px]">
-                    GRN VERIFIED
-                  </span>
-                </td>
-                <td className="p-2.5 text-center">
-                  <button onClick={() => alert('Viewing Goods Receipt Note for PO-8412')} className="text-secondary hover:underline font-semibold">View GRN</button>
-                </td>
-              </tr>
-              <tr className="hover:bg-surface-container-low">
-                <td className="p-2.5 font-mono font-bold text-secondary">PO-8413</td>
-                <td className="p-2.5 font-semibold">TVS Motor Spares Regional Hub</td>
-                <td className="p-2.5">Apache Front Fork Oil, Gaskets, Cables (80)</td>
-                <td className="p-2.5 text-right font-mono font-bold">₹34,100.00</td>
-                <td className="p-2.5 font-mono">C-02-F1</td>
-                <td className="p-2.5 text-center">
-                  <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-secondary-fixed-variant font-bold text-[10px]">
-                    IN TRANSIT
-                  </span>
-                </td>
-                <td className="p-2.5 text-center">
-                  <button onClick={() => alert('Tracking Transit for PO-8413')} className="text-secondary hover:underline font-semibold">Track</button>
-                </td>
-              </tr>
-              <tr className="hover:bg-surface-container-low">
-                <td className="p-2.5 font-mono font-bold text-secondary">PO-8414</td>
-                <td className="p-2.5 font-semibold">Rolon Transmission Chains Corp</td>
-                <td className="p-2.5">Splendor &amp; Pulsar Drive Chain Sprocket Kits (40)</td>
-                <td className="p-2.5 text-right font-mono font-bold">₹28,600.00</td>
-                <td className="p-2.5 font-mono">D-01-B3</td>
-                <td className="p-2.5 text-center">
-                  <span className="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-bold text-[10px]">
-                    STOCKED IN BIN
-                  </span>
-                </td>
-                <td className="p-2.5 text-center">
-                  <button onClick={() => alert('Viewing Bin Allocation for PO-8414')} className="text-secondary hover:underline font-semibold">Bin Map</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <EmptyState
+          icon="inventory"
+          title="No Inward Shipments"
+          description="Create purchase orders to inward supplier spare parts into warehouse racks."
+          actionLabel="Create First PO"
+          onAction={() => onOpenPoModal('New Spares Inward')}
+        />
       </div>
     );
   }
 
-  // Garage Ledgers (B2B Accounts)
-  if (view === 'garage-ledgers' || view === 'customers') {
+  // ==========================================
+  // 5. PURCHASE RETURNS / DEBIT NOTES
+  // ==========================================
+  if (view === 'purchase-returns') {
     return (
-      <div className="flex flex-col w-full pb-10 space-y-gutter animate-in fade-in duration-150">
-        <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-gutter rounded shadow-xs gap-3">
+      <div className="flex flex-col w-full pb-10 space-y-3 animate-in fade-in duration-100">
+        <Breadcrumbs activeScreen="purchase-returns" onNavigate={onNavigate} />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-4 rounded border border-surface-container-high shadow-xs gap-3">
           <div>
-            <h1 className="font-headline-lg text-headline-lg text-on-surface">Garage &amp; Mechanic Credit Ledgers</h1>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Manage 15-day credit limits, invoice billing, and payment collection for affiliated bike workshops
+            <h1 className="font-headline-md text-base font-bold text-on-surface">
+              Purchase Returns &amp; Supplier Debit Notes
+            </h1>
+            <p className="text-xs text-outline mt-0.5">
+              Record damaged in-transit goods, defective spare parts return, and issue GST debit notes to suppliers
+            </p>
+          </div>
+        </div>
+
+        <EmptyState
+          icon="replay"
+          title="No Supplier Debit Notes"
+          description="When returning defective parts to suppliers, debit notes will be listed here with financial reconciliation."
+          actionLabel="Go to Item Master"
+          onAction={() => onNavigate('items-master')}
+        />
+      </div>
+    );
+  }
+
+  // ==========================================
+  // 6. CATEGORIES & BRANDS MASTER
+  // ==========================================
+  if (view === 'categories-master' || view === 'brands-master') {
+    const isCategory = view === 'categories-master';
+    
+    // Dynamically derive categories and brands from current parts inventory
+    const categoryMap = new Map<string, { count: number; value: number }>();
+    const brandMap = new Map<string, number>();
+
+    parts.forEach((p) => {
+      const cat = p.category || 'General Spares';
+      const prevC = categoryMap.get(cat) || { count: 0, value: 0 };
+      categoryMap.set(cat, {
+        count: prevC.count + 1,
+        value: prevC.value + (p.currentStock * p.purchasePrice)
+      });
+
+      const br = p.brand || 'Aftermarket';
+      brandMap.set(br, (brandMap.get(br) || 0) + 1);
+    });
+
+    const categoryList = Array.from(categoryMap.entries()).map(([name, data]) => ({
+      name,
+      skus: data.count,
+      value: data.value,
+      icon: 'category'
+    }));
+
+    const brandList = Array.from(brandMap.entries()).map(([name, count]) => ({
+      name,
+      skus: count,
+      country: 'India'
+    }));
+
+    return (
+      <div className="flex flex-col w-full pb-10 space-y-3 animate-in fade-in duration-100">
+        <Breadcrumbs activeScreen={view} onNavigate={onNavigate} />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-4 rounded border border-surface-container-high shadow-xs gap-3">
+          <div>
+            <h1 className="font-headline-md text-base font-bold text-on-surface">
+              {isCategory ? 'Spare Parts Category Master' : 'OEM & Aftermarket Brand Master'}
+            </h1>
+            <p className="text-xs text-outline mt-0.5">
+              {isCategory
+                ? 'Structured categorization for two-wheeler motorcycle components and fast lookup'
+                : 'Authorized spare parts manufacturers, OEM genuine lines, and high-performance brands'}
             </p>
           </div>
           <button
-            onClick={() => alert('New Garage Onboarding Form: enter Trade Name, GSTIN, and Credit Limit.')}
-            className="px-4 py-2 bg-secondary hover:bg-secondary-container text-on-secondary rounded font-table-cell text-table-cell font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+            onClick={() => onNavigate('items-master')}
+            className="px-3.5 py-1.5 bg-secondary hover:bg-secondary-container text-on-secondary rounded text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
           >
-            <span className="material-symbols-outlined text-[18px]">person_add</span>
-            <span>+ Add Garage Account</span>
+            <span className="material-symbols-outlined text-[16px]">list</span>
+            <span>View Item Master (F2)</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-space-sm">
-          <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-            <span className="text-[11px] font-bold text-outline uppercase">Active Workshop Accounts</span>
-            <div className="font-mono text-xl font-bold text-on-surface mt-1">42 Garages</div>
-            <span className="text-[11px] text-outline">Tier 1 &amp; Tier 2 Partners</span>
-          </div>
-          <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-            <span className="text-[11px] font-bold text-outline uppercase">Total Outstanding Credit</span>
-            <div className="font-mono text-xl font-bold text-secondary mt-1">₹3,42,800</div>
-            <span className="text-[11px] text-outline">Within 15-day terms</span>
-          </div>
-          <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-            <span className="text-[11px] font-bold text-outline uppercase">Overdue (&gt;15 Days)</span>
-            <div className="font-mono text-xl font-bold text-error mt-1">₹38,500</div>
-            <span className="text-[11px] text-error font-bold">3 Accounts Blocked</span>
-          </div>
-          <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-            <span className="text-[11px] font-bold text-outline uppercase">Month Collections</span>
-            <div className="font-mono text-xl font-bold text-on-surface mt-1">₹8,92,400</div>
-            <span className="text-[11px] text-on-tertiary-container font-semibold">96% Recovery Rate</span>
-          </div>
-        </div>
+        {isCategory && categoryList.length === 0 && (
+          <EmptyState
+            icon="category"
+            title="No Categories Defined"
+            description="Categories are automatically populated as you add spare parts to your Item Master."
+            actionLabel="Add New Part"
+            onAction={() => onNavigate('items-master')}
+          />
+        )}
 
-        <div className="bg-surface-container-lowest rounded shadow-xs overflow-hidden">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-surface-container font-label-caps text-on-surface-variant uppercase text-[10px]">
-              <tr>
-                <th className="p-2.5">Code</th>
-                <th className="p-2.5">Garage &amp; Contact Person</th>
-                <th className="p-2.5">Area / Location</th>
-                <th className="p-2.5 text-right">Credit Limit</th>
-                <th className="p-2.5 text-right">Current Balance</th>
-                <th className="p-2.5">Last Payment</th>
-                <th className="p-2.5 text-center">Account Status</th>
-                <th className="p-2.5 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container-high font-table-cell">
-              <tr className="hover:bg-surface-container-low">
-                <td className="p-2.5 font-mono font-bold text-secondary">#GB-21</td>
-                <td className="p-2.5">
-                  <div className="font-bold text-on-surface">Sri Balaji Auto Works</div>
-                  <div className="text-outline text-[11px]">Murugan (98401 55667)</div>
-                </td>
-                <td className="p-2.5 text-outline">T. Nagar, Chennai</td>
-                <td className="p-2.5 text-right font-mono">₹1,00,000</td>
-                <td className="p-2.5 text-right font-mono font-bold text-secondary">₹18,500.00</td>
-                <td className="p-2.5 text-outline">Yesterday (₹12,000 via UPI)</td>
-                <td className="p-2.5 text-center">
-                  <span className="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-bold text-[10px]">ACTIVE</span>
-                </td>
-                <td className="p-2.5 text-center">
-                  <button onClick={() => alert('Opening statement ledger for Sri Balaji Auto Works')} className="text-secondary font-semibold hover:underline">Statement</button>
-                </td>
-              </tr>
-              <tr className="hover:bg-surface-container-low">
-                <td className="p-2.5 font-mono font-bold text-secondary">#GB-04</td>
-                <td className="p-2.5">
-                  <div className="font-bold text-on-surface">Speedline Racing &amp; Tuning Garage</div>
-                  <div className="text-outline text-[11px]">Karthik (98842 11990)</div>
-                </td>
-                <td className="p-2.5 text-outline">Velachery, Chennai</td>
-                <td className="p-2.5 text-right font-mono">₹1,50,000</td>
-                <td className="p-2.5 text-right font-mono font-bold text-secondary">₹64,200.00</td>
-                <td className="p-2.5 text-outline">21 Oct 2024 (NEFT Bank)</td>
-                <td className="p-2.5 text-center">
-                  <span className="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-bold text-[10px]">ACTIVE</span>
-                </td>
-                <td className="p-2.5 text-center">
-                  <button onClick={() => alert('Opening statement ledger for Speedline Racing')} className="text-secondary font-semibold hover:underline">Statement</button>
-                </td>
-              </tr>
-              <tr className="hover:bg-surface-container-low">
-                <td className="p-2.5 font-mono font-bold text-secondary">#GB-38</td>
-                <td className="p-2.5">
-                  <div className="font-bold text-error">Royal Riders Bullet Clinic</div>
-                  <div className="text-outline text-[11px]">Deva (97103 44551)</div>
-                </td>
-                <td className="p-2.5 text-outline">Anna Nagar, Chennai</td>
-                <td className="p-2.5 text-right font-mono">₹50,000</td>
-                <td className="p-2.5 text-right font-mono font-bold text-error">₹38,500.00</td>
-                <td className="p-2.5 text-outline">28 Sep 2024 (Overdue 26 days)</td>
-                <td className="p-2.5 text-center">
-                  <span className="px-2 py-0.5 rounded bg-error-container text-on-error-container font-bold text-[10px]">OVERDUE HOLD</span>
-                </td>
-                <td className="p-2.5 text-center">
-                  <button onClick={() => alert('Reminder SMS & WhatsApp invoice sent to Royal Riders Bullet Clinic')} className="text-error font-semibold hover:underline">Send Notice</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        {!isCategory && brandList.length === 0 && (
+          <EmptyState
+            icon="branding_watermark"
+            title="No Brands Registered"
+            description="Brands are automatically organized as you catalog new OEM and aftermarket spares."
+            actionLabel="Add New Part"
+            onAction={() => onNavigate('items-master')}
+          />
+        )}
+
+        {isCategory && categoryList.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {categoryList.map((cat, idx) => (
+              <div
+                key={idx}
+                onClick={() => onNavigate('items-master')}
+                className="p-4 bg-surface-container-lowest rounded border border-surface-container-high shadow-xs hover:border-secondary cursor-pointer transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded bg-surface-container text-secondary flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[20px]">{cat.icon}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-on-surface text-xs">{cat.name}</h3>
+                    <div className="text-[11px] text-outline mt-0.5">
+                      {formatQuantity(cat.skus, 'SKUs')} • Valuation: {formatCurrency(cat.value)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!isCategory && brandList.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {brandList.map((br, idx) => (
+              <div
+                key={idx}
+                onClick={() => onNavigate('items-master')}
+                className="p-4 bg-surface-container-lowest rounded border border-surface-container-high shadow-xs hover:border-secondary cursor-pointer transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-on-surface text-xs">{br.name}</h3>
+                    <div className="text-[11px] text-outline mt-0.5">
+                      {formatQuantity(br.skus, 'Catalog Parts')} • {br.country}
+                    </div>
+                  </div>
+                  <span className="material-symbols-outlined text-outline text-[18px]">chevron_right</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
 
-  // Stock Adjustments / Barcode Audit
-  if (view === 'stock-adjustments') {
-    return (
-      <div className="flex flex-col w-full pb-10 space-y-gutter animate-in fade-in duration-150">
-        <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-gutter rounded shadow-xs gap-3">
-          <div>
-            <h1 className="font-headline-lg text-headline-lg text-on-surface">Physical Stock Audit &amp; Bin Reconciliation</h1>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Perform handheld scanner stock counts, reconcile system inventory, and record authorized variance adjustments
-            </p>
-          </div>
-          <button
-            onClick={() => alert('Barcode Scan Mode activated. Use wireless handheld 2D scanner to sweep racks.')}
-            className="px-4 py-2 bg-secondary hover:bg-secondary-container text-on-secondary rounded font-table-cell text-table-cell font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
-          >
-            <span className="material-symbols-outlined text-[18px]">barcode_scanner</span>
-            <span>Start Handheld Audit</span>
-          </button>
-        </div>
-
-        <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-          <div className="font-bold text-on-surface mb-2">Central Warehouse Bin Zones (A through E)</div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
-            <div className="p-3 rounded bg-surface-container-low border border-surface-container-high">
-              <div className="font-bold text-secondary">Zone A (Engine &amp; Gearbox)</div>
-              <div className="text-outline mt-1">68 Bins • 100% Audited</div>
-            </div>
-            <div className="p-3 rounded bg-surface-container-low border border-surface-container-high">
-              <div className="font-bold text-secondary">Zone B (Clutch &amp; Braking)</div>
-              <div className="text-outline mt-1">94 Bins • 98% Audited</div>
-            </div>
-            <div className="p-3 rounded bg-surface-container-low border border-surface-container-high">
-              <div className="font-bold text-secondary">Zone C (Cables &amp; Levers)</div>
-              <div className="text-outline mt-1">52 Bins • 100% Audited</div>
-            </div>
-            <div className="p-3 rounded bg-surface-container-low border border-surface-container-high">
-              <div className="font-bold text-secondary">Zone D (Chains &amp; Sprockets)</div>
-              <div className="text-outline mt-1">45 Bins • 95% Audited</div>
-            </div>
-            <div className="p-3 rounded bg-surface-container-low border border-surface-container-high">
-              <div className="font-bold text-secondary">Zone E (Oils &amp; Chemicals)</div>
-              <div className="text-outline mt-1">65 Bins • 100% Audited</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Reports & GST
+  // Default Fallback
   return (
-    <div className="flex flex-col w-full pb-10 space-y-gutter animate-in fade-in duration-150">
-      <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-gutter rounded shadow-xs gap-3">
-        <div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface">GST Tax Filing &amp; Business Reports</h1>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">
-            GSTR-1, GSTR-3B summaries, HSN 8714 analytics, and exportable financial returns
-          </p>
-        </div>
-        <button
-          onClick={() => alert('Exporting monthly GSTR-1 JSON payload compatible with GST Portal upload.')}
-          className="px-4 py-2 bg-secondary hover:bg-secondary-container text-on-secondary rounded font-table-cell text-table-cell font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
-        >
-          <span className="material-symbols-outlined text-[18px]">download</span>
-          <span>Download GSTR-1 JSON</span>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
-        <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-          <span className="text-[11px] font-bold text-outline uppercase">October Total Taxable Sales</span>
-          <div className="font-mono text-xl font-bold text-on-surface mt-1">₹24,80,450</div>
-          <span className="text-[11px] text-outline">B2B: ₹14.2L • B2C: ₹10.6L</span>
-        </div>
-        <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-          <span className="text-[11px] font-bold text-outline uppercase">Output GST Liability</span>
-          <div className="font-mono text-xl font-bold text-secondary mt-1">₹4,46,481</div>
-          <span className="text-[11px] text-outline">CGST: ₹2.23L • SGST: ₹2.23L</span>
-        </div>
-        <div className="bg-surface-container-lowest p-4 rounded shadow-xs">
-          <span className="text-[11px] font-bold text-outline uppercase">Input Tax Credit (ITC)</span>
-          <div className="font-mono text-xl font-bold text-on-tertiary-container mt-1">₹3,18,240</div>
-          <span className="text-[11px] text-outline">Net payable to Govt: ₹1,28,241</span>
-        </div>
-      </div>
+    <div className="flex flex-col w-full pb-10 space-y-3 animate-in fade-in duration-100">
+      <Breadcrumbs activeScreen={view} onNavigate={onNavigate} />
+      <EmptyState
+        icon="dashboard"
+        title={`View: ${view.replace(/-/g, ' ').toUpperCase()}`}
+        description="This operational ERP module is ready for use."
+        actionLabel="Go to Dashboard"
+        onAction={() => onNavigate('dashboard')}
+      />
     </div>
   );
 };

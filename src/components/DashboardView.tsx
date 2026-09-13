@@ -59,6 +59,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return true;
   });
 
+  const totalSalesToday = invoices.reduce((sum, inv) => sum + (inv.totalAmount || inv.total || 0), 0);
+  const stockValuation = parts.reduce((sum, p) => sum + ((p.stockQty ?? p.currentStock ?? 0) * (p.mrp || p.purchasePrice || 0)), 0);
+  const lowStockCount = parts.filter(p => (p.stockQty ?? p.currentStock ?? 0) <= (p.minStock ?? p.minReorder ?? 0)).length;
+  const zeroStockCount = parts.filter(p => (p.stockQty ?? p.currentStock ?? 0) === 0).length;
+  const currentDateStr = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+
   return (
     <div className="flex flex-col w-full pb-10 space-y-gutter animate-in fade-in duration-200">
       {/* Top Command & Greeting Header */}
@@ -74,12 +80,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </span>
           </div>
           <h1 className="font-headline-lg text-headline-lg text-on-surface mt-0.5 tracking-tight">
-            Good morning, Rajesh (Store Admin)
+            Counter Terminal Dashboard
           </h1>
           <p className="font-body-sm text-body-sm text-on-surface-variant">
-            Here's what's happening with your bike spare parts business today • Tuesday, 24 Oct 2024 •{' '}
+            Bike spare parts &amp; service management • {currentDateStr} •{' '}
             <span className="font-semibold text-on-surface">
-              Shift #1 Active (08:30 AM - 09:00 PM)
+              Shift Active (08:30 AM - 09:00 PM)
             </span>
           </p>
         </div>
@@ -132,12 +138,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="mt-space-sm">
             <div className="font-numeric-lg text-numeric-lg text-on-surface font-bold">
-              ₹1,24,500
+              ₹{totalSalesToday.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
             <div className="flex items-center gap-1 mt-0.5 font-body-sm text-body-sm">
-              <span className="text-on-tertiary-container font-semibold flex items-center">
-                <span className="material-symbols-outlined text-[14px]">arrow_upward</span>14.2%
-              </span>
               <span className="text-on-surface-variant font-shortcut-key text-shortcut-key">
                 ({invoices.length} bills)
               </span>
@@ -158,10 +161,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="mt-space-sm">
             <div className="font-numeric-lg text-numeric-lg text-on-surface font-bold">
-              ₹82,300
+              ₹0.00
             </div>
             <div className="text-on-surface-variant font-shortcut-key text-shortcut-key mt-0.5">
-              3 Supplier Inwards Recd
+              0 Inwards Recd
             </div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-outline"></div>
@@ -179,10 +182,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="mt-space-sm">
             <div className="font-numeric-lg text-numeric-lg text-on-surface font-bold">
-              ₹3,42,800
+              ₹0.00
             </div>
             <div className="text-on-surface-variant font-shortcut-key text-shortcut-key mt-0.5">
-              42 Customer Ledgers
+              0 Customer Ledgers
             </div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-secondary-container"></div>
@@ -200,10 +203,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="mt-space-sm">
             <div className="font-numeric-lg text-numeric-lg text-on-surface font-bold">
-              ₹1,86,200
+              ₹0.00
             </div>
-            <div className="text-error font-shortcut-key text-shortcut-key mt-0.5 font-semibold">
-              Due this week: ₹64,000
+            <div className="text-on-surface-variant font-shortcut-key text-shortcut-key mt-0.5 font-semibold">
+              Due this week: ₹0.00
             </div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-error"></div>
@@ -225,10 +228,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="mt-space-sm">
             <div className="font-numeric-lg text-numeric-lg text-on-surface font-bold">
-              ₹28,45,000
+              ₹{stockValuation.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
             <div className="text-on-surface-variant font-shortcut-key text-shortcut-key mt-0.5">
-              4,820 Active SKUs
+              {parts.length} Active SKUs
             </div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-outline-variant"></div>
@@ -250,10 +253,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="mt-space-sm">
             <div className="font-numeric-lg text-numeric-lg text-error font-bold">
-              127 Items
+              {lowStockCount} Items
             </div>
             <div className="text-error font-shortcut-key text-shortcut-key mt-0.5 font-bold">
-              18 Critical Zero-Stock
+              {zeroStockCount} Critical Zero-Stock
             </div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-error"></div>
@@ -492,89 +495,97 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-container-high font-table-cell text-table-cell">
-                  {filteredInvoices.slice(0, 6).map((inv) => (
-                    <tr key={inv.id} className="hover:bg-surface-container-low transition-colors group">
-                      <td className="py-2 px-space-sm font-numeric-data text-numeric-data font-bold text-secondary">
-                        {inv.id}
-                      </td>
-                      <td className="py-2 px-space-sm">
-                        <div className="font-semibold text-on-surface leading-tight">
-                          {inv.customerName}
-                        </div>
-                        <div className={`font-shortcut-key text-shortcut-key ${inv.isGarage ? 'text-secondary font-semibold' : 'text-on-surface-variant'}`}>
-                          {inv.isGarage ? `Garage Account ${inv.garageAccountId}` : `${inv.vehicleNo || 'Retail'} • ${inv.bikeModel || 'Counter'}`}
-                        </div>
-                      </td>
-                      <td className="py-2 px-space-sm text-on-surface-variant">
-                        <span className="font-semibold text-on-surface">{inv.itemsCount} items</span>
-                        <span className="text-outline text-xs block truncate max-w-[180px]">
-                          {inv.itemsSummary}
-                        </span>
-                      </td>
-                      <td className="py-2 px-space-sm font-numeric-data text-numeric-data font-bold text-right text-on-surface">
-                        ₹{inv.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-2 px-space-sm">
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-shortcut-key text-shortcut-key">
-                          {inv.payMode === 'UPI (GPay)' && (
-                            <span className="material-symbols-outlined text-[13px] text-secondary">qr_code_2</span>
-                          )}
-                          {inv.payMode === 'Credit Ledger' && (
-                            <span className="material-symbols-outlined text-[13px] text-outline">menu_book</span>
-                          )}
-                          {inv.payMode === 'Cash' && (
-                            <span className="material-symbols-outlined text-[13px] text-on-tertiary-container">payments</span>
-                          )}
-                          {inv.payMode === 'NEFT Bank' && (
-                            <span className="material-symbols-outlined text-[13px] text-secondary">account_balance</span>
-                          )}
-                          {inv.payMode === 'Card POS' && (
-                            <span className="material-symbols-outlined text-[13px] text-secondary">credit_card</span>
-                          )}
-                          {inv.payMode}
-                        </span>
-                      </td>
-                      <td className="py-2 px-space-sm text-center">
-                        <span className={`px-1.5 py-0.5 rounded font-shortcut-key text-shortcut-key ${
-                          inv.taxType.includes('B2B')
-                            ? 'bg-surface-variant text-secondary font-bold'
-                            : 'bg-surface-container text-on-surface-variant'
-                        }`}>
-                          {inv.taxType}
-                        </span>
-                      </td>
-                      <td className="py-2 px-space-sm text-center">
-                        <span className={`inline-block px-1.5 py-0.5 rounded font-shortcut-key text-shortcut-key font-bold ${
-                          inv.status === 'PAID'
-                            ? 'bg-tertiary-fixed text-on-tertiary-fixed'
-                            : 'bg-error-container text-on-error-container'
-                        }`}>
-                          {inv.status}
-                        </span>
-                      </td>
-                      <td className="py-2 px-space-sm text-on-surface-variant font-shortcut-key text-shortcut-key">
-                        {inv.operator}
-                      </td>
-                      <td className="py-2 px-space-sm text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => onPrintInvoice(inv)}
-                            className="p-1 rounded hover:bg-surface-container text-on-surface-variant hover:text-secondary"
-                            title="Print GST Bill"
-                          >
-                            <span className="material-symbols-outlined text-[16px]">print</span>
-                          </button>
-                          <button
-                            onClick={() => onViewInvoice(inv)}
-                            className="p-1 rounded hover:bg-surface-container text-on-surface-variant"
-                            title="View Invoice Detail"
-                          >
-                            <span className="material-symbols-outlined text-[16px]">visibility</span>
-                          </button>
-                        </div>
+                  {filteredInvoices.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-8 text-center text-on-surface-variant font-body-sm italic">
+                        No sales invoices recorded yet. Start billing with F4 or "New POS Counter Bill".
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredInvoices.slice(0, 6).map((inv) => (
+                      <tr key={inv.id} className="hover:bg-surface-container-low transition-colors group">
+                        <td className="py-2 px-space-sm font-numeric-data text-numeric-data font-bold text-secondary">
+                          {inv.id}
+                        </td>
+                        <td className="py-2 px-space-sm">
+                          <div className="font-semibold text-on-surface leading-tight">
+                            {inv.customerName}
+                          </div>
+                          <div className={`font-shortcut-key text-shortcut-key ${inv.isGarage ? 'text-secondary font-semibold' : 'text-on-surface-variant'}`}>
+                            {inv.isGarage ? `Garage Account ${inv.garageAccountId}` : `${inv.vehicleNo || 'Retail'} • ${inv.bikeModel || 'Counter'}`}
+                          </div>
+                        </td>
+                        <td className="py-2 px-space-sm text-on-surface-variant">
+                          <span className="font-semibold text-on-surface">{inv.itemsCount || inv.items?.length || 0} items</span>
+                          <span className="text-outline text-xs block truncate max-w-[180px]">
+                            {inv.itemsSummary}
+                          </span>
+                        </td>
+                        <td className="py-2 px-space-sm font-numeric-data text-numeric-data font-bold text-right text-on-surface">
+                          ₹{(inv.totalAmount || inv.total || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="py-2 px-space-sm">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-shortcut-key text-shortcut-key">
+                            {inv.payMode === 'UPI (GPay)' && (
+                              <span className="material-symbols-outlined text-[13px] text-secondary">qr_code_2</span>
+                            )}
+                            {inv.payMode === 'Credit Ledger' && (
+                              <span className="material-symbols-outlined text-[13px] text-outline">menu_book</span>
+                            )}
+                            {inv.payMode === 'Cash' && (
+                              <span className="material-symbols-outlined text-[13px] text-on-tertiary-container">payments</span>
+                            )}
+                            {inv.payMode === 'NEFT Bank' && (
+                              <span className="material-symbols-outlined text-[13px] text-secondary">account_balance</span>
+                            )}
+                            {inv.payMode === 'Card POS' && (
+                              <span className="material-symbols-outlined text-[13px] text-secondary">credit_card</span>
+                            )}
+                            {inv.payMode}
+                          </span>
+                        </td>
+                        <td className="py-2 px-space-sm text-center">
+                          <span className={`px-1.5 py-0.5 rounded font-shortcut-key text-shortcut-key ${
+                            inv.taxType?.includes('B2B')
+                              ? 'bg-surface-variant text-secondary font-bold'
+                              : 'bg-surface-container text-on-surface-variant'
+                          }`}>
+                            {inv.taxType || 'B2C'}
+                          </span>
+                        </td>
+                        <td className="py-2 px-space-sm text-center">
+                          <span className={`inline-block px-1.5 py-0.5 rounded font-shortcut-key text-shortcut-key font-bold ${
+                            inv.status === 'PAID'
+                              ? 'bg-tertiary-fixed text-on-tertiary-fixed'
+                              : 'bg-error-container text-on-error-container'
+                          }`}>
+                            {inv.status}
+                          </span>
+                        </td>
+                        <td className="py-2 px-space-sm text-on-surface-variant font-shortcut-key text-shortcut-key">
+                          {inv.operator}
+                        </td>
+                        <td className="py-2 px-space-sm text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => onPrintInvoice(inv)}
+                              className="p-1 rounded hover:bg-surface-container text-on-surface-variant hover:text-secondary"
+                              title="Print GST Bill"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">print</span>
+                            </button>
+                            <button
+                              onClick={() => onViewInvoice(inv)}
+                              className="p-1 rounded hover:bg-surface-container text-on-surface-variant"
+                              title="View Invoice Detail"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">visibility</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -606,122 +617,49 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </h2>
               </div>
               <span className="px-1.5 py-0.5 rounded bg-error text-on-error font-shortcut-key text-shortcut-key font-bold">
-                18 Zero
+                {parts.filter((p) => p.currentStock === 0).length} Zero
               </span>
             </div>
 
             <div className="divide-y divide-surface-container-high overflow-y-auto max-h-[340px]">
-              {/* Alert 1 */}
-              <div className="p-space-sm hover:bg-surface-container-low transition-colors flex items-center justify-between gap-space-sm">
-                <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-table-cell text-table-cell font-semibold text-on-surface truncate">
-                    TVS Genuine Clutch Plate 1302
-                  </span>
-                  <span className="font-shortcut-key text-shortcut-key text-on-surface-variant truncate">
-                    Apache RTR 160 • TVS-OEM
-                  </span>
-                  <div className="flex items-center gap-space-sm mt-0.5 font-shortcut-key text-shortcut-key">
-                    <span className="text-error font-bold">Stock: 2</span>
-                    <span className="text-outline">Min: 15</span>
-                  </div>
+              {parts.filter((p) => p.currentStock <= p.minReorder).length === 0 ? (
+                <div className="p-6 text-center text-outline">
+                  <span className="material-symbols-outlined text-3xl text-secondary mb-1">check_circle</span>
+                  <p className="text-xs font-semibold text-on-surface">All Stock Levels Healthy</p>
+                  <p className="text-[11px] text-outline mt-0.5">No parts currently below reorder thresholds.</p>
                 </div>
-                <button
-                  onClick={() => onOrderPo('TVS Genuine Clutch Plate 1302')}
-                  className="px-space-sm py-1 bg-surface-container hover:bg-secondary hover:text-on-secondary text-on-surface font-shortcut-key text-shortcut-key rounded flex items-center gap-1 transition-colors flex-shrink-0"
-                >
-                  <span className="material-symbols-outlined text-[14px]">add_shopping_cart</span> PO
-                </button>
-              </div>
-
-              {/* Alert 2 (Zero Stock) */}
-              <div className="p-space-sm hover:bg-surface-container-low transition-colors flex items-center justify-between gap-space-sm bg-error-container/10">
-                <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-table-cell text-table-cell font-semibold text-error truncate">
-                    Bajaj Pulsar 150 Disc Brake Pad OEM
-                  </span>
-                  <span className="font-shortcut-key text-shortcut-key text-on-surface-variant truncate">
-                    Pulsar Twin Disc • BJ-9912
-                  </span>
-                  <div className="flex items-center gap-space-sm mt-0.5 font-shortcut-key text-shortcut-key">
-                    <span className="text-error font-bold uppercase bg-error/10 px-1 rounded">
-                      Out of Stock (0)
-                    </span>
-                    <span className="text-outline">Min: 20</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => onOrderPo('Bajaj Pulsar 150 Disc Brake Pad OEM')}
-                  className="px-space-sm py-1 bg-error text-on-error hover:bg-on-error-container font-shortcut-key text-shortcut-key rounded flex items-center gap-1 transition-colors flex-shrink-0"
-                >
-                  <span className="material-symbols-outlined text-[14px]">add_shopping_cart</span> Urgent PO
-                </button>
-              </div>
-
-              {/* Alert 3 */}
-              <div className="p-space-sm hover:bg-surface-container-low transition-colors flex items-center justify-between gap-space-sm">
-                <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-table-cell text-table-cell font-semibold text-on-surface truncate">
-                    Castrol Activ 4T 20W-40 1L Engine Oil
-                  </span>
-                  <span className="font-shortcut-key text-shortcut-key text-on-surface-variant truncate">
-                    Universal 4T Bike Lubricant
-                  </span>
-                  <div className="flex items-center gap-space-sm mt-0.5 font-shortcut-key text-shortcut-key">
-                    <span className="text-on-surface font-bold">Stock: 5</span>
-                    <span className="text-outline">Min: 30</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => onOrderPo('Castrol Activ 4T 20W-40 1L')}
-                  className="px-space-sm py-1 bg-surface-container hover:bg-secondary hover:text-on-secondary text-on-surface font-shortcut-key text-shortcut-key rounded flex items-center gap-1 transition-colors flex-shrink-0"
-                >
-                  <span className="material-symbols-outlined text-[14px]">add_shopping_cart</span> PO
-                </button>
-              </div>
-
-              {/* Alert 4 */}
-              <div className="p-space-sm hover:bg-surface-container-low transition-colors flex items-center justify-between gap-space-sm">
-                <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-table-cell text-table-cell font-semibold text-on-surface truncate">
-                    Hero Splendor Chain Sprocket Rolon
-                  </span>
-                  <span className="font-shortcut-key text-shortcut-key text-on-surface-variant truncate">
-                    Splendor / Passion Pro Heavy
-                  </span>
-                  <div className="flex items-center gap-space-sm mt-0.5 font-shortcut-key text-shortcut-key">
-                    <span className="text-on-surface font-bold">Stock: 4</span>
-                    <span className="text-outline">Min: 12</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => onOrderPo('Hero Splendor Chain Sprocket Rolon')}
-                  className="px-space-sm py-1 bg-surface-container hover:bg-secondary hover:text-on-secondary text-on-surface font-shortcut-key text-shortcut-key rounded flex items-center gap-1 transition-colors flex-shrink-0"
-                >
-                  <span className="material-symbols-outlined text-[14px]">add_shopping_cart</span> PO
-                </button>
-              </div>
-
-              {/* Alert 5 */}
-              <div className="p-space-sm hover:bg-surface-container-low transition-colors flex items-center justify-between gap-space-sm">
-                <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-table-cell text-table-cell font-semibold text-on-surface truncate">
-                    NGK CR8E Spark Plug High Performance
-                  </span>
-                  <span className="font-shortcut-key text-shortcut-key text-on-surface-variant truncate">
-                    Standard 10mm thread fit
-                  </span>
-                  <div className="flex items-center gap-space-sm mt-0.5 font-shortcut-key text-shortcut-key">
-                    <span className="text-on-surface font-bold">Stock: 8</span>
-                    <span className="text-outline">Min: 25</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => onOrderPo('NGK CR8E Spark Plug High Performance')}
-                  className="px-space-sm py-1 bg-surface-container hover:bg-secondary hover:text-on-secondary text-on-surface font-shortcut-key text-shortcut-key rounded flex items-center gap-1 transition-colors flex-shrink-0"
-                >
-                  <span className="material-symbols-outlined text-[14px]">add_shopping_cart</span> PO
-                </button>
-              </div>
+              ) : (
+                parts
+                  .filter((p) => p.currentStock <= p.minReorder)
+                  .slice(0, 5)
+                  .map((p) => (
+                    <div
+                      key={p.id}
+                      className="p-space-sm hover:bg-surface-container-low transition-colors flex items-center justify-between gap-space-sm"
+                    >
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <span className="font-table-cell text-table-cell font-semibold text-on-surface truncate">
+                          {p.name}
+                        </span>
+                        <span className="font-shortcut-key text-shortcut-key text-on-surface-variant truncate">
+                          {p.brand} • {p.sku || p.partNumber}
+                        </span>
+                        <div className="flex items-center gap-space-sm mt-0.5 font-shortcut-key text-shortcut-key">
+                          <span className={p.currentStock === 0 ? 'text-error font-bold' : 'text-on-surface font-bold'}>
+                            Stock: {p.currentStock}
+                          </span>
+                          <span className="text-outline">Min: {p.minReorder}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => onOrderPo(p.name)}
+                        className="px-space-sm py-1 bg-surface-container hover:bg-secondary hover:text-on-secondary text-on-surface font-shortcut-key text-shortcut-key rounded flex items-center gap-1 transition-colors flex-shrink-0"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">add_shopping_cart</span> PO
+                      </button>
+                    </div>
+                  ))
+              )}
             </div>
 
             <div className="p-space-xs bg-surface-container-low text-center">
@@ -729,7 +667,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={onFilterLowStock}
                 className="font-shortcut-key text-shortcut-key text-secondary font-semibold hover:underline"
               >
-                View All 127 Low Stock Spares →
+                View Low Stock Inventory →
               </button>
             </div>
           </div>
@@ -748,101 +686,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </span>
             </div>
             <div className="space-y-space-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-space-sm">
-                  <div className="w-6 h-6 rounded bg-surface-container flex items-center justify-center font-numeric-data text-numeric-data font-bold text-on-surface">
-                    1
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-table-cell text-table-cell font-semibold text-on-surface">
-                      Motul 3000 4T 10W30 (1L)
-                    </span>
-                    <span className="font-shortcut-key text-shortcut-key text-outline">
-                      Engine Oil • Fast Counter
-                    </span>
-                  </div>
+              {invoices.length === 0 ? (
+                <div className="p-6 text-center text-outline">
+                  <span className="material-symbols-outlined text-3xl text-outline mb-1">shopping_cart</span>
+                  <p className="text-xs font-semibold text-on-surface">No Sales Recorded Today</p>
+                  <p className="text-[11px] text-outline mt-0.5">Top performing spare parts will rank here in real time.</p>
                 </div>
-                <div className="text-right">
-                  <span className="font-numeric-data text-numeric-data font-bold text-secondary">
-                    38 units
-                  </span>
-                  <span className="block font-shortcut-key text-shortcut-key text-on-surface-variant">
-                    ₹14,820
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-space-sm">
-                  <div className="w-6 h-6 rounded bg-surface-container flex items-center justify-center font-numeric-data text-numeric-data font-bold text-on-surface">
-                    2
+              ) : (
+                invoices.slice(0, 4).map((inv, idx) => (
+                  <div key={inv.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-space-sm">
+                      <div className="w-6 h-6 rounded bg-surface-container flex items-center justify-center font-numeric-data text-numeric-data font-bold text-on-surface">
+                        {idx + 1}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-table-cell text-table-cell font-semibold text-on-surface">
+                          {inv.customerName}
+                        </span>
+                        <span className="font-shortcut-key text-shortcut-key text-outline">
+                          {inv.items.length} items • {inv.id}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-numeric-data text-numeric-data font-bold text-secondary">
+                        {inv.items.length} units
+                      </span>
+                      <span className="block font-shortcut-key text-shortcut-key text-on-surface-variant">
+                        ₹{inv.total.toLocaleString('en-IN')}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-table-cell text-table-cell font-semibold text-on-surface">
-                      TVS Apache Front Disc Pad
-                    </span>
-                    <span className="font-shortcut-key text-shortcut-key text-outline">
-                      Braking • TVS Genuine
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="font-numeric-data text-numeric-data font-bold text-secondary">
-                    22 units
-                  </span>
-                  <span className="block font-shortcut-key text-shortcut-key text-on-surface-variant">
-                    ₹7,260
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-space-sm">
-                  <div className="w-6 h-6 rounded bg-surface-container flex items-center justify-center font-numeric-data text-numeric-data font-bold text-on-surface">
-                    3
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-table-cell text-table-cell font-semibold text-on-surface">
-                      Pulsar 150 Throttle Cable OEM
-                    </span>
-                    <span className="font-shortcut-key text-shortcut-key text-outline">
-                      Cables • Bajaj OEM
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="font-numeric-data text-numeric-data font-bold text-secondary">
-                    19 units
-                  </span>
-                  <span className="block font-shortcut-key text-shortcut-key text-on-surface-variant">
-                    ₹2,850
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-space-sm">
-                  <div className="w-6 h-6 rounded bg-surface-container flex items-center justify-center font-numeric-data text-numeric-data font-bold text-on-surface">
-                    4
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-table-cell text-table-cell font-semibold text-on-surface">
-                      Splendor Brake Shoe Endurance
-                    </span>
-                    <span className="font-shortcut-key text-shortcut-key text-outline">
-                      Drum Brake • Endurance OEM
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="font-numeric-data text-numeric-data font-bold text-secondary">
-                    17 units
-                  </span>
-                  <span className="block font-shortcut-key text-shortcut-key text-on-surface-variant">
-                    ₹3,910
-                  </span>
-                </div>
-              </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -858,7 +734,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </span>
               </div>
               <span className="px-1.5 py-0.5 rounded bg-surface-container-high/20 font-shortcut-key text-shortcut-key text-tertiary-fixed font-semibold">
-                {tenderData.shiftStatus}
+                {(tenderData as any).shiftStatus || 'Shift Active'}
               </span>
             </div>
             <div className="space-y-space-xs divide-y divide-surface-container-high/10 font-body-sm text-body-sm">
@@ -867,7 +743,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <span className="material-symbols-outlined text-[14px]">point_of_sale</span> Cash in Register Drawer:
                 </span>
                 <span className="font-numeric-data text-numeric-data font-bold text-surface-bright">
-                  ₹{tenderData.cashInDrawer.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ₹{(tenderData.cash ?? (tenderData as any).cashInDrawer ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
               </div>
               <div className="flex justify-between items-center pt-1">
@@ -875,7 +751,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <span className="material-symbols-outlined text-[14px]">qr_code_scanner</span> UPI / QR Digital Collections:
                 </span>
                 <span className="font-numeric-data text-numeric-data font-bold text-secondary-fixed">
-                  ₹{tenderData.upiCollections.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ₹{(tenderData.upi ?? (tenderData as any).upiCollections ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
               </div>
               <div className="flex justify-between items-center pt-1">
@@ -883,7 +759,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <span className="material-symbols-outlined text-[14px]">credit_card</span> Card POS Swipe Terminal:
                 </span>
                 <span className="font-numeric-data text-numeric-data font-bold text-surface-bright">
-                  ₹{tenderData.cardPosTerminal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ₹{(tenderData.card ?? (tenderData as any).cardPosTerminal ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
               </div>
               <div className="flex justify-between items-center pt-1">
@@ -891,7 +767,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <span className="material-symbols-outlined text-[14px]">swap_horiz</span> Direct Bank NEFT Inward:
                 </span>
                 <span className="font-numeric-data text-numeric-data font-bold text-surface-bright">
-                  ₹{tenderData.directNeftBank.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ₹{((tenderData as any).directNeftBank ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
@@ -900,7 +776,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Total Counter Realized:
               </span>
               <span className="font-numeric-lg text-numeric-lg text-tertiary-fixed font-bold">
-                ₹{tenderData.totalRealized.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                ₹{(tenderData.total ?? (tenderData as any).totalRealized ?? (
+                  (tenderData.cash || 0) + (tenderData.upi || 0) + (tenderData.card || 0)
+                )).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>

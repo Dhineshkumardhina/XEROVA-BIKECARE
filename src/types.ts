@@ -173,14 +173,24 @@ export interface HeldBill {
 }
 
 export interface SalesReturnItem {
+  id?: string;
   partId: string;
-  sku: string;
-  name: string;
-  originalQty: number;
-  soldRate: number;
-  returnQty: number;
-  gstRate: number;
-  refundAmount: number;
+  sku?: string;
+  partNumber?: string;
+  name?: string;
+  itemName?: string;
+  originalQty?: number;
+  soldQuantity?: number;
+  previouslyReturnedQuantity?: number;
+  soldRate?: number;
+  rate?: number;
+  returnQty?: number;
+  returnQuantity?: number;
+  gstRate?: number;
+  taxRate?: number;
+  refundAmount?: number;
+  amount?: number;
+  restocked?: boolean;
 }
 
 export interface InvoiceLineItem {
@@ -942,3 +952,325 @@ export interface SystemStatusItem {
   details: string;
   lastChecked: string;
 }
+
+// ==========================================
+// CRM & CUSTOMER RELATIONSHIP MODULE TYPES
+// ==========================================
+
+export type CustomerType = 'Retail' | 'Wholesale' | 'Mechanic' | 'Workshop' | 'Dealer' | 'Fleet';
+export type CustomerStatus = 'Active' | 'Inactive' | 'Blocked';
+
+export interface VehiclePartHistoryItem {
+  id: string;
+  date: string;
+  invoiceNo: string;
+  partName: string;
+  sku: string;
+  category: string;
+  qty: number;
+  rate: number;
+  amount: number;
+  isService?: boolean;
+}
+
+export interface CustomerVehicleRecord {
+  id: string;
+  regNo: string;
+  manufacturer: string;
+  model: string;
+  variant?: string;
+  year?: number;
+  notes?: string;
+  history: VehiclePartHistoryItem[];
+}
+
+export interface CustomerQuotation {
+  id: string;
+  date: string;
+  expiryDate: string;
+  itemsCount: number;
+  totalAmount: number;
+  status: 'Draft' | 'Sent' | 'Approved' | 'Converted' | 'Expired';
+  bikeModel?: string;
+}
+
+export interface CustomerSalesReturn {
+  id: string;
+  date: string;
+  invoiceRef: string;
+  itemsCount: number;
+  creditAmount: number;
+  reason: string;
+  status: 'Approved' | 'Adjusted' | 'Refunded';
+}
+
+export interface CustomerProfileData {
+  id: string;
+  name: string;
+  mobile: string;
+  email?: string;
+  customerType: CustomerType;
+  gstin?: string;
+  pan?: string;
+  address: string;
+  city: string;
+  state?: string;
+  pincode?: string;
+  totalSales: number;
+  outstanding: number;
+  creditLimit: number;
+  loyaltyPoints: number;
+  totalPurchasesCount: number;
+  lastPurchaseDate: string;
+  avgBillValue: number;
+  status: CustomerStatus;
+  loyaltyTier?: 'Silver' | 'Gold' | 'Platinum' | 'VIP';
+  loyaltyCardNumber?: string;
+  referralCode?: string;
+  referredByMechanicId?: string;
+  referredByMechanicName?: string;
+  segmentTags: string[];
+  vehicles: CustomerVehicleRecord[];
+  createdDate: string;
+}
+
+export interface MechanicRecord {
+  id: string;
+  name: string;
+  mobile: string;
+  workshopName: string;
+  location: string;
+  customerCode: string;
+  loyaltyPoints: number;
+  totalReferredSales: number;
+  referralCount: number;
+  status: 'Active' | 'Inactive';
+  commissionRatePercent: number;
+  joinedDate: string;
+  upiId?: string;
+  pendingRewardAmount?: number;
+}
+
+export interface LoyaltyRuleConfig {
+  pointsPerRupeesSpent: number; // e.g., 1 point per 100 spent
+  pointsPerReferral: number;
+  bonusPointsNewCustomer: number;
+  redemptionValuePerPoint: number; // e.g., 1 pt = 1 INR
+  minRedemptionPoints: number;
+  expiryPeriodDays: number;
+  mechanicBonusPercent: number;
+}
+
+export type LoyaltyTransactionType = 'Purchase' | 'Referral' | 'Bonus' | 'Redemption' | 'Adjustment' | 'Expiry';
+
+export interface LoyaltyTransactionRecord {
+  id: string;
+  customerId: string;
+  customerName: string;
+  date: string;
+  time: string;
+  reference: string;
+  type: LoyaltyTransactionType;
+  pointsDelta: number;
+  balanceAfter: number;
+  notes?: string;
+  auditedBy: string;
+}
+
+export type ReferralStatus = 'Pending' | 'Successful' | 'Rewarded' | 'Cancelled';
+
+export interface ReferralRecord {
+  id: string;
+  referrerId: string;
+  referrerName: string;
+  referrerType: 'Mechanic' | 'Customer';
+  referrerMobile?: string;
+  referredCustomerId: string;
+  referredCustomerName: string;
+  date: string;
+  invoiceNo: string;
+  salesAmount: number;
+  rewardPoints: number;
+  rewardCash: number;
+  status: ReferralStatus;
+  notes?: string;
+}
+
+export type MessagingChannel = 'WhatsApp' | 'SMS' | 'Both';
+export type MessageDeliveryStatus = 'Delivered' | 'Sent' | 'Failed' | 'Pending';
+
+export interface MessageTemplate {
+  id: string;
+  name: string;
+  channel: MessagingChannel;
+  category: 'Invoice' | 'Payment Reminder' | 'Loyalty' | 'Marketing' | 'Welcome' | 'Service';
+  content: string;
+  variables: string[];
+}
+
+export interface CommunicationLogRecord {
+  id: string;
+  customerId: string;
+  customerName: string;
+  mobile: string;
+  date: string;
+  time: string;
+  channel: 'WhatsApp' | 'SMS';
+  message: string;
+  templateId?: string;
+  status: MessageDeliveryStatus;
+  user: string;
+  category: string;
+  referenceDoc?: string;
+}
+
+export interface OutstandingReminderRecord {
+  customerId: string;
+  customerName: string;
+  mobile: string;
+  customerType: CustomerType;
+  invoiceCount: number;
+  outstanding: number;
+  oldestDueDays: number;
+  oldestInvoiceDate: string;
+  lastReminderDate?: string;
+  lastReminderChannel?: 'WhatsApp' | 'SMS';
+  reminderStatus: 'Not Sent' | 'Sent' | 'Delivered' | 'Paid' | 'Escalated';
+  lastActionNote?: string;
+}
+
+export interface CustomerSegment {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  criteria: string;
+  customerCount: number;
+  totalSales: number;
+  isSystem: boolean;
+}
+
+// ==========================================
+// QUOTATIONS MODULE TYPES
+// ==========================================
+
+export type QuotationStatus = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED';
+
+export interface QuotationItem {
+  id: string;
+  partId?: string;
+  partNumber: string; // SKU
+  itemName: string;
+  vehicle?: string;
+  quantity: number;
+  rate: number; // Unit Price
+  discount: number; // Discount Amount
+  taxRate: number; // GST % (e.g. 18, 28)
+  cgst?: number;
+  sgst?: number;
+  igst?: number;
+  amount: number; // Total Line Amount
+}
+
+export interface Quotation {
+  id: string;
+  quotationNumber: string;
+  date: string;
+  validUntil: string;
+  validDays?: number;
+  customerId?: string;
+  customerName: string;
+  customerMobile?: string;
+  customerGstin?: string;
+  vehicleNumber?: string;
+  vehicleModel?: string;
+  remarks?: string;
+  termsConditions?: string;
+  items: QuotationItem[];
+  subtotal: number;
+  discountTotal: number;
+  taxableAmount: number;
+  cgst: number;
+  sgst: number;
+  igst: number;
+  taxAmount: number;
+  fittingCharges: number;
+  roundOff: number;
+  totalAmount: number;
+  status: QuotationStatus;
+  convertedInvoiceNo?: string;
+  convertedAt?: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+// ==========================================
+// SALES RETURNS MODULE TYPES
+// ==========================================
+
+export type SalesReturnMethod = 'Cash Refund' | 'UPI Refund' | 'Bank Refund' | 'Customer Credit';
+
+export interface SalesReturnRecord {
+  id: string;
+  creditNoteNumber: string;
+  date: string;
+  saleId: string;
+  invoiceNumber: string;
+  customerId?: string;
+  customerName: string;
+  customerMobile?: string;
+  items: SalesReturnItem[];
+  refundAmount: number;
+  taxAmount?: number;
+  refundMethod: SalesReturnMethod;
+  reason: string;
+  notes?: string;
+  restocked: boolean;
+  status: 'COMPLETED' | 'APPROVED' | 'VOID';
+  createdBy: string;
+  createdAt: string;
+}
+
+// ==========================================
+// PURCHASE RETURNS MODULE TYPES
+// ==========================================
+
+export type PurchaseReturnMethod = 'Supplier Credit' | 'Supplier Refund';
+
+export interface PurchaseReturnItem {
+  id: string;
+  partId: string;
+  partNumber: string;
+  itemName: string;
+  purchasedQuantity: number;
+  previouslyReturnedQuantity: number;
+  returnQuantity: number;
+  unitPrice: number;
+  taxRate: number;
+  amount: number;
+  defectNote?: string;
+}
+
+export interface PurchaseReturnRecord {
+  id: string;
+  debitNoteNumber: string;
+  date: string;
+  purchaseId: string;
+  poNumber: string;
+  supplierInvoiceNo?: string;
+  supplierId: string;
+  supplierName: string;
+  supplierGstin?: string;
+  items: PurchaseReturnItem[];
+  totalAmount: number;
+  taxAmount?: number;
+  returnMethod: PurchaseReturnMethod;
+  reason: string;
+  notes?: string;
+  status: 'COMPLETED' | 'APPROVED' | 'VOID';
+  createdBy: string;
+  createdAt: string;
+}
+
+

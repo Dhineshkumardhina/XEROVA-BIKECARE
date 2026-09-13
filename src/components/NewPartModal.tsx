@@ -16,19 +16,19 @@ export const NewPartModal: React.FC<NewPartModalProps> = ({
 
   const [sku, setSku] = useState(`SKU-${Math.floor(1000 + Math.random() * 9000)}`);
   const [name, setName] = useState('');
-  const [brand, setBrand] = useState('Bajaj');
+  const [brand, setBrand] = useState('');
   const [oemCode, setOemCode] = useState('');
-  const [category, setCategory] = useState('Clutch & Transmission');
-  const [hsn, setHsn] = useState('87141090');
-  const [rackBin, setRackBin] = useState('B-01-A1');
-  const [purchasePrice, setPurchasePrice] = useState(450);
-  const [wholesalePrice, setWholesalePrice] = useState(550);
-  const [mrp, setMrp] = useState(690);
-  const [counterPrice, setCounterPrice] = useState(650);
-  const [currentStock, setCurrentStock] = useState(15);
+  const [category, setCategory] = useState('');
+  const [hsn, setHsn] = useState('8714');
+  const [rackBin, setRackBin] = useState('');
+  const [purchasePrice, setPurchasePrice] = useState(0);
+  const [wholesalePrice, setWholesalePrice] = useState(0);
+  const [mrp, setMrp] = useState(0);
+  const [counterPrice, setCounterPrice] = useState(0);
+  const [currentStock, setCurrentStock] = useState(0);
   const [minReorder, setMinReorder] = useState(5);
   const [gstRate, setGstRate] = useState(18);
-  const [vehicles, setVehicles] = useState('Pulsar 150, Apache RTR');
+  const [vehicles, setVehicles] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
