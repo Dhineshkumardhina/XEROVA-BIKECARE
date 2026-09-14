@@ -112,14 +112,24 @@ export class StockService {
         }
       }
 
-      const currentQty = Number(stock?.quantity || 0);
+      let currentQty = Number(stock?.quantity || 0);
       let newQty = currentQty;
 
-      // 3. Concurrency-Safe Stock Calculation
+      // 3. Concurrency-Safe Stock Calculation with Row-Level Locking
       if (direction === StockDirection.IN) {
         newQty = currentQty + quantity;
       } else {
         // Outbound movement (SALE, PURCHASE_RETURN, OUTWARD_TRANSFER, LOSS)
+        // Pessimistic Row Lock to guarantee race-condition safety under high concurrency
+        if (stock?.id) {
+          const lockedRows: any = await tx.$queryRawUnsafe(
+            `SELECT id, quantity FROM "Stock" WHERE id = '${stock.id}' FOR UPDATE`
+          );
+          if (lockedRows && lockedRows.length > 0) {
+            currentQty = Number(lockedRows[0].quantity);
+          }
+        }
+
         if (currentQty < quantity) {
           throw {
             statusCode: 400,

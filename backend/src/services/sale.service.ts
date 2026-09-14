@@ -278,14 +278,105 @@ export class SaleService {
           });
         }
 
-        // Update Customer Outstanding Receivable if Credit or Unpaid
-        if (input.customerId && unpaidReceivable > 0) {
-          await tx.customer.update({
-            where: { id: input.customerId },
-            data: {
-              outstanding: {
-                increment: unpaidReceivable
+        // Update Customer Outstanding Receivable & Ledger if Customer present
+        if (input.customerId) {
+          if (unpaidReceivable > 0) {
+            await tx.customer.update({
+              where: { id: input.customerId },
+              data: {
+                outstanding: {
+                  increment: unpaidReceivable
+                }
               }
+            });
+          }
+
+          const customerRec = await tx.customer.findUnique({ where: { id: input.customerId } });
+          if (customerRec) {
+            let debtorAccount = await tx.ledgerAccount.findFirst({
+              where: { name: `Customer - ${customerRec.name}` }
+            });
+            const currBal = Number(customerRec.outstanding);
+            if (!debtorAccount) {
+              debtorAccount = await tx.ledgerAccount.create({
+                data: {
+                  accountCode: `ACC-CUST-${customerRec.id.slice(0, 8)}`,
+                  name: `Customer - ${customerRec.name}`,
+                  group: 'Sundry Debtors',
+                  openingBalance: 0,
+                  currentBalance: currBal
+                }
+              });
+            } else {
+              await tx.ledgerAccount.update({
+                where: { id: debtorAccount.id },
+                data: { currentBalance: currBal }
+              });
+            }
+
+            // Debit invoice amount
+            await tx.ledgerEntry.create({
+              data: {
+                accountId: debtorAccount.id,
+                date: sale.invoiceDate,
+                particulars: `Sales Invoice (${invoiceNumber})`,
+                voucherType: 'Sales Invoice',
+                voucherNo: invoiceNumber,
+                debit: grandTotal,
+                credit: 0,
+                balanceAfter: currBal
+              }
+            });
+
+            // If paid at POS, credit paid amount
+            if (totalPaid > 0) {
+              await tx.ledgerEntry.create({
+                data: {
+                  accountId: debtorAccount.id,
+                  date: sale.invoiceDate,
+                  particulars: `POS Payment Receipt (${invoiceNumber})`,
+                  voucherType: 'Receipt',
+                  voucherNo: `RCP-${invoiceNumber}`,
+                  debit: 0,
+                  credit: totalPaid,
+                  balanceAfter: currBal
+                }
+              });
+            }
+          }
+        }
+
+        // Bank / Cash Transaction if paid
+        if (totalPaid > 0) {
+          let bankAccount = await tx.bankAccount.findFirst();
+          if (!bankAccount) {
+            bankAccount = await tx.bankAccount.create({
+              data: {
+                bankName: 'Primary Operating Account',
+                accountNumber: 'ACC-001002003',
+                ifscCode: 'HDFC0001234',
+                branch: 'Central Hub',
+                accountType: 'Current',
+                balance: 50000
+              }
+            });
+          }
+          const newBankBalance = Number(bankAccount.balance) + totalPaid;
+          await tx.bankAccount.update({
+            where: { id: bankAccount.id },
+            data: { balance: newBankBalance }
+          });
+          await tx.bankTransaction.create({
+            data: {
+              bankAccountId: bankAccount.id,
+              date: sale.invoiceDate,
+              type: 'DEPOSIT',
+              reference: invoiceNumber,
+              debit: 0,
+              credit: totalPaid,
+              balanceAfter: newBankBalance,
+              party: sale.customerName,
+              notes: `POS collection for ${invoiceNumber}`
             }
           });
         }
@@ -618,8 +709,8 @@ export class SaleService {
         }
       }
 
-      // 3. Adjust Customer Outstanding if registered
-      if (sale.customerId && Number(sale.paidAmount) < Number(sale.totalAmount)) {
+      // 3. Adjust Customer Outstanding & Ledger
+      if (sale.customerId) {
         await tx.customer.update({
           where: { id: sale.customerId },
           data: {
@@ -628,6 +719,30 @@ export class SaleService {
             }
           }
         });
+
+        const debtorAccount = await tx.ledgerAccount.findFirst({
+          where: { name: `Customer - ${sale.customerName}` }
+        });
+        if (debtorAccount) {
+          const updatedCust = await tx.customer.findUnique({ where: { id: sale.customerId } });
+          const currBal = Number(updatedCust?.outstanding || 0);
+          await tx.ledgerAccount.update({
+            where: { id: debtorAccount.id },
+            data: { currentBalance: currBal }
+          });
+          await tx.ledgerEntry.create({
+            data: {
+              accountId: debtorAccount.id,
+              date: saleReturn.returnDate,
+              particulars: `Sales Return Credit Note (${creditNoteNumber}) - Reason: ${input.reason}`,
+              voucherType: 'Credit Note',
+              voucherNo: creditNoteNumber,
+              debit: 0,
+              credit: refundTotal,
+              balanceAfter: currBal
+            }
+          });
+        }
       }
 
       // 4. Record GST Credit Note Transaction

@@ -237,7 +237,7 @@ export class PurchaseService {
         }
       }
 
-      // 7. Update Supplier Payable Balance
+      // 7. Update Supplier Payable & Ledger Balance
       if (remainingPayable > 0) {
         await tx.supplier.update({
           where: { id: supplier.id },
@@ -248,6 +248,40 @@ export class PurchaseService {
           }
         });
       }
+
+      let creditorAccount = await tx.ledgerAccount.findFirst({
+        where: { name: `Supplier - ${supplier.name}` }
+      });
+      const currPayable = Number(supplier.outstanding) + remainingPayable;
+      if (!creditorAccount) {
+        creditorAccount = await tx.ledgerAccount.create({
+          data: {
+            accountCode: `ACC-SUP-${supplier.id.slice(0, 8)}`,
+            name: `Supplier - ${supplier.name}`,
+            group: 'Sundry Creditors',
+            openingBalance: supplier.openingBalance || 0,
+            currentBalance: currPayable
+          }
+        });
+      } else {
+        await tx.ledgerAccount.update({
+          where: { id: creditorAccount.id },
+          data: { currentBalance: currPayable }
+        });
+      }
+
+      await tx.ledgerEntry.create({
+        data: {
+          accountId: creditorAccount.id,
+          date: purchase.invoiceDate,
+          particulars: `Purchase Bill (${poNumber})`,
+          voucherType: 'Purchase Bill',
+          voucherNo: poNumber,
+          debit: 0,
+          credit: grandTotal,
+          balanceAfter: currPayable
+        }
+      });
 
       // 8. Process Payments if paidAmount > 0
       if (paidAmount > 0) {
@@ -261,9 +295,10 @@ export class PurchaseService {
           }
         });
 
+        const paymentVoucherNo = `PV-${Date.now().toString().slice(-6)}`;
         await tx.paymentVoucher.create({
           data: {
-            paymentNo: `PV-${Date.now().toString().slice(-6)}`,
+            paymentNo: paymentVoucherNo,
             supplierId: supplier.id,
             createdById: actor?.userId || null,
             date: new Date(),
@@ -273,6 +308,42 @@ export class PurchaseService {
             remarks: `Payment for Purchase ${poNumber}`
           }
         });
+
+        await tx.ledgerEntry.create({
+          data: {
+            accountId: creditorAccount.id,
+            date: purchase.invoiceDate,
+            particulars: `Purchase Advance Payment (${poNumber})`,
+            voucherType: 'Payment',
+            voucherNo: paymentVoucherNo,
+            debit: paidAmount,
+            credit: 0,
+            balanceAfter: currPayable
+          }
+        });
+
+        // Bank / Cash Transaction
+        let bankAccount = await tx.bankAccount.findFirst();
+        if (bankAccount) {
+          const newBankBalance = Number(bankAccount.balance) - paidAmount;
+          await tx.bankAccount.update({
+            where: { id: bankAccount.id },
+            data: { balance: newBankBalance }
+          });
+          await tx.bankTransaction.create({
+            data: {
+              bankAccountId: bankAccount.id,
+              date: purchase.invoiceDate,
+              type: 'WITHDRAWAL',
+              reference: poNumber,
+              debit: paidAmount,
+              credit: 0,
+              balanceAfter: newBankBalance,
+              party: supplier.name,
+              notes: `Payout for Purchase ${poNumber}`
+            }
+          });
+        }
       }
 
       // 9. Record GST ITC Transaction Data
@@ -610,7 +681,7 @@ export class PurchaseService {
         );
       }
 
-      // 3. Reduce Supplier Payable Balance
+      // 3. Reduce Supplier Payable & Ledger Balance
       await tx.supplier.update({
         where: { id: purchase.supplierId },
         data: {
@@ -619,6 +690,30 @@ export class PurchaseService {
           }
         }
       });
+
+      const creditorAccount = await tx.ledgerAccount.findFirst({
+        where: { name: `Supplier - ${purchase.supplier.name}` }
+      });
+      if (creditorAccount) {
+        const updatedSupp = await tx.supplier.findUnique({ where: { id: purchase.supplierId } });
+        const remainingPayable = Number(updatedSupp?.outstanding || 0);
+        await tx.ledgerAccount.update({
+          where: { id: creditorAccount.id },
+          data: { currentBalance: remainingPayable }
+        });
+        await tx.ledgerEntry.create({
+          data: {
+            accountId: creditorAccount.id,
+            date: purchaseReturn.returnDate,
+            particulars: `Purchase Return Debit Note (${debitNoteNumber}) - Reason: ${input.reason}`,
+            voucherType: 'Debit Note',
+            voucherNo: debitNoteNumber,
+            debit: returnTotal,
+            credit: 0,
+            balanceAfter: remainingPayable
+          }
+        });
+      }
 
       // 4. Record GST Debit Note Transaction
       const returnPeriod = `${(new Date().getMonth() + 1).toString().padStart(2, '0')}-${new Date().getFullYear()}`;

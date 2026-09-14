@@ -1,0 +1,241 @@
+{
+  "chainsTested": 26,
+  "chainsPassed": 26,
+  "chainsFailed": 0,
+  "rollbacksTested": 7,
+  "rollbacksPassed": 7,
+  "reconciliationsTested": 9,
+  "reconciliationsPassed": 9,
+  "details": [
+    {
+      "chain": "PURCHASE",
+      "step": "Purchase Header Created",
+      "status": "PASS",
+      "details": "PO: TX-PO-2975"
+    },
+    {
+      "chain": "PURCHASE",
+      "step": "Stock Increased",
+      "status": "PASS",
+      "details": "20 -> 30"
+    },
+    {
+      "chain": "PURCHASE",
+      "step": "Stock Movement Recorded",
+      "status": "PASS",
+      "details": "1 Movement logged"
+    },
+    {
+      "chain": "PURCHASE",
+      "step": "GST Input ITC Logged",
+      "status": "PASS",
+      "details": "ITC recorded for ₹900 tax"
+    },
+    {
+      "chain": "PURCHASE",
+      "step": "Bank Balance Deducted",
+      "status": "PASS",
+      "details": "₹283000 -> ₹277100"
+    },
+    {
+      "chain": "PURCHASE",
+      "step": "Audit Trail Created",
+      "status": "PASS",
+      "details": ""
+    },
+    {
+      "chain": "SALE",
+      "step": "Sale Header Created",
+      "status": "PASS",
+      "details": "Invoice: TX-INV-2975"
+    },
+    {
+      "chain": "SALE",
+      "step": "Stock Decreased",
+      "status": "PASS",
+      "details": "30 -> 26"
+    },
+    {
+      "chain": "SALE",
+      "step": "Customer Receivable Updated",
+      "status": "PASS",
+      "details": "Outstanding: ₹1776"
+    },
+    {
+      "chain": "SALE",
+      "step": "Bank Cash Inflow Logged",
+      "status": "PASS",
+      "details": "₹277100 -> ₹279100"
+    },
+    {
+      "chain": "SALES_RETURN",
+      "step": "Quantity Exceeding Invoice Rejected",
+      "status": "PASS",
+      "details": ""
+    },
+    {
+      "chain": "SALES_RETURN",
+      "step": "Stock Restored (+1 pc)",
+      "status": "PASS",
+      "details": "26 -> 27"
+    },
+    {
+      "chain": "SALES_RETURN",
+      "step": "Customer Receivable Credited",
+      "status": "PASS",
+      "details": "₹1776 -> ₹832"
+    },
+    {
+      "chain": "PURCHASE_RETURN",
+      "step": "Stock Decreased (-2 pcs)",
+      "status": "PASS",
+      "details": "27 -> 25"
+    },
+    {
+      "chain": "PURCHASE_RETURN",
+      "step": "Debit Note Ledger Recorded",
+      "status": "PASS",
+      "details": "DN: TX-DN-2975"
+    },
+    {
+      "chain": "RECEIPT",
+      "step": "Customer Outstanding Fully Cleared",
+      "status": "PASS",
+      "details": "₹832 -> ₹0"
+    },
+    {
+      "chain": "RECEIPT",
+      "step": "Bank Account Inflow Verified",
+      "status": "PASS",
+      "details": "+₹832"
+    },
+    {
+      "chain": "PAYMENT",
+      "step": "Supplier Payment Recorded & Bank Debited",
+      "status": "PASS",
+      "details": "-₹1500"
+    },
+    {
+      "chain": "ATOMIC_ROLLBACK",
+      "step": "Mid-Transaction Crash Rollback",
+      "status": "PASS",
+      "details": "Zero phantom stock movements or deducted inventory"
+    },
+    {
+      "chain": "ATOMIC_ROLLBACK",
+      "step": "Insufficient Stock Blocked (Req: 100, Avail: 25)",
+      "status": "PASS",
+      "details": ""
+    },
+    {
+      "chain": "ATOMIC_ROLLBACK",
+      "step": "Invalid Quantity (Negative / Zero) Blocked",
+      "status": "PASS",
+      "details": ""
+    },
+    {
+      "chain": "ATOMIC_ROLLBACK",
+      "step": "Duplicate Invoice Unique Constraint Enforced",
+      "status": "PASS",
+      "details": ""
+    },
+    {
+      "chain": "ATOMIC_ROLLBACK",
+      "step": "Duplicate Vendor Invoice Detected & Blocked",
+      "status": "PASS",
+      "details": ""
+    },
+    {
+      "chain": "ATOMIC_ROLLBACK",
+      "step": "Purchase Return Exceeding Purchased Qty Blocked",
+      "status": "PASS",
+      "details": ""
+    },
+    {
+      "chain": "ATOMIC_ROLLBACK",
+      "step": "Invalid Payment Allocation (<= 0) Blocked",
+      "status": "PASS",
+      "details": ""
+    },
+    {
+      "chain": "CONCURRENCY",
+      "step": "Race Condition Prevention (Stock never drops below zero)",
+      "status": "PASS",
+      "details": "Successful: 2, Rejected: 3, Final Stock: 0"
+    }
+  ],
+  "reconciliationReport": [
+    {
+      "category": "Item Stock Derived vs Live",
+      "expected": 25,
+      "actual": 25,
+      "difference": 0,
+      "status": "RECONCILED",
+      "notes": "Derived from StockMovement history"
+    },
+    {
+      "category": "Customer Outstanding Balance",
+      "expected": 0,
+      "actual": 0,
+      "difference": 0,
+      "status": "RECONCILED",
+      "notes": "Expected fully cleared (0.00)"
+    },
+    {
+      "category": "Customer Ledger Net (Debits - Credits)",
+      "expected": 0,
+      "actual": 0,
+      "difference": 0,
+      "status": "RECONCILED",
+      "notes": "Total Debits: ₹3776, Credits: ₹3776"
+    },
+    {
+      "category": "Net GST Output Liability",
+      "expected": 432,
+      "actual": 432,
+      "difference": 0,
+      "status": "RECONCILED",
+      "notes": "Gross Output ₹576 minus Credit Note ₹144"
+    },
+    {
+      "category": "Net GST Inward ITC Available",
+      "expected": 720,
+      "actual": 720,
+      "difference": 0,
+      "status": "RECONCILED",
+      "notes": "Gross ITC ₹900 minus Debit Note Reversal ₹180"
+    },
+    {
+      "category": "Supplier Outstanding & Ledger Balance",
+      "expected": -2680,
+      "actual": -2680,
+      "difference": 0,
+      "status": "RECONCILED",
+      "notes": "Debits: ₹8580, Credits: ₹5900"
+    },
+    {
+      "category": "Bank Ledger Deposits vs Withdrawals Balance",
+      "expected": 278432,
+      "actual": 278432,
+      "difference": 0,
+      "status": "RECONCILED",
+      "notes": "Deposits: ₹5664, Withdrawals: ₹14800"
+    },
+    {
+      "category": "Sales Report Taxable + Tax vs Invoiced Total",
+      "expected": 3776,
+      "actual": 3776,
+      "difference": 0,
+      "status": "RECONCILED",
+      "notes": "Taxable: ₹3200, Tax: ₹576"
+    },
+    {
+      "category": "Purchase Report Taxable + Tax vs Bill Total",
+      "expected": 5900,
+      "actual": 5900,
+      "difference": 0,
+      "status": "RECONCILED",
+      "notes": "Taxable: ₹5000, Tax: ₹900"
+    }
+  ]
+}

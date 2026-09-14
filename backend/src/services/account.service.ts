@@ -123,7 +123,40 @@ export class AccountService {
         }
       });
 
-      // 6. Audit Log
+      // 6. Bank / Cash Account Update
+      let bankAccount = await tx.bankAccount.findFirst();
+      if (!bankAccount) {
+        bankAccount = await tx.bankAccount.create({
+          data: {
+            bankName: 'Primary Operating Account',
+            accountNumber: 'ACC-001002003',
+            ifscCode: 'HDFC0001234',
+            branch: 'Central Hub',
+            accountType: input.paymentMode === PaymentMode.CASH ? 'Cash' : 'Current',
+            balance: 50000
+          }
+        });
+      }
+      const newBankBalance = Number(bankAccount.balance) + input.amount;
+      await tx.bankAccount.update({
+        where: { id: bankAccount.id },
+        data: { balance: newBankBalance }
+      });
+      await tx.bankTransaction.create({
+        data: {
+          bankAccountId: bankAccount.id,
+          date: receipt.date,
+          type: 'DEPOSIT',
+          reference: receiptNo,
+          debit: 0,
+          credit: input.amount,
+          balanceAfter: newBankBalance,
+          party: customer.name,
+          notes: `Receipt from ${customer.name} via ${input.paymentMode}`
+        }
+      });
+
+      // 7. Audit Log
       await recordAuditLog({
         userId: actor?.userId,
         username: actor?.username || 'Billing Operator',
@@ -267,7 +300,40 @@ export class AccountService {
         }
       });
 
-      // 6. Audit Log
+      // 6. Bank / Cash Account Update
+      let bankAccount = await tx.bankAccount.findFirst();
+      if (!bankAccount) {
+        bankAccount = await tx.bankAccount.create({
+          data: {
+            bankName: 'Primary Operating Account',
+            accountNumber: 'ACC-001002003',
+            ifscCode: 'HDFC0001234',
+            branch: 'Central Hub',
+            accountType: input.paymentMode === PaymentMode.CASH ? 'Cash' : 'Current',
+            balance: 50000
+          }
+        });
+      }
+      const newBankBalance = Number(bankAccount.balance) - input.amount;
+      await tx.bankAccount.update({
+        where: { id: bankAccount.id },
+        data: { balance: newBankBalance }
+      });
+      await tx.bankTransaction.create({
+        data: {
+          bankAccountId: bankAccount.id,
+          date: payment.date,
+          type: 'WITHDRAWAL',
+          reference: paymentNo,
+          debit: input.amount,
+          credit: 0,
+          balanceAfter: newBankBalance,
+          party: supplier.name,
+          notes: `Payment to ${supplier.name} via ${input.paymentMode}`
+        }
+      });
+
+      // 7. Audit Log
       await recordAuditLog({
         userId: actor?.userId,
         username: actor?.username || 'Accounts Executive',
