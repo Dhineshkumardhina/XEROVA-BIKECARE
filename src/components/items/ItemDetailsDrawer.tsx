@@ -23,9 +23,12 @@ export const ItemDetailsDrawer: React.FC<ItemDetailsDrawerProps> = ({
 
   if (!part) return null;
 
-  const partNumber = part.partNumber || part.sku.replace('SKU-', '');
-  const stockValue = part.currentStock * part.purchasePrice;
-  const marginPercent = ((part.counterPrice - part.purchasePrice) / part.counterPrice) * 100;
+  const partNumber = part.partNumber || (part.sku ? part.sku.replace('SKU-', '') : 'PART');
+  const counterPrice = part.counterPrice ?? (part as any).sellingRate ?? 0;
+  const purchasePrice = part.purchasePrice ?? (part as any).purchaseRate ?? 0;
+  const currentStock = part.currentStock ?? (part as any).stockQty ?? 0;
+  const stockValue = currentStock * purchasePrice;
+  const marginPercent = counterPrice > 0 ? Math.round(((counterPrice - purchasePrice) / counterPrice) * 100) : 0;
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden flex justify-end bg-black/40 backdrop-blur-[1px] animate-in fade-in duration-200">

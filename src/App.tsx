@@ -467,12 +467,25 @@ export function MainERPContent() {
             sgst: Number(s.sgstAmount || 0),
             igst: Number(s.igstAmount || 0),
             totalAmount: Number(s.totalAmount || 0),
+            total: Number(s.totalAmount || 0),
+            items: (s.items || []).map((li: any) => ({
+              partId: li.itemId || li.id,
+              sku: li.sku || 'SKU-GEN',
+              name: li.name || 'Spare Part',
+              hsn: '8714',
+              qty: Number(li.quantity || 1),
+              rate: Number(li.unitRate || 0),
+              discount: 0,
+              taxableAmount: Number(li.totalAmount || 0),
+              gstRate: 18,
+              total: Number(li.totalAmount || 0)
+            })),
             payMode: s.paymentMode === 'CASH' ? 'Cash' : s.paymentMode === 'UPI' ? 'UPI (GPay)' : s.paymentMode === 'CARD' ? 'Card POS' : s.paymentMode === 'CREDIT' ? 'Credit Ledger' : 'Cash',
             taxType: s.isB2B ? 'B2B' : 'B2C',
             status: s.status === 'COMPLETED' ? 'PAID' : s.status === 'DRAFT' ? 'PENDING' : 'PAID',
             operator: 'Rajesh (Store Admin)',
             createdAt: s.invoiceDate ? new Date(s.invoiceDate).toLocaleDateString('en-GB') : 'Today'
-          }));
+          })) as any;
           setInvoices(mappedInvoices);
         }
       } catch (e) {
@@ -2878,6 +2891,7 @@ export function MainERPContent() {
               bankAccounts={bankAccounts}
               timeline={financialTimeline}
               userRole={userRole}
+              onChangeUserRole={setUserRole}
               onNavigate={setActiveScreen}
               onOpenNewReceipt={() => {
                 setPreSelectedCustomerForReceipt(null);

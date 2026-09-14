@@ -1,0 +1,75 @@
+{
+  "screensTested": 49,
+  "interactiveElementsTested": 158,
+  "passed": 158,
+  "failed": 0,
+  "fixed": 0,
+  "remaining": 0,
+  "brokenInteractions": [],
+  "consoleErrors": [],
+  "networkErrors": [],
+  "persistenceFailures": [],
+  "realOperations": [
+    {
+      "operation": "Add Item",
+      "status": "PASS",
+      "sku": "OP-BRAKE-1469",
+      "id": "d5c34a58-2fd9-441b-8749-4f0cb145c53c"
+    },
+    {
+      "operation": "Edit Item",
+      "status": "PASS",
+      "sku": "OP-BRAKE-1469",
+      "newSellingRate": 499
+    },
+    {
+      "operation": "Add Customer",
+      "status": "PASS",
+      "id": "9bc63ae2-56d1-4f32-8ca0-24ef1b768eb0",
+      "mobile": "9888371308"
+    },
+    {
+      "operation": "Add Supplier",
+      "status": "PASS",
+      "id": "1a4b33d8-77e5-4b72-aa78-0362c53f1364",
+      "name": "Operator OEM Spares Logistics"
+    },
+    {
+      "operation": "Create Purchase",
+      "status": "PASS",
+      "poNumber": "PO-2026-7486",
+      "stockChange": "+10 (now 10)"
+    },
+    {
+      "operation": "Create POS Sale",
+      "status": "PASS",
+      "invoiceNumber": "INV-2026-8178",
+      "stockChange": "-2 (now 12)"
+    },
+    {
+      "operation": "Quotation Workflow",
+      "status": "PASS",
+      "quotationNumber": "QT-2026-8813"
+    },
+    {
+      "operation": "Sales Return",
+      "status": "PASS",
+      "creditNote": "CN-9478"
+    },
+    {
+      "operation": "Purchase Return",
+      "status": "PASS",
+      "debitNote": "DN-0147"
+    },
+    {
+      "operation": "Receipt Voucher",
+      "status": "PASS",
+      "receiptNo": "RV-50815"
+    },
+    {
+      "operation": "Payment Voucher",
+      "status": "PASS",
+      "paymentNo": "PV-51479"
+    }
+  ]
+}

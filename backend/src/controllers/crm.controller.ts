@@ -23,7 +23,11 @@ export class CrmController {
   // --- Customers & Profiles ---
   async createCustomer(req: Request, res: Response) {
     try {
-      const parsed = createCustomerSchema.safeParse(req.body);
+      const payload = {
+        ...req.body,
+        customerType: req.body.customerType || req.body.type || 'RETAIL'
+      };
+      const parsed = createCustomerSchema.safeParse(payload);
       if (!parsed.success) {
         return sendError(res, 'Validation error', 400, 'VALIDATION_ERROR', parsed.error.format());
       }

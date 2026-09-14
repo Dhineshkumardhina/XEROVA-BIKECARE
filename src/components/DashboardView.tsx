@@ -704,16 +704,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           {inv.customerName}
                         </span>
                         <span className="font-shortcut-key text-shortcut-key text-outline">
-                          {inv.items.length} items • {inv.id}
+                          {(inv.lineItems?.length || (inv as any).items?.length || inv.itemsCount || 0)} items • {inv.id}
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
                       <span className="font-numeric-data text-numeric-data font-bold text-secondary">
-                        {inv.items.length} units
+                        {(inv.lineItems?.length || (inv as any).items?.length || inv.itemsCount || 0)} units
                       </span>
                       <span className="block font-shortcut-key text-shortcut-key text-on-surface-variant">
-                        ₹{inv.total.toLocaleString('en-IN')}
+                        ₹{(inv.totalAmount ?? (inv as any).total ?? 0).toLocaleString('en-IN')}
                       </span>
                     </div>
                   </div>

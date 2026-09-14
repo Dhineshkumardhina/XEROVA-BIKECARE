@@ -354,6 +354,24 @@ export class ItemService {
         resolvedUnitId = defaultUnit?.id || '';
       }
 
+      let resolvedCategoryId = input.categoryId;
+      const catExists = await tx.category.findUnique({ where: { id: resolvedCategoryId } }).catch(() => null);
+      if (!catExists) {
+        const catByName = await tx.category.findFirst({
+          where: { OR: [{ name: { contains: input.categoryId, mode: 'insensitive' } }, { code: { contains: input.categoryId, mode: 'insensitive' } }] }
+        });
+        resolvedCategoryId = catByName?.id || (await tx.category.findFirst())?.id || resolvedCategoryId;
+      }
+
+      let resolvedBrandId = input.brandId;
+      const brandExists = await tx.brand.findUnique({ where: { id: resolvedBrandId } }).catch(() => null);
+      if (!brandExists) {
+        const brandByName = await tx.brand.findFirst({
+          where: { name: { contains: input.brandId, mode: 'insensitive' } }
+        });
+        resolvedBrandId = brandByName?.id || (await tx.brand.findFirst())?.id || resolvedBrandId;
+      }
+
       // 1. Create item record
       const item = await tx.item.create({
         data: {
@@ -362,8 +380,8 @@ export class ItemService {
           shortName: input.shortName,
           oemPartNumber: input.oemPartNumber || input.sku,
           hsnCode: input.hsnCode,
-          categoryId: input.categoryId,
-          brandId: input.brandId,
+          categoryId: resolvedCategoryId,
+          brandId: resolvedBrandId,
           unitId: resolvedUnitId,
           gstRate: input.gstRate,
           maintainStock: input.maintainStock,

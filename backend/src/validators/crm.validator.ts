@@ -4,10 +4,13 @@ import { RecordStatus } from '@prisma/client';
 export const customerTypeEnum = z.enum([
   'RETAIL',
   'WHOLESALE',
+  'WHOLESALE_DEALER',
   'MECHANIC',
   'WORKSHOP',
+  'WORKSHOP_GARAGE',
   'DEALER',
-  'FLEET'
+  'FLEET',
+  'COMMERCIAL_FLEET'
 ]);
 
 export const createCustomerSchema = z.object({
@@ -18,7 +21,8 @@ export const createCustomerSchema = z.object({
   city: z.string().optional(),
   gstin: z.string().max(15).optional().or(z.literal('')),
   pan: z.string().max(10).optional().or(z.literal('')),
-  customerType: customerTypeEnum.default('RETAIL'),
+  customerType: customerTypeEnum.optional().default('RETAIL'),
+  type: customerTypeEnum.optional(),
   creditLimit: z.number().min(0).default(0),
   openingBalance: z.number().default(0),
   notes: z.string().optional(),

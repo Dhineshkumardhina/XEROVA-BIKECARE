@@ -11,7 +11,7 @@ import {
 
 interface AccountsDashboardProps {
   userRole: UserRole;
-  onChangeUserRole: (role: UserRole) => void;
+  onChangeUserRole?: (role: UserRole) => void;
   receivables: ReceivableRecord[];
   payables: PayableRecord[];
   receipts: ReceiptVoucher[];
@@ -185,7 +185,7 @@ export const AccountsDashboard: React.FC<AccountsDashboardProps> = ({
             <span className="text-outline text-[11px] mr-1.5 font-medium">Switch View:</span>
             <select
               value={userRole}
-              onChange={(e) => onChangeUserRole(e.target.value as UserRole)}
+              onChange={(e) => onChangeUserRole?.(e.target.value as UserRole)}
               className="bg-transparent text-on-surface font-semibold focus:outline-none cursor-pointer"
             >
               <option value="super_admin">Super Admin (Full Access)</option>
