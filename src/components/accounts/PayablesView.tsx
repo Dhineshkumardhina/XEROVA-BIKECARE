@@ -37,9 +37,9 @@ export const PayablesView: React.FC<PayablesViewProps> = ({
     return true;
   });
 
-  const totalOutstanding = payables.reduce((s, p) => s + p.outstanding, 0);
-  const totalPurchases = payables.reduce((s, p) => s + p.totalPurchase, 0);
-  const totalPaid = payables.reduce((s, p) => s + p.paid, 0);
+  const totalOutstanding = payables.reduce((s, p) => s + (p.outstanding || 0), 0);
+  const totalPurchases = payables.reduce((s, p) => s + (p.totalPurchase ?? (p as any).totalPurchases ?? 0), 0);
+  const totalPaid = payables.reduce((s, p) => s + (p.paid || 0), 0);
 
   return (
     <div className="flex flex-col w-full pb-10 space-y-gutter animate-in fade-in duration-150">
@@ -156,18 +156,18 @@ export const PayablesView: React.FC<PayablesViewProps> = ({
                     <div className="text-[11px] text-outline">Supplier ID: {p.supplierId}</div>
                   </td>
                   <td className="p-2.5 text-center font-mono font-bold text-on-surface">
-                    {p.purchasesCount}
+                    {p.purchasesCount ?? 0}
                   </td>
                   <td className="p-2.5 text-right font-mono text-on-surface font-medium">
-                    ₹{p.totalPurchase.toLocaleString('en-IN')}
+                    ₹{(p.totalPurchase ?? (p as any).totalPurchases ?? 0).toLocaleString('en-IN')}
                   </td>
                   <td className="p-2.5 text-right font-mono text-tertiary font-medium">
-                    ₹{p.paid.toLocaleString('en-IN')}
+                    ₹{(p.paid ?? 0).toLocaleString('en-IN')}
                   </td>
                   <td className="p-2.5 text-right font-mono font-bold text-error text-base">
-                    ₹{p.outstanding.toLocaleString('en-IN')}
+                    ₹{(p.outstanding ?? 0).toLocaleString('en-IN')}
                   </td>
-                  <td className="p-2.5 text-outline text-[11px]">{p.lastPaymentDate}</td>
+                  <td className="p-2.5 text-outline text-[11px]">{p.lastPaymentDate || 'Recent'}</td>
                   <td className="p-2.5 text-center">
                     <span className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${
                       p.status === 'OVERDUE'

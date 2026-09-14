@@ -33,7 +33,7 @@ export const customerSearchSchema = z.object({
   hasOutstanding: z.boolean().optional(),
   vehicleRegNo: z.string().optional(),
   page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(50)
+  limit: z.number().int().min(1).max(5000).default(50)
 });
 
 export const createCustomerVehicleSchema = z.object({

@@ -63,7 +63,7 @@ export const itemSearchQuerySchema = z.object({
   status: z.nativeEnum(RecordStatus).optional(),
   stockStatus: z.enum(['ALL', 'NORMAL', 'LOW_STOCK', 'OUT_OF_STOCK']).default('ALL'),
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(20),
+  limit: z.coerce.number().int().positive().max(5000).default(20),
   sortBy: z.enum(['name', 'sku', 'createdAt', 'sellingRate', 'oemPartNumber']).default('name'),
   sortOrder: z.enum(['asc', 'desc']).default('asc')
 });

@@ -126,6 +126,73 @@ export class AccountController {
       return next(error);
     }
   }
+
+  async getReceivables(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await accountService.getReceivables();
+      return sendSuccess(res, result, 'Customer receivables fetched successfully');
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async getPayables(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await accountService.getPayables();
+      return sendSuccess(res, result, 'Supplier payables fetched successfully');
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async getBankAccounts(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await accountService.getBankAccounts();
+      return sendSuccess(res, result, 'Bank accounts fetched successfully');
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async getBankTransactions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const limit = req.query.limit ? Number(req.query.limit) : 50;
+      const result = await accountService.getBankTransactions(limit);
+      return sendSuccess(res, result, 'Bank transactions fetched successfully');
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async getReceipts(req: Request, res: Response, next: NextFunction) {
+    try {
+      const limit = req.query.limit ? Number(req.query.limit) : 50;
+      const result = await accountService.getReceipts(limit);
+      return sendSuccess(res, result, 'Receipt vouchers fetched successfully');
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async getPayments(req: Request, res: Response, next: NextFunction) {
+    try {
+      const limit = req.query.limit ? Number(req.query.limit) : 50;
+      const result = await accountService.getPayments(limit);
+      return sendSuccess(res, result, 'Payment vouchers fetched successfully');
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async getSupplierLedger(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { supplierId } = req.params;
+      const result = await accountService.getSupplierLedger(supplierId);
+      return sendSuccess(res, result, 'Supplier ledger statement fetched successfully');
+    } catch (error) {
+      return next(error);
+    }
+  }
 }
 
 export const accountController = new AccountController();

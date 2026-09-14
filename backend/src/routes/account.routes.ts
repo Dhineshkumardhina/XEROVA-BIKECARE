@@ -14,11 +14,56 @@ router.get(
   accountController.getDashboardSummary
 );
 
+// Customer & Supplier Summaries
+router.get(
+  '/receivables',
+  requirePermission('accounts.ledger.view', 'sales.view', 'customers.view'),
+  accountController.getReceivables
+);
+
+router.get(
+  '/payables',
+  requirePermission('accounts.ledger.view', 'purchase.view', 'purchases.create'),
+  accountController.getPayables
+);
+
+router.get(
+  '/receipts',
+  requirePermission('accounts.receipt.create', 'sales.view'),
+  accountController.getReceipts
+);
+
+router.get(
+  '/payments',
+  requirePermission('accounts.payment.create', 'purchase.view'),
+  accountController.getPayments
+);
+
 // Customer Statement Ledger
 router.get(
   '/ledgers/customer/:customerId',
   requirePermission('accounts.ledger.view', 'accounts.financial.view', 'customers.view'),
   accountController.getCustomerLedger
+);
+
+// Supplier Statement Ledger
+router.get(
+  '/ledgers/supplier/:supplierId',
+  requirePermission('accounts.ledger.view', 'accounts.financial.view', 'purchase.view'),
+  accountController.getSupplierLedger
+);
+
+// Banking Accounts & Transactions List
+router.get(
+  '/banking/accounts',
+  requirePermission('accounts.banking', 'accounts.financial.view'),
+  accountController.getBankAccounts
+);
+
+router.get(
+  '/banking/transactions',
+  requirePermission('accounts.banking', 'accounts.financial.view'),
+  accountController.getBankTransactions
 );
 
 // Receipt Vouchers

@@ -112,5 +112,40 @@ export const accountService = {
   reconcileTransaction: async (payload: ReconcileTransactionPayload) => {
     const res = await apiClient.post('/accounts/banking/reconcile', payload);
     return res.data;
+  },
+
+  getReceivables: async () => {
+    const res = await apiClient.get('/accounts/receivables');
+    return res.data;
+  },
+
+  getPayables: async () => {
+    const res = await apiClient.get('/accounts/payables');
+    return res.data;
+  },
+
+  getReceipts: async (limit = 50) => {
+    const res = await apiClient.get('/accounts/receipts', { params: { limit } });
+    return res.data;
+  },
+
+  getPayments: async (limit = 50) => {
+    const res = await apiClient.get('/accounts/payments', { params: { limit } });
+    return res.data;
+  },
+
+  getBankAccounts: async () => {
+    const res = await apiClient.get('/accounts/banking/accounts');
+    return res.data;
+  },
+
+  getBankTransactions: async (limit = 50) => {
+    const res = await apiClient.get('/accounts/banking/transactions', { params: { limit } });
+    return res.data;
+  },
+
+  getSupplierLedger: async (supplierId: string) => {
+    const res = await apiClient.get(`/accounts/ledgers/supplier/${supplierId}`);
+    return res.data;
   }
 };

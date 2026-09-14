@@ -225,20 +225,20 @@ export const ReceivablesView: React.FC<ReceivablesViewProps> = ({
                     </td>
                     <td className="p-2.5 font-mono text-outline">{rec.mobile}</td>
                     <td className="p-2.5 text-center font-mono font-bold text-on-surface">
-                      {rec.invoicesCount}
+                      {rec.invoicesCount ?? 0}
                     </td>
                     <td className="p-2.5 text-right font-mono text-on-surface font-medium">
-                      ₹{rec.totalSales.toLocaleString('en-IN')}
+                      ₹{(rec.totalSales ?? 0).toLocaleString('en-IN')}
                     </td>
                     <td className="p-2.5 text-right font-mono text-tertiary font-medium">
-                      ₹{rec.received.toLocaleString('en-IN')}
+                      ₹{(rec.received ?? 0).toLocaleString('en-IN')}
                     </td>
                     <td className="p-2.5 text-right font-mono font-bold text-base">
-                      <span className={rec.outstanding > 0 ? (rec.status === 'OVERDUE' ? 'text-error' : 'text-amber-700') : 'text-outline'}>
-                        ₹{rec.outstanding.toLocaleString('en-IN')}
+                      <span className={(rec.outstanding ?? 0) > 0 ? (rec.status === 'OVERDUE' ? 'text-error' : 'text-amber-700') : 'text-outline'}>
+                        ₹{(rec.outstanding ?? 0).toLocaleString('en-IN')}
                       </span>
                     </td>
-                    <td className="p-2.5 text-outline text-[11px]">{rec.lastPaymentDate}</td>
+                    <td className="p-2.5 text-outline text-[11px]">{rec.lastPaymentDate || 'Recent'}</td>
                     <td className="p-2.5 text-center">
                       <span className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase tracking-wider ${
                         rec.status === 'OVERDUE'
@@ -332,28 +332,28 @@ export const ReceivablesView: React.FC<ReceivablesViewProps> = ({
                       <div className="text-[11px] text-outline font-mono">{rec.mobile}</div>
                     </td>
                     <td className="p-2.5 text-right font-mono">
-                      {rec.ageing.current > 0 ? `₹${rec.ageing.current.toLocaleString('en-IN')}` : '—'}
+                      {(rec.ageing?.current ?? 0) > 0 ? `₹${(rec.ageing?.current ?? 0).toLocaleString('en-IN')}` : '—'}
                     </td>
                     <td className="p-2.5 text-right font-mono">
-                      {rec.ageing.d1_30 > 0 ? `₹${rec.ageing.d1_30.toLocaleString('en-IN')}` : '—'}
+                      {(rec.ageing?.d1_30 ?? 0) > 0 ? `₹${(rec.ageing?.d1_30 ?? 0).toLocaleString('en-IN')}` : '—'}
                     </td>
                     <td className="p-2.5 text-right font-mono">
-                      {rec.ageing.d31_60 > 0 ? (
-                        <span className="text-amber-700 font-bold">₹{rec.ageing.d31_60.toLocaleString('en-IN')}</span>
+                      {(rec.ageing?.d31_60 ?? 0) > 0 ? (
+                        <span className="text-amber-700 font-bold">₹{(rec.ageing?.d31_60 ?? 0).toLocaleString('en-IN')}</span>
                       ) : '—'}
                     </td>
                     <td className="p-2.5 text-right font-mono">
-                      {rec.ageing.d61_90 > 0 ? (
-                        <span className="text-orange-700 font-bold">₹{rec.ageing.d61_90.toLocaleString('en-IN')}</span>
+                      {(rec.ageing?.d61_90 ?? 0) > 0 ? (
+                        <span className="text-orange-700 font-bold">₹{(rec.ageing?.d61_90 ?? 0).toLocaleString('en-IN')}</span>
                       ) : '—'}
                     </td>
                     <td className="p-2.5 text-right font-mono">
-                      {rec.ageing.d90Plus > 0 ? (
-                        <span className="text-error font-bold">₹{rec.ageing.d90Plus.toLocaleString('en-IN')}</span>
+                      {(rec.ageing?.d90Plus ?? 0) > 0 ? (
+                        <span className="text-error font-bold">₹{(rec.ageing?.d90Plus ?? 0).toLocaleString('en-IN')}</span>
                       ) : '—'}
                     </td>
                     <td className="p-2.5 text-right font-mono font-bold text-on-surface">
-                      ₹{rec.outstanding.toLocaleString('en-IN')}
+                      ₹{(rec.outstanding ?? 0).toLocaleString('en-IN')}
                     </td>
                     <td className="p-2.5 text-center">
                       <button

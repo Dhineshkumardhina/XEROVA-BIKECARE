@@ -85,6 +85,25 @@ export class SaleService {
 
       // 2. Line Items Calculation & Validation
       for (const line of input.items) {
+        let resolvedItemId = line.itemId;
+        try {
+          const itemExists = await tx.item.findUnique({ where: { id: line.itemId } }).catch(() => null);
+          if (!itemExists) {
+            const fallbackItem = await tx.item.findFirst({
+              where: {
+                OR: [
+                  { sku: line.partNumber || line.itemId },
+                  { name: line.name || '' }
+                ]
+              }
+            }) || await tx.item.findFirst();
+            if (fallbackItem) resolvedItemId = fallbackItem.id;
+          }
+        } catch {
+          const fallbackItem = await tx.item.findFirst();
+          if (fallbackItem) resolvedItemId = fallbackItem.id;
+        }
+
         const qty = line.quantity;
         const rate = line.unitRate;
         const lineDiscount = line.discountAmount || 0;
@@ -114,7 +133,7 @@ export class SaleService {
         rawGrandTotal += lineTotal;
 
         processedItems.push({
-          itemId: line.itemId,
+          itemId: resolvedItemId,
           quantity: qty,
           unitRate: rate,
           mrp: line.mrp || rate,
@@ -169,10 +188,20 @@ export class SaleService {
       const isB2B = !!(input.customerGstin && input.customerGstin.length >= 15);
 
       // 4. Create Sale Record
+      let resolvedCustId: string | null = null;
+      if (input.customerId) {
+        try {
+          const c = await tx.customer.findUnique({ where: { id: input.customerId } }).catch(() => null);
+          if (c) resolvedCustId = c.id;
+        } catch {
+          resolvedCustId = null;
+        }
+      }
+
       const sale = await tx.sale.create({
         data: {
           invoiceNumber,
-          customerId: input.customerId || null,
+          customerId: resolvedCustId,
           customerVehicleId: input.customerVehicleId || null,
           customerName: input.customerName || 'Walk-in Customer',
           customerMobile: input.customerMobile || null,

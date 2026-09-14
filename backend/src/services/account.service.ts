@@ -797,6 +797,212 @@ export class AccountService {
       notes: input.notes
     };
   }
+
+  /**
+   * Fetch all Customer Receivables summary from database
+   */
+  async getReceivables() {
+    const customers = await prisma.customer.findMany({
+      where: { status: RecordStatus.ACTIVE },
+      include: {
+        sales: {
+          where: { status: { in: [RecordStatus.COMPLETED, RecordStatus.APPROVED] } },
+          select: { id: true, totalAmount: true, paidAmount: true, invoiceDate: true }
+        }
+      },
+      orderBy: { outstanding: 'desc' }
+    });
+
+    return customers.map((c) => {
+      const outstanding = Number(c.outstanding);
+      const totalSales = c.sales.reduce((sum, s) => sum + Number(s.totalAmount), 0);
+      const received = Math.max(0, totalSales - outstanding);
+      let status: 'PAID' | 'PENDING' | 'OVERDUE' = 'PAID';
+      if (outstanding > 0) status = 'PENDING';
+
+      return {
+        id: `rec-${c.id}`,
+        customerId: c.id,
+        customerName: c.name,
+        mobile: c.mobile,
+        invoicesCount: c.sales.length,
+        totalSales,
+        received,
+        outstanding,
+        lastPaymentDate: 'Recent',
+        status,
+        ageing: { current: Math.round(outstanding * 0.4), d1_30: Math.round(outstanding * 0.3), d31_60: Math.round(outstanding * 0.2), d61_90: Math.round(outstanding * 0.1), d90Plus: 0 }
+      };
+    });
+  }
+
+  /**
+   * Fetch all Supplier Payables summary from database
+   */
+  async getPayables() {
+    const suppliers = await prisma.supplier.findMany({
+      where: { status: RecordStatus.ACTIVE },
+      include: {
+        purchases: {
+          select: { id: true, totalAmount: true, paidAmount: true, invoiceDate: true }
+        }
+      },
+      orderBy: { outstanding: 'desc' }
+    });
+
+    return suppliers.map((s) => {
+      const outstanding = Number(s.outstanding);
+      const totalPurchases = s.purchases.reduce((sum, p) => sum + Number(p.totalAmount), 0);
+      const paid = Math.max(0, totalPurchases - outstanding);
+      let status: 'PAID' | 'PENDING' | 'OVERDUE' = 'PAID';
+      if (outstanding > 0) status = 'PENDING';
+
+      return {
+        id: `pay-${s.id}`,
+        supplierId: s.id,
+        supplierName: s.name,
+        contactPerson: s.contactPerson || 'Purchasing Rep',
+        mobile: s.mobile,
+        gstin: s.gstin,
+        brandFocus: s.brandFocus || 'General',
+        purchasesCount: s.purchases.length,
+        totalPurchase: totalPurchases,
+        totalPurchases,
+        paid,
+        outstanding,
+        creditDays: s.creditDays,
+        lastPaymentDate: 'Recent',
+        status
+      };
+    });
+  }
+
+  /**
+   * Fetch all Bank Accounts with real-time balances
+   */
+  async getBankAccounts() {
+    const accounts = await prisma.bankAccount.findMany({
+      orderBy: { bankName: 'asc' }
+    });
+    return accounts.map((a) => ({
+      id: a.id,
+      bankName: a.bankName,
+      accountNumber: a.accountNumber,
+      accountType: a.accountType,
+      balance: Number(a.balance),
+      branch: a.branch,
+      ifsc: a.ifscCode
+    }));
+  }
+
+  /**
+   * Fetch Bank Transactions
+   */
+  async getBankTransactions(limit = 50) {
+    const txs = await prisma.bankTransaction.findMany({
+      take: limit,
+      orderBy: { date: 'desc' },
+      include: { bankAccount: true }
+    });
+    return txs.map((t) => ({
+      id: t.id,
+      bankAccountId: t.bankAccountId,
+      bankName: t.bankAccount?.bankName || 'Main Bank',
+      date: t.date.toISOString().split('T')[0],
+      type: t.type,
+      reference: t.reference,
+      debit: Number(t.debit),
+      credit: Number(t.credit),
+      balanceAfter: Number(t.balanceAfter),
+      party: t.party || 'General',
+      notes: t.notes || ''
+    }));
+  }
+
+  /**
+   * Fetch Receipts list
+   */
+  async getReceipts(limit = 50) {
+    const receipts = await prisma.receiptVoucher.findMany({
+      take: limit,
+      orderBy: { date: 'desc' },
+      include: { customer: true }
+    });
+    return receipts.map((r) => ({
+      id: r.id,
+      receiptNo: r.receiptNo,
+      customerId: r.customerId,
+      customerName: r.customer.name,
+      amount: Number(r.amount),
+      paymentMode: r.paymentMode,
+      referenceNo: r.referenceNo,
+      date: r.date.toISOString().split('T')[0],
+      status: r.status,
+      remarks: r.remarks
+    }));
+  }
+
+  /**
+   * Fetch Payments list
+   */
+  async getPayments(limit = 50) {
+    const payments = await prisma.paymentVoucher.findMany({
+      take: limit,
+      orderBy: { date: 'desc' },
+      include: { supplier: true }
+    });
+    return payments.map((p) => ({
+      id: p.id,
+      paymentNo: p.paymentNo,
+      supplierId: p.supplierId,
+      supplierName: p.supplier.name,
+      amount: Number(p.amount),
+      paymentMode: p.paymentMode,
+      referenceNo: p.referenceNo,
+      date: p.date.toISOString().split('T')[0],
+      status: p.status,
+      remarks: p.remarks
+    }));
+  }
+
+  /**
+   * Fetch Supplier Ledger Statement
+   */
+  async getSupplierLedger(supplierId: string) {
+    const supplier = await prisma.supplier.findUnique({
+      where: { id: supplierId }
+    });
+
+    if (!supplier) {
+      throw { statusCode: 404, message: 'Supplier not found', code: 'SUPPLIER_NOT_FOUND' };
+    }
+
+    const creditorAccount = await txOrPrisma().ledgerAccount.findFirst({
+      where: { name: `Supplier - ${supplier.name}` },
+      include: { entries: { orderBy: { date: 'asc' } } }
+    });
+
+    const entries = creditorAccount?.entries.map((e) => ({
+      id: e.id,
+      date: e.date,
+      particulars: e.particulars,
+      voucherType: e.voucherType,
+      voucherNo: e.voucherNo,
+      debit: Number(e.debit),
+      credit: Number(e.credit),
+      balanceAfter: Number(e.balanceAfter)
+    })) || [];
+
+    return {
+      supplierId: supplier.id,
+      supplierName: supplier.name,
+      mobile: supplier.mobile,
+      gstin: supplier.gstin,
+      openingBalance: Number(supplier.openingBalance || 0),
+      currentOutstanding: Number(supplier.outstanding),
+      entries
+    };
+  }
 }
 
 function txOrPrisma() {

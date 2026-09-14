@@ -1,11 +1,9 @@
 {
   "screensDiscovered": 49,
   "screensTested": 49,
-  "interactionsTotal": 586,
-  "passed": 586,
+  "interactionsTotal": 663,
+  "passed": 663,
   "failed": 0,
-  "consoleErrors": [
-    "Failed to load resource: the server responded with a status of 404 (Not Found)"
-  ],
+  "consoleErrors": [],
   "issues": []
 }

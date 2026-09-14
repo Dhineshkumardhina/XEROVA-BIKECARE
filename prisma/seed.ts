@@ -576,7 +576,267 @@ async function main() {
   }
   console.log(`✅ Seeded ${items.length} Spare Part SKUs with opening StockMovements`);
 
-  // 11. Initial Audit Log
+  // 11. Seed Customers & Vehicles
+  const seededCustomer1 = await prisma.customer.upsert({
+    where: { customerCode: 'CUST-001' },
+    update: {},
+    create: {
+      customerCode: 'CUST-001',
+      name: 'Ramesh Auto Works',
+      mobile: '9840112345',
+      email: 'ramesh.autoworks@gmail.com',
+      gstin: '33AABCR1234F1Z1',
+      customerType: CustomerType.WORKSHOP_GARAGE,
+      creditLimit: 50000,
+      outstanding: 18500,
+      address: '14, Cross Cut Road, Gandhipuram',
+      city: 'Coimbatore'
+    }
+  });
+
+  const seededCustomer2 = await prisma.customer.upsert({
+    where: { customerCode: 'CUST-002' },
+    update: {},
+    create: {
+      customerCode: 'CUST-002',
+      name: 'Speed Motors & Two Wheeler Service',
+      mobile: '9840223456',
+      email: 'speedmotors.cbe@yahoo.com',
+      gstin: '33AACPS5678K1Z3',
+      customerType: CustomerType.WORKSHOP_GARAGE,
+      creditLimit: 75000,
+      outstanding: 32400,
+      address: '88, Mettupalayam Road',
+      city: 'Coimbatore'
+    }
+  });
+
+  const seededCustomer3 = await prisma.customer.upsert({
+    where: { customerCode: 'CUST-003' },
+    update: {},
+    create: {
+      customerCode: 'CUST-003',
+      name: 'Vignesh Kumar',
+      mobile: '9840334567',
+      email: 'vignesh.k92@gmail.com',
+      customerType: CustomerType.RETAIL,
+      creditLimit: 0,
+      outstanding: 0,
+      address: '5/12, Anna Nagar West',
+      city: 'Chennai'
+    }
+  });
+
+  const seededCustomer4 = await prisma.customer.upsert({
+    where: { customerCode: 'CUST-004' },
+    update: {},
+    create: {
+      customerCode: 'CUST-004',
+      name: 'Balaji Two Wheeler Spares',
+      mobile: '9840445678',
+      email: 'balaji.spares@rediffmail.com',
+      gstin: '33AABCB9012M1Z8',
+      customerType: CustomerType.WHOLESALE_DEALER,
+      creditLimit: 150000,
+      outstanding: 64200,
+      address: '120, GP Road',
+      city: 'Chennai'
+    }
+  });
+
+  // Seed Customer Vehicles
+  await prisma.customerVehicle.upsert({
+    where: { regNo: 'TN 37 CY 4521' },
+    update: {},
+    create: {
+      customerId: seededCustomer1.id,
+      regNo: 'TN 37 CY 4521',
+      manufacturer: 'Bajaj',
+      model: 'Pulsar 150 UG4',
+      year: 2021,
+      lastServiceKm: 28500
+    }
+  });
+
+  await prisma.customerVehicle.upsert({
+    where: { regNo: 'TN 38 BK 9081' },
+    update: {},
+    create: {
+      customerId: seededCustomer2.id,
+      regNo: 'TN 38 BK 9081',
+      manufacturer: 'Hero',
+      model: 'Splendor Plus i3S',
+      year: 2022,
+      lastServiceKm: 19400
+    }
+  });
+
+  await prisma.customerVehicle.upsert({
+    where: { regNo: 'TN 02 BX 8872' },
+    update: {},
+    create: {
+      customerId: seededCustomer3.id,
+      regNo: 'TN 02 BX 8872',
+      manufacturer: 'Yamaha',
+      model: 'FZ-S V3 ABS',
+      year: 2023,
+      lastServiceKm: 12100
+    }
+  });
+  console.log('✅ Seeded 4 Customers & Associated Vehicles');
+
+  // 12. Seed Suppliers
+  await prisma.supplier.upsert({
+    where: { supplierCode: 'SUP-001' },
+    update: {},
+    create: {
+      supplierCode: 'SUP-001',
+      name: 'TVS Motor Genuine Spares Division',
+      contactPerson: 'K. Sundaram',
+      mobile: '9841001122',
+      email: 'spares.support@tvsmotor.com',
+      gstin: '33AAACT1234G1Z9',
+      pan: 'AAACT1234G',
+      brandFocus: 'TVS Genuine Parts',
+      creditDays: 30,
+      creditLimit: 500000,
+      outstanding: 84500,
+      address: 'TVS Spares Hub, Harita',
+      city: 'Hosur',
+      state: 'Tamil Nadu'
+    }
+  });
+
+  await prisma.supplier.upsert({
+    where: { supplierCode: 'SUP-002' },
+    update: {},
+    create: {
+      supplierCode: 'SUP-002',
+      name: 'Bosch Automotive Aftermarket India',
+      contactPerson: 'Anand Verma',
+      mobile: '9841002233',
+      email: 'aftermarket.in@bosch.com',
+      gstin: '29AAACB1234H1Z2',
+      pan: 'AAACB1234H',
+      brandFocus: 'Bosch Electricals & Horns',
+      creditDays: 45,
+      creditLimit: 300000,
+      outstanding: 42300,
+      address: 'Bosch India Ltd, Adugodi',
+      city: 'Bengaluru',
+      state: 'Karnataka'
+    }
+  });
+
+  await prisma.supplier.upsert({
+    where: { supplierCode: 'SUP-003' },
+    update: {},
+    create: {
+      supplierCode: 'SUP-003',
+      name: 'Castrol India Lubricants Distribution',
+      contactPerson: 'Dinesh Raman',
+      mobile: '9841003344',
+      email: 'castrol.distrib@castrol.co.in',
+      gstin: '33AAACC5678M1Z4',
+      pan: 'AAACC5678M',
+      brandFocus: 'Castrol Activ & Power1 Engine Oils',
+      creditDays: 21,
+      creditLimit: 250000,
+      outstanding: 29800,
+      address: 'Castrol Depot, Ambattur Industrial Estate',
+      city: 'Chennai',
+      state: 'Tamil Nadu'
+    }
+  });
+  console.log('✅ Seeded 3 Major OEM Suppliers');
+
+  // 13. Seed Bank Accounts
+  await prisma.bankAccount.upsert({
+    where: { accountNumber: '50200012345678' },
+    update: { balance: 284500.00 },
+    create: {
+      bankName: 'HDFC Bank',
+      accountNumber: '50200012345678',
+      ifscCode: 'HDFC0001234',
+      branch: 'Anna Nagar West, Chennai',
+      accountType: 'Current',
+      balance: 284500.00
+    }
+  });
+
+  await prisma.bankAccount.upsert({
+    where: { accountNumber: '301234567890' },
+    update: { balance: 145000.00 },
+    create: {
+      bankName: 'State Bank of India',
+      accountNumber: '301234567890',
+      ifscCode: 'SBIN0004567',
+      branch: 'Main Commercial Branch, Chennai',
+      accountType: 'Cash Credit (OD)',
+      balance: 145000.00
+    }
+  });
+
+  await prisma.bankAccount.upsert({
+    where: { accountNumber: 'CASH-COUNTER-01' },
+    update: { balance: 42650.00 },
+    create: {
+      bankName: 'POS Counter Cash Register',
+      accountNumber: 'CASH-COUNTER-01',
+      ifscCode: 'INTERNAL',
+      branch: 'Retail Counter Terminal 1',
+      accountType: 'Cash Drawer',
+      balance: 42650.00
+    }
+  });
+
+  await prisma.bankAccount.upsert({
+    where: { accountNumber: 'UPI-GPAY-BIKEERP' },
+    update: { balance: 96800.00 },
+    create: {
+      bankName: 'UPI QR Merchant Settlement (GPay / PhonePe)',
+      accountNumber: 'UPI-GPAY-BIKEERP',
+      ifscCode: 'YESB0000001',
+      branch: 'Merchant VPA Gateway',
+      accountType: 'UPI Gateway',
+      balance: 96800.00
+    }
+  });
+  console.log('✅ Seeded 4 Bank & Tender Accounts');
+
+  // 14. Seed Mechanics & Referrals
+  await prisma.mechanic.upsert({
+    where: { mobile: '9840998811' },
+    update: {},
+    create: {
+      mechanicCode: 'MECH-001',
+      name: 'Murugan (Expert Tech)',
+      workshopName: 'Sri Murugan Two Wheeler Works',
+      mobile: '9840998811',
+      area: 'Gandhipuram',
+      commissionRatePct: 5.00,
+      totalReferredSales: 48500.00,
+      pendingCommission: 2425.00
+    }
+  });
+
+  await prisma.mechanic.upsert({
+    where: { mobile: '9840998822' },
+    update: {},
+    create: {
+      mechanicCode: 'MECH-002',
+      name: 'Selvam Master',
+      workshopName: 'Selvam Bike Point & Tuning',
+      mobile: '9840998822',
+      area: 'RS Puram',
+      commissionRatePct: 6.00,
+      totalReferredSales: 72000.00,
+      pendingCommission: 4320.00
+    }
+  });
+  console.log('✅ Seeded 2 Mechanic Partners');
+
+  // 15. Initial Audit Log
   await prisma.auditLog.create({
     data: {
       userId: superAdminUser.id,

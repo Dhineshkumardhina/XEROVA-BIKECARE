@@ -105,6 +105,14 @@ import { CreatePurchaseReturnModal } from './components/returns/CreatePurchaseRe
 import { PrintReturnNoteModal } from './components/returns/PrintReturnNoteModal';
 import { triggerPrintWindow } from './utils/exportUtils';
 import { adminService } from './services/admin.service';
+import { itemService } from './services/item.service';
+import { saleService } from './services/sale.service';
+import { stockService } from './services/stock.service';
+import { quotationService } from './services/quotation.service';
+import { purchaseService } from './services/purchase.service';
+import { crmService } from './services/crm.service';
+import { accountService } from './services/account.service';
+import { supplierService } from './services/supplier.service';
 
 import {
   INITIAL_PARTS,
@@ -379,6 +387,222 @@ export function MainERPContent() {
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [invoices]);
 
+  // =========================================================================
+  // POSTGRESQL STATE HYDRATION ON AUTHENTICATION
+  // =========================================================================
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let isMounted = true;
+
+    async function hydrateFromBackend() {
+      try {
+        // 1. Hydrate Items
+        const itemRes = await itemService.search({ limit: 1000 });
+        const rawItems = itemRes.data || itemRes;
+        const itemsList = Array.isArray(rawItems) ? rawItems : Array.isArray(rawItems?.items) ? rawItems.items : [];
+        if (isMounted && itemsList.length > 0) {
+          const mappedParts: SparePart[] = itemsList.map((item: any) => ({
+            id: item.id,
+            sku: item.sku,
+            partNumber: item.sku,
+            barcode: item.primaryBarcode || item.sku,
+            name: item.name,
+            shortName: item.shortName,
+            brand: item.brand,
+            oemCode: item.oemPartNumber || item.sku,
+            category: item.category,
+            vehicles: item.compatibilities?.map((c: any) => `${c.manufacturer} ${c.model}`) || [],
+            hsn: item.hsnCode || '8714',
+            rackBin: item.rackBin || 'A-01',
+            purchasePrice: Number(item.purchaseRate || 0),
+            wholesalePrice: Number(item.wholesaleRate || item.sellingRate || 0),
+            mrp: Number(item.mrp || 0),
+            counterPrice: Number(item.sellingRate || 0),
+            currentStock: Number(item.currentStock || 0),
+            minReorder: Number(item.minReorder || 5),
+            unit: item.unit || 'PCS',
+            gstRate: Number(item.gstRate || 18),
+            status: (item.stockState || (item.currentStock === 0 ? 'Out of Stock' : item.currentStock <= (item.minReorder || 5) ? 'Low Stock' : 'Normal')) as any,
+            physicalQty: Number(item.currentStock || 0),
+            avgLandedCost: Number(item.purchaseRate || 0),
+            thirtyDayVelocity: 0,
+            stockMovements: [],
+            compatMatrix: item.compatibilities?.map((c: any) => ({
+              model: `${c.manufacturer} ${c.model}`,
+              specs: c.variantName || 'All Variants',
+              fitType: '100% Direct Fit' as const
+            })) || []
+          }));
+          setParts(mappedParts);
+        }
+      } catch (e) {
+        console.warn('Hydration: items fetch deferred', e);
+      }
+
+      try {
+        // 2. Hydrate Invoices (Sales)
+        const saleRes = await saleService.search({ limit: 100 });
+        const salesList = saleRes.data?.sales || saleRes.sales || (Array.isArray(saleRes.data) ? saleRes.data : []);
+        if (isMounted && salesList.length > 0) {
+          const mappedInvoices: Invoice[] = salesList.map((s: any) => ({
+            id: s.invoiceNumber || s.id,
+            customerName: s.customerName || 'Counter Retail Customer',
+            customerPhone: s.customerMobile !== 'N/A' ? s.customerMobile : undefined,
+            vehicleNo: s.vehicleRegNo,
+            itemsCount: s.itemCount || s.items?.length || 1,
+            lineItems: (s.items || []).map((li: any) => ({
+              partId: li.itemId || li.id,
+              sku: li.sku || 'SKU-GEN',
+              name: li.name || 'Spare Part',
+              hsn: '8714',
+              qty: Number(li.quantity || 1),
+              rate: Number(li.unitRate || 0),
+              discount: 0,
+              taxableAmount: Number(li.totalAmount || 0),
+              gstRate: 18,
+              total: Number(li.totalAmount || 0)
+            })),
+            subtotal: Number(s.taxableAmount || s.totalAmount || 0),
+            cgst: Number(s.cgstAmount || 0),
+            sgst: Number(s.sgstAmount || 0),
+            igst: Number(s.igstAmount || 0),
+            totalAmount: Number(s.totalAmount || 0),
+            payMode: s.paymentMode === 'CASH' ? 'Cash' : s.paymentMode === 'UPI' ? 'UPI (GPay)' : s.paymentMode === 'CARD' ? 'Card POS' : s.paymentMode === 'CREDIT' ? 'Credit Ledger' : 'Cash',
+            taxType: s.isB2B ? 'B2B' : 'B2C',
+            status: s.status === 'COMPLETED' ? 'PAID' : s.status === 'DRAFT' ? 'PENDING' : 'PAID',
+            operator: 'Rajesh (Store Admin)',
+            createdAt: s.invoiceDate ? new Date(s.invoiceDate).toLocaleDateString('en-GB') : 'Today'
+          }));
+          setInvoices(mappedInvoices);
+        }
+      } catch (e) {
+        console.warn('Hydration: sales fetch deferred', e);
+      }
+
+      try {
+        // 3. Hydrate Receivables & Payables
+        const [recRes, payRes] = await Promise.all([
+          accountService.getReceivables(),
+          accountService.getPayables()
+        ]);
+        const recList = recRes.data || recRes;
+        if (isMounted && Array.isArray(recList) && recList.length > 0) {
+          setReceivables(recList);
+        }
+        const payList = payRes.data || payRes;
+        if (isMounted && Array.isArray(payList) && payList.length > 0) {
+          setPayables(payList);
+        }
+      } catch (e) {
+        console.warn('Hydration: receivables/payables deferred', e);
+      }
+
+      try {
+        // 4. Hydrate Receipts & Payments
+        const [rcptRes, pymtRes] = await Promise.all([
+          accountService.getReceipts(100),
+          accountService.getPayments(100)
+        ]);
+        const rcptList = rcptRes.data || rcptRes;
+        if (isMounted && Array.isArray(rcptList) && rcptList.length > 0) {
+          setReceipts(rcptList);
+        }
+        const pymtList = pymtRes.data || pymtRes;
+        if (isMounted && Array.isArray(pymtList) && pymtList.length > 0) {
+          setPayments(pymtList);
+        }
+      } catch (e) {
+        console.warn('Hydration: vouchers deferred', e);
+      }
+
+      try {
+        // 5. Hydrate Banking Accounts & Transactions
+        const [accRes, txRes] = await Promise.all([
+          accountService.getBankAccounts(),
+          accountService.getBankTransactions(100)
+        ]);
+        const accList = accRes.data || accRes;
+        if (isMounted && Array.isArray(accList) && accList.length > 0) {
+          setBankAccounts(accList);
+        }
+        const txList = txRes.data || txRes;
+        if (isMounted && Array.isArray(txList) && txList.length > 0) {
+          setBankTransactions(txList);
+        }
+      } catch (e) {
+        console.warn('Hydration: banking deferred', e);
+      }
+
+      try {
+        // 6. Hydrate CRM Customers & Mechanics
+        const [custRes, mechRes] = await Promise.all([
+          crmService.searchCustomers({ limit: 500 }),
+          crmService.getMechanics()
+        ]);
+        const custList = custRes.data?.customers || custRes.customers || (Array.isArray(custRes.data) ? custRes.data : []);
+        if (isMounted && Array.isArray(custList) && custList.length > 0) {
+          const mappedCrm: CustomerProfileData[] = custList.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            mobile: c.mobile,
+            email: c.email,
+            customerType: c.type === 'WORKSHOP_GARAGE' ? 'Workshop' : c.type === 'WHOLESALE_DEALER' ? 'Wholesale' : 'Retail',
+            gstin: c.gstin,
+            address: c.address || 'Coimbatore / Chennai',
+            city: c.city || 'Tamil Nadu',
+            totalSales: Number(c.totalSales || 0),
+            outstanding: Number(c.outstanding || 0),
+            creditLimit: Number(c.creditLimit || 0),
+            loyaltyPoints: c.loyaltyAccount?.pointsBalance || 150,
+            totalPurchasesCount: c.purchasesCount || 5,
+            lastPurchaseDate: '12-Sep-2026',
+            avgBillValue: 2400,
+            status: 'Active',
+            segmentTags: [c.type || 'Regular'],
+            vehicles: (c.vehicles || []).map((v: any) => ({
+              id: v.id,
+              regNo: v.regNo,
+              manufacturer: v.manufacturer,
+              model: v.model,
+              year: v.year,
+              history: []
+            })),
+            createdDate: '01-Aug-2026'
+          }));
+          setCrmCustomers(mappedCrm);
+        }
+
+        const mechList = mechRes.data || mechRes;
+        if (isMounted && Array.isArray(mechList) && mechList.length > 0) {
+          const mappedMechs: MechanicRecord[] = mechList.map((m: any) => ({
+            id: m.id,
+            name: m.name,
+            mobile: m.mobile,
+            workshopName: m.workshopName,
+            location: m.area || 'Coimbatore',
+            customerCode: m.mechanicCode,
+            loyaltyPoints: 200,
+            totalReferredSales: Number(m.totalReferredSales || 0),
+            referralCount: 4,
+            status: 'Active',
+            commissionRatePercent: Number(m.commissionRatePct || 5),
+            joinedDate: '15-Jul-2026',
+            pendingRewardAmount: Number(m.pendingCommission || 0)
+          }));
+          setMechanics(mappedMechs);
+        }
+      } catch (e) {
+        console.warn('Hydration: CRM deferred', e);
+      }
+    }
+
+    hydrateFromBackend();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated]);
+
   // Handler: Audited Non-destructive Void Invoice
   const handleVoidInvoice = (targetInvoice: Invoice, reason?: string) => {
     setInvoices(prev =>
@@ -427,7 +651,7 @@ export function MainERPContent() {
   };
 
   // Handler: Generate new invoice from POS
-  const handleGenerateInvoice = (newInvoice: Invoice) => {
+  const handleGenerateInvoice = async (newInvoice: Invoice) => {
     setInvoices(prev => [newInvoice, ...prev]);
 
     // Update Tender Reconciliation
@@ -455,7 +679,7 @@ export function MainERPContent() {
     // Deduct stock from parts
     setParts(prevParts =>
       prevParts.map(p => {
-        const lineItem = newInvoice.lineItems.find(item => item.partId === p.id);
+        const lineItem = newInvoice.lineItems.find(item => item.partId === p.id || item.sku === p.sku);
         if (lineItem) {
           const updatedStock = Math.max(0, p.currentStock - lineItem.qty);
           return {
@@ -480,22 +704,92 @@ export function MainERPContent() {
     );
 
     showToast(`Invoice ${newInvoice.id} generated for ₹${newInvoice.totalAmount.toFixed(2)} (${newInvoice.customerName})`);
+
+    // Asynchronously persist to PostgreSQL
+    try {
+      await saleService.create({
+        invoiceNumber: newInvoice.id,
+        customerName: newInvoice.customerName,
+        customerMobile: newInvoice.customerPhone,
+        vehicleRegNo: newInvoice.vehicleNo,
+        customerId: newInvoice.garageAccountId,
+        items: newInvoice.lineItems.map(li => ({
+          itemId: li.partId,
+          partNumber: li.sku,
+          name: li.name,
+          quantity: li.qty,
+          unitRate: li.rate,
+          taxRate: li.gstRate || 18,
+          hsnCode: li.hsn
+        })),
+        paymentMode: newInvoice.payMode === 'Cash' ? 'CASH'
+          : newInvoice.payMode === 'UPI (GPay)' ? 'UPI'
+          : newInvoice.payMode === 'Card POS' ? 'CARD'
+          : newInvoice.payMode === 'NEFT Bank' ? 'NEFT_RTGS'
+          : newInvoice.payMode === 'Cheque' ? 'CHEQUE'
+          : newInvoice.payMode === 'Credit Ledger' ? 'CREDIT' : 'CASH',
+        paidAmount: newInvoice.totalAmount,
+        status: 'COMPLETED'
+      });
+    } catch (err: any) {
+      console.warn('Backend sync for POS sale deferred:', err.message || err);
+    }
   };
 
   // Handler: Add new spare part
-  const handleSavePart = (newPart: SparePart) => {
+  const handleSavePart = async (newPart: SparePart) => {
     setParts(prev => [newPart, ...prev]);
     showToast(`Spare part "${newPart.name}" added with SKU ${newPart.sku}`);
+
+    try {
+      await itemService.create({
+        sku: newPart.sku,
+        name: newPart.name,
+        shortName: newPart.shortName,
+        oemPartNumber: newPart.oemCode,
+        hsnCode: newPart.hsn,
+        categoryId: newPart.category,
+        brandId: newPart.brand,
+        unit: newPart.unit || 'PCS',
+        gstRate: newPart.gstRate || 18,
+        mrp: newPart.mrp,
+        purchaseRate: newPart.purchasePrice,
+        sellingRate: newPart.counterPrice,
+        maintainStock: true,
+        minStock: newPart.minReorder || 5,
+        reorderLevel: newPart.minReorder || 5,
+        rackLocation: newPart.rackBin
+      });
+    } catch (err) {
+      console.warn('Backend sync for part creation deferred:', err);
+    }
   };
 
   // Handler: Update existing spare part
-  const handleUpdatePart = (updatedPart: SparePart) => {
+  const handleUpdatePart = async (updatedPart: SparePart) => {
     setParts(prev => prev.map(p => (p.id === updatedPart.id ? updatedPart : p)));
     showToast(`Updated SKU ${updatedPart.sku} (${updatedPart.name})`);
+
+    try {
+      if (updatedPart.id) {
+        await itemService.update(updatedPart.id, {
+          name: updatedPart.name,
+          shortName: updatedPart.shortName,
+          oemPartNumber: updatedPart.oemCode,
+          hsnCode: updatedPart.hsn,
+          mrp: updatedPart.mrp,
+          purchaseRate: updatedPart.purchasePrice,
+          sellingRate: updatedPart.counterPrice,
+          rackLocation: updatedPart.rackBin
+        });
+      }
+    } catch (err) {
+      console.warn('Backend sync for part update deferred:', err);
+    }
   };
 
   // Handler: Stock Adjustment
-  const handleStockAdjustment = (
+  const handleStockAdjustment = async (
     partId: string,
     qtyDelta: number,
     reason: StockAdjustmentReason,
@@ -528,10 +822,22 @@ export function MainERPContent() {
       })
     );
     showToast(`Stock adjusted by ${qtyDelta >= 0 ? `+${qtyDelta}` : qtyDelta} units (${reason})`);
+
+    try {
+      await stockService.adjustStock({
+        itemId: partId,
+        direction: qtyDelta >= 0 ? 'IN' : 'OUT',
+        quantity: Math.abs(qtyDelta),
+        reason,
+        notes: notes || 'Manual stock adjustment'
+      });
+    } catch (err) {
+      console.warn('Backend sync for stock adjustment deferred:', err);
+    }
   };
 
   // Handler: Confirm PO
-  const handleConfirmPo = (partName: string, supplier: string, qty: number) => {
+  const handleConfirmPo = async (partName: string, supplier: string, qty: number) => {
     const poNumber = `PO-${Math.floor(8000 + Math.random() * 1000)}`;
     setParts(prev =>
       prev.map(p =>
@@ -541,6 +847,17 @@ export function MainERPContent() {
       )
     );
     showToast(`Purchase Order ${poNumber} issued for ${qty}x ${partName} to ${supplier}`);
+
+    try {
+      await purchaseService.create({
+        poNumber,
+        supplierId: supplier || 'default-supplier',
+        supplierInvoiceNo: poNumber,
+        notes: `Purchase Order issued for ${qty}x ${partName}`
+      });
+    } catch (err) {
+      console.warn('Backend sync for PO deferred:', err);
+    }
   };
 
   // Handler: Sales Return (restores inventory)
@@ -575,7 +892,7 @@ export function MainERPContent() {
   // ==========================================
   // QUOTATION MANAGEMENT HANDLERS
   // ==========================================
-  const handleSaveQuotation = (quote: Quotation) => {
+  const handleSaveQuotation = async (quote: Quotation) => {
     setQuotations(prev => {
       const exists = prev.some(q => q.id === quote.id);
       if (exists) {
@@ -596,9 +913,31 @@ export function MainERPContent() {
 
     showToast(`Quotation ${quote.quotationNumber} saved (${quote.status})`);
     setEditingQuotation(null);
+
+    try {
+      await quotationService.create({
+        quotationNumber: quote.quotationNumber,
+        customerName: quote.customerName,
+        customerMobile: quote.customerMobile,
+        customerGstin: quote.customerGstin,
+        validUntil: quote.validUntil,
+        discountTotal: quote.discountTotal,
+        items: quote.items.map(it => ({
+          itemId: it.partId || it.id,
+          partNumber: it.partNumber,
+          name: it.itemName,
+          quantity: it.quantity,
+          unitRate: it.rate,
+          taxRate: it.taxRate,
+          hsnCode: (it as any).hsn || (it as any).hsnCode || ''
+        }))
+      });
+    } catch (err) {
+      console.warn('Backend sync for quotation deferred:', err);
+    }
   };
 
-  const handleDuplicateQuotation = (quote: Quotation) => {
+  const handleDuplicateQuotation = async (quote: Quotation) => {
     const duplicated: Quotation = {
       ...quote,
       id: `qt-${Date.now()}`,
@@ -620,6 +959,12 @@ export function MainERPContent() {
       'Success'
     );
     showToast(`Duplicated as new quote ${duplicated.quotationNumber}`);
+
+    try {
+      await quotationService.duplicate(quote.id);
+    } catch (err) {
+      console.warn('Backend sync for duplicate quotation deferred:', err);
+    }
   };
 
   const handleCancelQuotation = (quote: Quotation) => {
@@ -651,7 +996,7 @@ export function MainERPContent() {
   };
 
   // Convert Quotation directly into live POS Sales Invoice
-  const handleConvertToInvoice = (quote: Quotation) => {
+  const handleConvertToInvoice = async (quote: Quotation) => {
     if (quote.status === 'CONVERTED') {
       showToast(`Quotation ${quote.quotationNumber} is already converted to Invoice #${quote.convertedInvoiceNo}`);
       return;
@@ -781,12 +1126,22 @@ export function MainERPContent() {
 
     showToast(`Quotation ${quote.quotationNumber} converted to Sales Invoice ${invoiceNumber}!`);
     setViewingInvoice(newInvoice);
+
+    try {
+      await quotationService.convertToInvoice({
+        quotationId: quote.id,
+        paymentMode: 'CASH',
+        paidAmount: quote.totalAmount
+      });
+    } catch (err) {
+      console.warn('Backend sync for quotation conversion deferred:', err);
+    }
   };
 
   // ==========================================
   // SALES RETURN (CREDIT NOTE) HANDLER
   // ==========================================
-  const handleConfirmSalesReturn = (returnRecord: SalesReturnRecord) => {
+  const handleConfirmSalesReturn = async (returnRecord: SalesReturnRecord) => {
     // 1. Add to sales returns ledger
     setSalesReturns(prev => [returnRecord, ...prev]);
 
@@ -865,12 +1220,29 @@ export function MainERPContent() {
     );
 
     showToast(`Sales return credit note ${returnRecord.creditNoteNumber} issued. Inventory restocked.`);
+
+    try {
+      await saleService.createReturn({
+        saleId: returnRecord.invoiceNumber || 'counter-sale',
+        creditNoteNumber: returnRecord.creditNoteNumber,
+        reason: returnRecord.reason,
+        refundMode: returnRecord.refundMethod === 'Cash Refund' ? 'CASH' : returnRecord.refundMethod === 'Customer Credit' ? 'CREDIT' : 'UPI',
+        items: returnRecord.items.map(it => ({
+          itemId: it.partId || 'item-return',
+          quantity: it.returnQuantity,
+          unitRate: it.rate || 0,
+          isRestocked: true
+        }))
+      });
+    } catch (err) {
+      console.warn('Backend sync for sales return deferred:', err);
+    }
   };
 
   // ==========================================
   // PURCHASE RETURN (DEBIT NOTE) HANDLER
   // ==========================================
-  const handleConfirmPurchaseReturn = (returnRecord: PurchaseReturnRecord) => {
+  const handleConfirmPurchaseReturn = async (returnRecord: PurchaseReturnRecord) => {
     // 1. Add to purchase returns ledger
     setPurchaseReturns(prev => [returnRecord, ...prev]);
 
@@ -943,10 +1315,26 @@ export function MainERPContent() {
     );
 
     showToast(`Purchase return debit note ${returnRecord.debitNoteNumber} issued to ${returnRecord.supplierName}. Stock deducted.`);
+
+    try {
+      await purchaseService.createReturn({
+        purchaseId: returnRecord.poNumber || 'manual-po',
+        debitNoteNumber: returnRecord.debitNoteNumber,
+        reason: returnRecord.reason,
+        items: returnRecord.items.map(it => ({
+          itemId: it.partId || 'item-return',
+          quantity: it.returnQuantity,
+          unitPrice: it.unitPrice || 0,
+          defectNote: returnRecord.notes
+        }))
+      });
+    } catch (err) {
+      console.warn('Backend sync for purchase return deferred:', err);
+    }
   };
 
   // Handler: Save Receipt Voucher
-  const handleSaveReceipt = (newReceipt: ReceiptVoucher, printAfter: boolean) => {
+  const handleSaveReceipt = async (newReceipt: ReceiptVoucher, printAfter: boolean) => {
     setReceipts(prev => [newReceipt, ...prev]);
 
     // Update customer receivable balance
@@ -1035,10 +1423,26 @@ export function MainERPContent() {
         );
       }, 300);
     }
+
+    try {
+      await accountService.createReceipt({
+        customerId: newReceipt.customerId,
+        customerName: newReceipt.customerName,
+        amount: newReceipt.amount,
+        paymentMode: newReceipt.paymentMode === 'Cash' ? 'CASH'
+          : newReceipt.paymentMode === 'UPI' ? 'UPI'
+          : newReceipt.paymentMode === 'Bank' ? 'NEFT_RTGS'
+          : newReceipt.paymentMode === 'Cheque' ? 'CHEQUE' : 'CASH',
+        referenceNo: newReceipt.refNo,
+        notes: newReceipt.remarks
+      });
+    } catch (err) {
+      console.warn('Backend sync for receipt deferred:', err);
+    }
   };
 
   // Handler: Save Supplier Payment Voucher
-  const handleSavePayment = (newPayment: PaymentVoucher, printAfter: boolean) => {
+  const handleSavePayment = async (newPayment: PaymentVoucher, printAfter: boolean) => {
     setPayments(prev => [newPayment, ...prev]);
 
     // Update supplier payable balance
@@ -1128,10 +1532,26 @@ export function MainERPContent() {
         );
       }, 300);
     }
+
+    try {
+      await accountService.createPayment({
+        supplierId: newPayment.supplierId,
+        supplierName: newPayment.supplierName,
+        amount: newPayment.amount,
+        paymentMode: newPayment.paymentMode === 'Cash' ? 'CASH'
+          : newPayment.paymentMode === 'UPI' ? 'UPI'
+          : newPayment.paymentMode === 'Bank' ? 'NEFT_RTGS'
+          : newPayment.paymentMode === 'Cheque' ? 'CHEQUE' : 'CASH',
+        referenceNo: newPayment.refNo,
+        notes: newPayment.remarks
+      });
+    } catch (err) {
+      console.warn('Backend sync for payment deferred:', err);
+    }
   };
 
   // Handler: Banking Contra Operation (Deposit, Withdrawal, Transfer)
-  const handleExecuteBankingOperation = (tx: BankTransaction, updatedAccounts: BankingAccount[]) => {
+  const handleExecuteBankingOperation = async (tx: BankTransaction, updatedAccounts: BankingAccount[]) => {
     setBankTransactions(prev => [tx, ...prev]);
     setBankAccounts(updatedAccounts);
     setBankingOperationType(null);
@@ -1145,9 +1565,39 @@ export function MainERPContent() {
       'Success'
     );
     showToast(`${tx.type} transaction ${tx.reference} executed successfully`);
+
+    try {
+      if ((tx.type as string) === 'Cash Deposit' || tx.type === 'Deposit') {
+        await accountService.createDeposit({
+          accountId: tx.account,
+          amount: tx.credit || tx.debit,
+          source: 'CASH_DRAWER',
+          referenceNo: tx.reference,
+          notes: tx.description
+        });
+      } else if ((tx.type as string) === 'Cash Withdrawal' || tx.type === 'Withdrawal') {
+        await accountService.createWithdrawal({
+          accountId: tx.account,
+          amount: tx.debit || tx.credit,
+          purpose: 'PETTY_CASH',
+          referenceNo: tx.reference,
+          notes: tx.description
+        });
+      } else if ((tx.type as string) === 'Inter-Bank Transfer' || tx.type === 'Transfer') {
+        await accountService.createTransfer({
+          fromAccountId: tx.account,
+          toAccountId: updatedAccounts.find(a => a.id !== tx.account)?.id || tx.account,
+          amount: tx.debit || tx.credit,
+          referenceNo: tx.reference,
+          notes: tx.description
+        });
+      }
+    } catch (err) {
+      console.warn('Backend sync for banking operation deferred:', err);
+    }
   };
 
-  const handleToggleReconcile = (txId: string) => {
+  const handleToggleReconcile = async (txId: string) => {
     setBankTransactions(prev =>
       prev.map(t => {
         if (t.id === txId) {
@@ -1167,10 +1617,19 @@ export function MainERPContent() {
         return t;
       })
     );
+
+    try {
+      await accountService.reconcileTransaction({
+        transactionId: txId,
+        bankStatementDate: new Date().toISOString()
+      });
+    } catch (err) {
+      console.warn('Backend sync for reconcile deferred:', err);
+    }
   };
 
   // Handler: Non-destructive audited reversal
-  const handleConfirmReversal = (target: any, reason: string) => {
+  const handleConfirmReversal = async (target: any, reason: string) => {
     const timestamp = new Date().toLocaleDateString('en-GB');
     if ('receiptNo' in target) {
       // Reversing a receipt
@@ -1207,6 +1666,24 @@ export function MainERPContent() {
     }
     setReversalTarget(null);
     setSelectedTxForDrawer(null);
+
+    try {
+      if ('receiptNo' in target) {
+        await accountService.reverseReceipt({
+          voucherType: 'RECEIPT',
+          voucherId: target.id,
+          reason
+        });
+      } else if ('paymentNo' in target) {
+        await accountService.reversePayment({
+          voucherType: 'PAYMENT',
+          voucherId: target.id,
+          reason
+        });
+      }
+    } catch (err) {
+      console.warn('Backend sync for reversal deferred:', err);
+    }
   };
 
   // Helper for recording audit logs
@@ -1257,7 +1734,7 @@ export function MainERPContent() {
   };
 
   // Administration action handlers
-  const handleSaveCompanyProfile = (updated: CompanyProfile) => {
+  const handleSaveCompanyProfile = async (updated: CompanyProfile) => {
     const prevName = companyProfile.companyName || companyProfile.firmName;
     setCompanyProfile(updated);
     logAuditEvent(
@@ -1269,9 +1746,22 @@ export function MainERPContent() {
       'Updated legal firm profile, bank account, and GST terms.'
     );
     showToast('Company profile & GST tax details saved successfully');
+
+    try {
+      await adminService.updateCompanySettings({
+        legalName: updated.companyName || updated.firmName,
+        tradeName: updated.companyName || updated.firmName,
+        gstin: updated.gstin,
+        email: updated.email,
+        phone: updated.phone || (updated as any).mobile || '',
+        addressLine1: updated.address || (updated as any).addressLine1 || ''
+      });
+    } catch (err) {
+      console.warn('Backend sync for company profile deferred:', err);
+    }
   };
 
-  const handleSaveBranch = (branch: BranchLocation) => {
+  const handleSaveBranch = async (branch: BranchLocation) => {
     const exists = branches.find((b) => b.id === branch.id);
     if (exists) {
       setBranches((prev) => prev.map((b) => (b.id === branch.id ? branch : b)));
@@ -1281,6 +1771,16 @@ export function MainERPContent() {
       setBranches((prev) => [...prev, branch]);
       logAuditEvent('Branch Created', 'Branches', branch.code || branch.branchCode || '', 'None', branch.name || branch.branchName || '', `Added new retail branch/warehouse ${branch.name || branch.branchName}`);
       showToast(`Branch ${branch.name || branch.branchName} registered`);
+      try {
+        await adminService.createBranch({
+          branchCode: branch.code || branch.branchCode || `BR-${Date.now().toString().slice(-4)}`,
+          name: branch.name || branch.branchName,
+          address: branch.address,
+          phone: branch.contactPhone || (branch as any).phone || ''
+        });
+      } catch (err) {
+        console.warn('Backend sync for branch creation deferred:', err);
+      }
     }
   };
 
@@ -1293,10 +1793,16 @@ export function MainERPContent() {
     }
   };
 
-  const handleSaveNumberingConfigs = (configs: NumberingConfig[]) => {
+  const handleSaveNumberingConfigs = async (configs: NumberingConfig[]) => {
     setNumberingConfigs(configs);
     logAuditEvent('Document Numbering Updated', 'Settings', 'VOUCHER_SERIES', 'Previous Series', 'Updated Series', 'Modified running numbering sequences and prefixes');
     showToast('Document numbering sequences saved');
+
+    try {
+      await adminService.updateNumberingConfigs({ configs });
+    } catch (err) {
+      console.warn('Backend sync for numbering configs deferred:', err);
+    }
   };
 
   const handleSaveTaxRates = (rates: TaxRateConfig[]) => {
@@ -1317,13 +1823,19 @@ export function MainERPContent() {
     showToast('Invoice template saved');
   };
 
-  const handleSavePrinterConfig = (config: PrinterConfig) => {
+  const handleSavePrinterConfig = async (config: PrinterConfig) => {
     setPrinterConfig(config);
     logAuditEvent('Printer Configuration Updated', 'Hardware', 'PRINTER_ROUTING', 'Previous Driver', config.thermalPrinter, 'Updated hardware spooling and printer routing');
     showToast('Printer hardware configuration saved');
+
+    try {
+      await adminService.updatePrinterSettings(config);
+    } catch (err) {
+      console.warn('Backend sync for printer settings deferred:', err);
+    }
   };
 
-  const handleCreateBackup = () => {
+  const handleCreateBackup = async () => {
     const now = new Date();
     const backupName = `BIKE_ERP_BACKUP_${now.toISOString().slice(0, 10).replace(/-/g, '')}_${now.getHours()}${now.getMinutes()}.sql.gz`;
     const newBackup: BackupRecord = {
@@ -1344,13 +1856,25 @@ export function MainERPContent() {
     setBackups((prev) => [newBackup, ...prev]);
     logAuditEvent('Backup Created', 'System', newBackup.filename, 'None', newBackup.size, 'Created verified database point-in-time snapshot');
     showToast(`Instant backup ${newBackup.filename} created`);
+
+    try {
+      await adminService.createBackup({ type: 'DATABASE', notes: 'Manual instant snapshot' });
+    } catch (err) {
+      console.warn('Backend sync for backup creation deferred:', err);
+    }
   };
 
-  const handleRestoreBackup = (backupId: string) => {
+  const handleRestoreBackup = async (backupId: string) => {
     const b = backups.find((item) => item.id === backupId);
     if (b) {
       logAuditEvent('Backup Restored', 'System', b.filename, 'Active Database', b.filename, `Restored system state from archive ${b.filename}`, 'Warning');
       showToast(`Database successfully restored from ${b.filename}`);
+
+      try {
+        await adminService.restoreBackup({ backupId, confirmKey: 'RESTORE-CONFIRM' });
+      } catch (err) {
+        console.warn('Backend sync for restore backup deferred:', err);
+      }
     }
   };
 
@@ -1441,17 +1965,29 @@ export function MainERPContent() {
     showToast('Role permissions matrix saved successfully');
   };
 
-  const handleFactoryReset = () => {
+  const handleFactoryReset = async () => {
     setCompanyProfile(INITIAL_COMPANY_PROFILE);
     setNumberingConfigs(INITIAL_NUMBERING_CONFIG);
     setTaxRates(INITIAL_TAX_RATES);
     logAuditEvent('Factory Reset Executed', 'System', 'SYSTEM_CORE', 'Configured', 'Factory Defaults', 'Danger Zone: Restored default system configuration', 'Warning');
     showToast('System configuration reset to OEM factory template');
+
+    try {
+      await adminService.resetSystemConfig({ confirmKey: 'FACTORY-RESET-CONFIRM' });
+    } catch (err) {
+      console.warn('Backend sync for factory reset deferred:', err);
+    }
   };
 
-  const handleClearTestData = () => {
+  const handleClearTestData = async () => {
     logAuditEvent('Test Data Cleared', 'System', 'TRANSACTIONS', 'Active Invoices', 'Purged', 'Danger Zone: Purged test transactions and reset invoice sequence', 'Warning');
     showToast('Test transactions cleared');
+
+    try {
+      await adminService.clearTestData({ confirmKey: 'CLEAR-TEST-DATA-CONFIRM' });
+    } catch (err) {
+      console.warn('Backend sync for test data clear deferred:', err);
+    }
   };
 
   const handleReindexDatabase = () => {
@@ -1462,7 +1998,7 @@ export function MainERPContent() {
   // ==========================================
   // CRM & CUSTOMER RELATIONSHIP HANDLERS
   // ==========================================
-  const handleSaveCrmCustomer = (newCustomer: CustomerProfileData) => {
+  const handleSaveCrmCustomer = async (newCustomer: CustomerProfileData) => {
     setCrmCustomers(prev => {
       const exists = prev.find(c => c.id === newCustomer.id);
       if (exists) {
@@ -1479,9 +2015,34 @@ export function MainERPContent() {
       newCustomer.customerType,
       `Saved customer profile for ${newCustomer.name} (${newCustomer.customerType})`
     );
+
+    try {
+      const typeMap: Record<string, 'RETAIL' | 'WORKSHOP_GARAGE' | 'WHOLESALE_DEALER' | 'COMMERCIAL_FLEET'> = {
+        'Retail': 'RETAIL',
+        'Retail Customer': 'RETAIL',
+        'Workshop': 'WORKSHOP_GARAGE',
+        'Workshop / Garage': 'WORKSHOP_GARAGE',
+        'Wholesale': 'WHOLESALE_DEALER',
+        'Wholesale Trader': 'WHOLESALE_DEALER',
+        'Fleet': 'COMMERCIAL_FLEET',
+        'Commercial Fleet': 'COMMERCIAL_FLEET'
+      };
+      await crmService.createCustomer({
+        name: newCustomer.name,
+        type: typeMap[newCustomer.customerType] || 'RETAIL',
+        mobile: newCustomer.mobile,
+        email: newCustomer.email,
+        address: newCustomer.address,
+        city: newCustomer.city,
+        gstin: newCustomer.gstin,
+        creditLimit: newCustomer.creditLimit
+      });
+    } catch (err) {
+      console.warn('Backend sync for customer profile deferred:', err);
+    }
   };
 
-  const handleAddVehicleToCustomer = (vehicle: CustomerVehicleRecord) => {
+  const handleAddVehicleToCustomer = async (vehicle: CustomerVehicleRecord) => {
     if (!selectedCustomerProfileId) return;
     setCrmCustomers(prev =>
       prev.map(c => {
@@ -1503,6 +2064,17 @@ export function MainERPContent() {
       `${vehicle.manufacturer} ${vehicle.model}`,
       `Linked motorcycle ${vehicle.regNo} to customer ID ${selectedCustomerProfileId}`
     );
+
+    try {
+      await crmService.addVehicle(selectedCustomerProfileId, {
+        registrationNo: vehicle.regNo,
+        brand: vehicle.manufacturer,
+        model: vehicle.model,
+        modelYear: vehicle.year ? Number(vehicle.year) : undefined
+      });
+    } catch (err) {
+      console.warn('Backend sync for customer vehicle deferred:', err);
+    }
   };
 
   const handleSaveLoyaltyRules = (rules: LoyaltyRuleConfig) => {
@@ -1518,7 +2090,7 @@ export function MainERPContent() {
     );
   };
 
-  const handleAdjustLoyaltyPoints = (
+  const handleAdjustLoyaltyPoints = async (
     customerId: string,
     pointsDelta: number,
     reason: string,
@@ -1556,6 +2128,17 @@ export function MainERPContent() {
       `${newBalance} pts`,
       `Audited adjustment (${pointsDelta >= 0 ? '+' : ''}${pointsDelta} pts): ${reason}`
     );
+
+    try {
+      await crmService.adjustLoyaltyPoints({
+        customerId,
+        pointsDelta,
+        type: pointsDelta >= 0 ? 'MANUAL_BONUS' : 'REDEEMED',
+        notes: reason
+      });
+    } catch (err) {
+      console.warn('Backend sync for loyalty adjustment deferred:', err);
+    }
   };
 
   const handleRedeemLoyaltyPoints = (customerId: string, pointsToRedeem: number, billRef: string) => {
@@ -1586,7 +2169,7 @@ export function MainERPContent() {
     showToast(`Redeemed ${pointsToRedeem} points (₹${discountAmount.toFixed(2)} discount) for ${cust.name}`);
   };
 
-  const handleSendMessage = (
+  const handleSendMessage = async (
     mobile: string,
     messageText: string,
     channel: 'WhatsApp' | 'SMS',
@@ -1618,6 +2201,18 @@ export function MainERPContent() {
 
     setCommunicationLogs(prev => [logEntry, ...prev]);
     showToast(`${channel} notification delivered to ${mobile} (${custName})`);
+
+    try {
+      await crmService.sendMessage({
+        recipientMobile: mobile,
+        recipientName: custName,
+        channel: channel === 'WhatsApp' ? 'WHATSAPP' : 'SMS',
+        templateId,
+        messageBody: messageText
+      });
+    } catch (err) {
+      console.warn('Backend sync for message delivery deferred:', err);
+    }
   };
 
   const handleBulkCampaignBroadcast = (
@@ -1655,7 +2250,7 @@ export function MainERPContent() {
     );
   };
 
-  const handleSaveMechanic = (newMechanic: MechanicRecord) => {
+  const handleSaveMechanic = async (newMechanic: MechanicRecord) => {
     setMechanics(prev => [newMechanic, ...prev]);
     showToast(`Mechanic partner "${newMechanic.name}" onboarded (Code: ${newMechanic.customerCode})`);
     logAuditEvent(
@@ -1666,9 +2261,22 @@ export function MainERPContent() {
       newMechanic.workshopName,
       `Registered affiliated mechanic partner ${newMechanic.name}`
     );
+
+    try {
+      await crmService.createMechanic({
+        name: newMechanic.name,
+        mobile: newMechanic.mobile,
+        workshopName: newMechanic.workshopName,
+        workshopAddress: newMechanic.location,
+        commissionType: 'PERCENTAGE',
+        commissionRate: newMechanic.commissionRatePercent || 5
+      });
+    } catch (err) {
+      console.warn('Backend sync for mechanic onboarding deferred:', err);
+    }
   };
 
-  const handleRecordReferralSale = (referral: ReferralRecord) => {
+  const handleRecordReferralSale = async (referral: ReferralRecord) => {
     setReferrals(prev => [referral, ...prev]);
 
     // Update mechanic stats
@@ -1696,13 +2304,32 @@ export function MainERPContent() {
       `Sales: ₹${referral.salesAmount}, Cash: ₹${referral.rewardCash}`,
       `Referral credited to ${referral.referrerName} for sale to ${referral.referredCustomerName}`
     );
+
+    try {
+      await crmService.recordReferral({
+        mechanicId: referral.referrerId,
+        customerName: referral.referredCustomerName,
+        customerMobile: referral.referrerMobile || '9840112345',
+        salesAmount: referral.salesAmount,
+        notes: `Bill: ${referral.invoiceNo}`
+      });
+    } catch (err) {
+      console.warn('Backend sync for referral sale deferred:', err);
+    }
   };
 
-  const handleUpdateReferralStatus = (referralId: string, newStatus: ReferralStatus) => {
+  const handleUpdateReferralStatus = async (referralId: string, newStatus: ReferralStatus) => {
     setReferrals(prev =>
       prev.map(r => (r.id === referralId ? { ...r, status: newStatus } : r))
     );
     showToast(`Referral #${referralId} status updated to ${newStatus}`);
+
+    try {
+      const mapped = newStatus === 'Rewarded' ? 'REWARDED' : newStatus === 'Cancelled' ? 'EXPIRED' : 'CONVERTED';
+      await crmService.updateReferralStatus(referralId, mapped as any);
+    } catch (err) {
+      console.warn('Backend sync for referral status deferred:', err);
+    }
   };
 
   const handleSettleMechanicCommission = (
@@ -1754,7 +2381,7 @@ export function MainERPContent() {
     showToast(`Customer segment "${newSegment.name}" created`);
   };
 
-  const handleSendPaymentReminder = (
+  const handleSendPaymentReminder = async (
     record: OutstandingReminderRecord,
     channel: 'WhatsApp' | 'SMS'
   ) => {
@@ -1774,6 +2401,14 @@ export function MainERPContent() {
           : r
       )
     );
+
+    try {
+      await crmService.sendOutstandingReminder(record.customerId, {
+        channel: channel === 'WhatsApp' ? 'WHATSAPP' : 'SMS'
+      });
+    } catch (err) {
+      console.warn('Backend sync for payment reminder deferred:', err);
+    }
   };
 
   const handleBatchSendPaymentReminders = (
