@@ -1,12 +1,11 @@
 {
   "screensDiscovered": 49,
   "screensTested": 49,
-  "interactionsTotal": 583,
-  "passed": 583,
+  "interactionsTotal": 586,
+  "passed": 586,
   "failed": 0,
   "consoleErrors": [
-    "Failed to load resource: the server responded with a status of 404 (Not Found)",
-    "Cannot read properties of undefined (reading 'toLowerCase')"
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
   ],
   "issues": []
 }
