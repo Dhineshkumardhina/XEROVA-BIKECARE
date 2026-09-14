@@ -211,7 +211,7 @@ export class SearchService {
         (prisma as any).receiptVoucher?.findMany ? (prisma as any).receiptVoucher.findMany({
           where: {
             OR: [
-              { voucherNumber: { contains: q, mode: 'insensitive' } },
+              { receiptNo: { contains: q, mode: 'insensitive' } },
               { customer: { name: { contains: q, mode: 'insensitive' } } }
             ]
           },
@@ -223,7 +223,7 @@ export class SearchService {
         (prisma as any).paymentVoucher?.findMany ? (prisma as any).paymentVoucher.findMany({
           where: {
             OR: [
-              { voucherNumber: { contains: q, mode: 'insensitive' } },
+              { paymentNo: { contains: q, mode: 'insensitive' } },
               { supplier: { name: { contains: q, mode: 'insensitive' } } }
             ]
           },
@@ -312,19 +312,19 @@ export class SearchService {
           ...receipts.map((r: any) => ({
             id: r.id,
             type: 'voucher' as const,
-            title: `Receipt #${r.voucherNumber}`,
+            title: `Receipt #${r.receiptNo || r.voucherNumber}`,
             subtitle: `Customer: ${r.customer?.name || 'Cash'} • Mode: ${r.paymentMode}`,
             voucherType: 'RECEIPT',
-            voucherNo: r.voucherNumber,
+            voucherNo: r.receiptNo || r.voucherNumber,
             amount: `₹${Number(r.amount).toFixed(2)}`
           })),
           ...payments.map((p: any) => ({
             id: p.id,
             type: 'voucher' as const,
-            title: `Payment #${p.voucherNumber}`,
+            title: `Payment #${p.paymentNo || p.voucherNumber}`,
             subtitle: `Supplier: ${p.supplier?.name || 'Vendor'} • Mode: ${p.paymentMode}`,
             voucherType: 'PAYMENT',
-            voucherNo: p.voucherNumber,
+            voucherNo: p.paymentNo || p.voucherNumber,
             amount: `₹${Number(p.amount).toFixed(2)}`
           }))
         ]
