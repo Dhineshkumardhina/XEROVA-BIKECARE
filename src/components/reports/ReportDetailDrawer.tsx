@@ -1,6 +1,7 @@
 import React from 'react';
 import { ReportDetailData, UserRole } from '../../types';
 import { formatINR } from '../../utils/formatters';
+import { exportToCsv, triggerPrintWindow } from '../../utils/exportUtils';
 
 interface ReportDetailDrawerProps {
   isOpen: boolean;
@@ -229,9 +230,21 @@ export const ReportDetailDrawer: React.FC<ReportDetailDrawerProps> = ({
               type="button"
               onClick={() => {
                 if (onPrint) onPrint(data);
-                else alert(`Printing Official Voucher ${data.referenceNo}`);
+                else {
+                  const content = `
+                    <div style="font-family: sans-serif; padding: 20px;">
+                      <h2>Voucher Details: ${data.referenceNo}</h2>
+                      <p><strong>Date:</strong> ${data.date} | <strong>Type:</strong> ${data.type}</p>
+                      <p><strong>Party / Account:</strong> ${data.partyOrAccount}</p>
+                      <p><strong>Amount:</strong> ₹${data.amount.toLocaleString('en-IN')}</p>
+                      <p><strong>Payment Mode:</strong> ${data.paymentMode || 'N/A'}</p>
+                      <p><strong>Remarks:</strong> ${data.remarks || 'None'}</p>
+                    </div>
+                  `;
+                  triggerPrintWindow(`Voucher - ${data.referenceNo}`, content);
+                }
               }}
-              className="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high font-bold text-xs text-on-surface flex items-center gap-1 transition-colors"
+              className="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high font-bold text-xs text-on-surface flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[15px]">print</span>
               <span>Print</span>
@@ -240,9 +253,24 @@ export const ReportDetailDrawer: React.FC<ReportDetailDrawerProps> = ({
               type="button"
               onClick={() => {
                 if (onExport) onExport(data);
-                else alert(`Exported CSV record for ${data.referenceNo}`);
+                else {
+                  const headers = ['Reference No', 'Date', 'Type', 'Party / Account', 'Amount (₹)', 'Taxable (₹)', 'GST (₹)', 'Payment Mode', 'Status', 'Remarks'];
+                  const rows = [[
+                    data.referenceNo,
+                    data.date,
+                    data.type,
+                    data.partyOrAccount,
+                    data.amount,
+                    data.taxableAmount || 0,
+                    data.gstAmount || 0,
+                    data.paymentMode || '',
+                    data.status,
+                    data.remarks || ''
+                  ]];
+                  exportToCsv(`Report_Detail_${data.referenceNo}.csv`, headers, rows);
+                }
               }}
-              className="px-3 py-1.5 rounded bg-secondary hover:bg-secondary-container text-on-secondary font-bold text-xs flex items-center gap-1 transition-colors shadow-xs"
+              className="px-3 py-1.5 rounded bg-secondary hover:bg-secondary-container text-on-secondary font-bold text-xs flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
             >
               <span className="material-symbols-outlined text-[15px]">download</span>
               <span>Export Record</span>

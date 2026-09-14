@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ReceivableRecord } from '../../types';
+import { exportToCsv } from '../../utils/exportUtils';
 
 interface ReceivablesViewProps {
   receivables: ReceivableRecord[];
@@ -288,8 +289,21 @@ export const ReceivablesView: React.FC<ReceivablesViewProps> = ({
               <p className="text-[11px] text-outline">Categorized into standard trade credit maturity buckets</p>
             </div>
             <button
-              onClick={() => alert('Exporting Ageing Schedule to Excel...')}
-              className="px-3 py-1.5 rounded bg-surface-container-lowest hover:bg-surface-container border border-surface-container-high text-xs font-bold text-on-surface flex items-center gap-1.5"
+              onClick={() => {
+                const headers = ['Customer Name', 'Category', 'Total Due (₹)', 'Current', '1-30 Days', '31-60 Days', '61-90 Days', '>90 Days Overdue'];
+                const rows = receivables.map(r => [
+                  r.customerName,
+                  r.category,
+                  r.totalDue,
+                  r.current,
+                  r.days1To30,
+                  r.days31To60,
+                  r.days61To90,
+                  r.daysOver90
+                ]);
+                exportToCsv(`Receivable_Ageing_Schedule_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+              }}
+              className="px-3 py-1.5 rounded bg-surface-container-lowest hover:bg-surface-container border border-surface-container-high text-xs font-bold text-on-surface flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <span className="material-symbols-outlined text-[16px]">file_download</span>
               <span>Export Ageing</span>

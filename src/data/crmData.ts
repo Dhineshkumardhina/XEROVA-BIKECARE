@@ -36,40 +36,32 @@ export const INITIAL_MESSAGE_TEMPLATES: MessageTemplate[] = [
     name: 'Invoice Confirmation & Receipt',
     category: 'Invoice',
     channel: 'WhatsApp',
-    subject: 'Invoice {invoice_no} Generated',
-    body: 'Dear {customer_name}, thank you for purchasing from {company_name}. Your invoice {invoice_no} for Rs.{amount} has been generated.',
-    variables: ['customer_name', 'company_name', 'invoice_no', 'amount'],
-    isSystem: true
+    content: 'Dear {{customer_name}}, thank you for purchasing from BIKE ERP. Your invoice {{invoice_number}} for Rs.{{amount}} has been generated.',
+    variables: ['customer_name', 'invoice_number', 'amount']
   },
   {
     id: 'tpl-2',
     name: 'Payment Due Reminder',
     category: 'Payment Reminder',
     channel: 'WhatsApp',
-    subject: 'Payment Reminder - Balance Rs.{amount}',
-    body: 'Dear {customer_name}, your outstanding balance with {company_name} is Rs.{amount}. Kindly arrange payment via UPI/Bank transfer.',
-    variables: ['customer_name', 'company_name', 'amount'],
-    isSystem: true
+    content: 'Dear {{customer_name}}, your outstanding balance with BIKE ERP is Rs.{{outstanding}}. Kindly arrange payment via UPI/Bank transfer.',
+    variables: ['customer_name', 'outstanding']
   },
   {
     id: 'tpl-3',
     name: 'Loyalty Points Balance Alert',
     category: 'Loyalty',
     channel: 'WhatsApp',
-    subject: 'Your Loyalty Balance: {points} Points',
-    body: 'Hello {customer_name}, your loyalty reward balance at {company_name} is {points} points (worth Rs.{points} discount on next visit).',
-    variables: ['customer_name', 'company_name', 'points'],
-    isSystem: true
+    content: 'Hello {{customer_name}}, your loyalty reward balance is {{points}} points (worth Rs.{{points}} discount on next visit).',
+    variables: ['customer_name', 'points']
   },
   {
     id: 'tpl-4',
     name: 'Welcome & Registration',
     category: 'Welcome',
     channel: 'WhatsApp',
-    subject: 'Welcome to {company_name}',
-    body: 'Hi {customer_name}, welcome to {company_name}! We are your trusted partner for genuine bike spares and workshop care.',
-    variables: ['customer_name', 'company_name'],
-    isSystem: true
+    content: 'Hi {{customer_name}}, welcome to BIKE ERP! We are your trusted partner for genuine bike spares and workshop care.',
+    variables: ['customer_name']
   }
 ];
 

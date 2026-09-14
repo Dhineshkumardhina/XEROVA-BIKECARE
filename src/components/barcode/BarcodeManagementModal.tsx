@@ -32,7 +32,7 @@ export const BarcodeManagementModal: React.FC<BarcodeManagementModalProps> = ({
   };
 
   const handleDownloadPdf = () => {
-    alert(`Generating high-density vector PDF for ${labelQty} barcode labels (${partNumber}).`);
+    window.print();
   };
 
   return (

@@ -19,12 +19,14 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
   const [targetQty, setTargetQty] = useState<number>(0);
   const [reason, setReason] = useState<StockAdjustmentReason>('Physical Count');
   const [notes, setNotes] = useState<string>('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (part) {
       setTargetQty(part.currentStock);
       setDeltaQty(0);
       setNotes('');
+      setFormError(null);
     }
   }, [part]);
 
@@ -41,7 +43,7 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
 
   const handleConfirm = () => {
     if (effectiveDelta === 0) {
-      alert('Adjustment quantity cannot be 0.');
+      setFormError('Adjustment quantity cannot be 0.');
       return;
     }
     onConfirmAdjustment(part.id, effectiveDelta, reason, notes || `${reason} adjustment`);
@@ -71,6 +73,13 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
+
+        {formError && (
+          <div className="mx-4 mt-3 p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
 
         {/* Content */}
         <div className="p-5 space-y-4 text-xs">

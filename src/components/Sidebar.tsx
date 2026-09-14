@@ -45,7 +45,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) =>
     {
       title: 'ACCOUNTS',
       items: [
-        { id: 'receivables', label: 'Customers', icon: 'groups', shortcut: 'F6' },
+        { id: 'accounts-dashboard', label: 'Overview', icon: 'account_balance_wallet' },
+        { id: 'receivables', label: 'Receivables', icon: 'groups', shortcut: 'F6' },
+        { id: 'payables', label: 'Payables', icon: 'local_shipping' },
         { id: 'payment-receipts', label: 'Receipts', icon: 'receipt', shortcut: 'F8' },
         { id: 'payment-vouchers', label: 'Payments', icon: 'payments' },
         { id: 'customer-ledgers', label: 'Ledgers', icon: 'menu_book' },
@@ -64,8 +66,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) =>
     {
       title: 'CRM & DIRECTORY',
       items: [
+        { id: 'crm-dashboard', label: 'CRM Overview', icon: 'dashboard' },
         { id: 'customers', label: 'Customers', icon: 'contacts' },
-        { id: 'mechanics', label: 'Mechanics', icon: 'engineering' }
+        { id: 'mechanics', label: 'Mechanics', icon: 'engineering' },
+        { id: 'loyalty-program', label: 'Loyalty', icon: 'loyalty' },
+        { id: 'referral-system', label: 'Referrals', icon: 'share' },
+        { id: 'messaging', label: 'Messaging', icon: 'chat' }
       ]
     },
     {
@@ -75,12 +81,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) =>
         { id: 'purchase-reports', label: 'Purchase', icon: 'local_shipping' },
         { id: 'inventory-reports', label: 'Inventory', icon: 'inventory_2' },
         { id: 'profitability-dashboard', label: 'Profitability', icon: 'trending_up' },
-        { id: 'financial-reports', label: 'Financial', icon: 'balance' }
+        { id: 'financial-reports', label: 'Financial', icon: 'balance' },
+        { id: 'business-insights', label: 'Insights', icon: 'insights' }
       ]
     },
     {
       title: 'ADMINISTRATION',
       items: [
+        { id: 'admin-dashboard', label: 'Admin Hub', icon: 'admin_panel_settings' },
         { id: 'users-roles', label: 'Users & Roles', icon: 'manage_accounts' },
         { id: 'company-settings', label: 'Company Settings', icon: 'business' },
         { id: 'invoice-templates', label: 'Invoice Templates', icon: 'receipt_long' },
@@ -111,6 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) =>
               return (
                 <button
                   key={item.id}
+                  data-screen={item.id}
                   onClick={() => onNavigate(item.id)}
                   aria-current={isActive ? 'page' : undefined}
                   className={`w-full flex items-center justify-between px-space-sm py-1.5 rounded transition-colors text-left ${

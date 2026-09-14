@@ -23,13 +23,14 @@ export const POSNewCustomerModal: React.FC<POSNewCustomerModalProps> = ({
   // Vehicle info
   const [regNo, setRegNo] = useState('');
   const [bikeModel, setBikeModel] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      alert('Please enter a Customer or Garage name.');
+      setFormError('Please enter a Customer or Garage name.');
       return;
     }
 
@@ -65,16 +66,26 @@ export const POSNewCustomerModal: React.FC<POSNewCustomerModalProps> = ({
         <div className="p-3 bg-surface-container flex items-center justify-between border-b border-surface-container-high">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-secondary text-[20px]">person_add</span>
-            <span className="font-bold text-sm text-on-surface">Quick Add Customer / Garage</span>
+            <div>
+              <span className="font-bold text-sm text-on-surface block">Quick Register Customer</span>
+              <span className="text-[11px] text-outline">Add customer master directly from POS counter</span>
+            </div>
           </div>
-
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 rounded text-outline hover:text-on-surface hover:bg-surface-container-high"
+            className="p-1 rounded-full hover:bg-surface-container-high text-outline hover:text-on-surface"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
+
+        {formError && (
+          <div className="mx-4 mt-3 p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-4 space-y-3">

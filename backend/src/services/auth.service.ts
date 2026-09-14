@@ -4,7 +4,7 @@ import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '.
 import { AuthenticatedUserPayload } from '../types/index.js';
 import { LoginInput } from '../validators/auth.validator.js';
 import { recordAuditLog } from '../middleware/auditLogger.js';
-import { AuditSeverity, RecordStatus } from '@prisma/client';
+import { AuditSeverity, RecordStatus, UserRoleType } from '@prisma/client';
 
 // Standard fallback role permissions matrix
 const ALL_PERMISSIONS = [
@@ -28,14 +28,24 @@ const PURCHASE_PERMISSIONS = [
   'inventory.view', 'inventory.create', 'inventory.create_item', 'inventory.edit', 'accounts.payment.create'
 ];
 
-const DEMO_USERS = [
+const DEMO_USERS: Array<{
+  id: string;
+  username: string;
+  email: string;
+  fullName: string;
+  passwords: string[];
+  role: UserRoleType;
+  roleDisplayName: string;
+  branch: { id: string; name: string; code: string };
+  permissions: string[];
+}> = [
   {
     id: 'usr-admin-01',
     username: 'admin',
     email: 'admin@bikecare.erp',
     fullName: 'Rajesh Kumar (Super Admin)',
     passwords: ['Admin@123', 'Admin@BikeERP2026!', 'admin', 'admin123'],
-    role: 'SUPER_ADMIN',
+    role: 'SUPER_ADMIN' as UserRoleType,
     roleDisplayName: 'Store Admin',
     branch: { id: 'br-01', name: 'Main Branch - Chennai Central', code: 'BR-01' },
     permissions: ALL_PERMISSIONS
@@ -46,7 +56,7 @@ const DEMO_USERS = [
     email: 'billing@bikecare.erp',
     fullName: 'Praveen S (POS Operator)',
     passwords: ['Billing@123', 'billing', 'billing123'],
-    role: 'BILLING_OPERATOR',
+    role: 'BILLING_OPERATOR' as UserRoleType,
     roleDisplayName: 'Billing Operator',
     branch: { id: 'br-01', name: 'Main Branch - Chennai Central', code: 'BR-01' },
     permissions: BILLING_PERMISSIONS
@@ -57,7 +67,7 @@ const DEMO_USERS = [
     email: 'purchase@bikecare.erp',
     fullName: 'Karthik R (Purchase Manager)',
     passwords: ['Purchase@123', 'purchase', 'purchase123'],
-    role: 'PURCHASE_MANAGER',
+    role: 'PURCHASE_MANAGER' as UserRoleType,
     roleDisplayName: 'Purchase Manager',
     branch: { id: 'br-01', name: 'Main Branch - Chennai Central', code: 'BR-01' },
     permissions: PURCHASE_PERMISSIONS

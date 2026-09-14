@@ -63,22 +63,22 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       .filter(
         (p) =>
           !q ||
-          p.name.toLowerCase().includes(q) ||
-          p.sku.toLowerCase().includes(q) ||
-          (p.oemPartNumber && p.oemPartNumber.toLowerCase().includes(q)) ||
-          p.rackBin.toLowerCase().includes(q) ||
-          p.brand.toLowerCase().includes(q) ||
-          (p.barcode && p.barcode.toLowerCase().includes(q))
+          p.name?.toLowerCase().includes(q) ||
+          p.sku?.toLowerCase().includes(q) ||
+          p.oemPartNumber?.toLowerCase().includes(q) ||
+          p.rackBin?.toLowerCase().includes(q) ||
+          p.brand?.toLowerCase().includes(q) ||
+          p.barcode?.toLowerCase().includes(q)
       )
       .slice(0, 6)
       .map((p) => ({
         id: `item-${p.id}`,
         type: 'item',
-        title: p.name,
-        subtitle: `${p.sku} • Bin: ${p.rackBin} • ${p.brand} ${p.oemPartNumber ? `• OEM: ${p.oemPartNumber}` : ''}`,
+        title: p.name || 'Unnamed Part',
+        subtitle: `${p.sku || 'N/A'} • Bin: ${p.rackBin || 'N/A'} • ${p.brand || 'Generic'} ${p.oemPartNumber ? `• OEM: ${p.oemPartNumber}` : ''}`,
         badge: p.status,
-        metaRight: formatCurrency(p.counterPrice),
-        metaSubRight: `Stock: ${p.currentStock} pcs`,
+        metaRight: formatCurrency(p.counterPrice || 0),
+        metaSubRight: `Stock: ${p.currentStock || 0} pcs`,
         icon: 'two_wheeler',
         action: () => {
           onClose();
@@ -97,11 +97,11 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
           c.name?.toLowerCase().includes(q) ||
           c.customerName?.toLowerCase().includes(q) ||
           c.mobile?.includes(q) ||
-          (c.gstin && c.gstin.toLowerCase().includes(q))
+          c.gstin?.toLowerCase().includes(q)
       )
       .slice(0, 5)
       .map((c: any) => {
-        const name = c.name || c.customerName;
+        const name = c.name || c.customerName || 'Customer';
         const out = c.outstanding || 0;
         return {
           id: `cust-${c.id || c.customerId}`,
@@ -125,20 +125,20 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       .filter(
         (inv) =>
           !q ||
-          inv.id.toLowerCase().includes(q) ||
-          (inv.invoiceNumber && inv.invoiceNumber.toLowerCase().includes(q)) ||
-          inv.customerName.toLowerCase().includes(q) ||
-          (inv.vehicleNo && inv.vehicleNo.toLowerCase().includes(q)) ||
-          (inv.bikeModel && inv.bikeModel.toLowerCase().includes(q))
+          inv.id?.toLowerCase().includes(q) ||
+          inv.invoiceNumber?.toLowerCase().includes(q) ||
+          inv.customerName?.toLowerCase().includes(q) ||
+          inv.vehicleNo?.toLowerCase().includes(q) ||
+          inv.bikeModel?.toLowerCase().includes(q)
       )
       .slice(0, 5)
       .map((inv) => ({
         id: `inv-${inv.id}`,
         type: 'invoice',
-        title: `${inv.invoiceNumber || inv.id} — ${inv.customerName}`,
-        subtitle: `${inv.vehicleNo || 'Walk-in'} (${inv.bikeModel || 'General'}) • ${inv.createdAt || 'Today'} • ${inv.payMode}`,
+        title: `${inv.invoiceNumber || inv.id} — ${inv.customerName || 'Walk-in'}`,
+        subtitle: `${inv.vehicleNo || 'Walk-in'} (${inv.bikeModel || 'General'}) • ${inv.createdAt || 'Today'} • ${inv.payMode || 'Cash'}`,
         badge: inv.status,
-        metaRight: formatCurrency(inv.totalAmount),
+        metaRight: formatCurrency(inv.totalAmount || 0),
         metaSubRight: `${inv.lineItems?.length || 0} items`,
         icon: 'receipt_long',
         action: () => {
@@ -152,19 +152,19 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       .filter(
         (s) =>
           !q ||
-          s.supplierName.toLowerCase().includes(q) ||
-          s.contactPerson.toLowerCase().includes(q) ||
-          (s.mobile && s.mobile.includes(q)) ||
-          (s.gstin && s.gstin.toLowerCase().includes(q))
+          s.supplierName?.toLowerCase().includes(q) ||
+          s.contactPerson?.toLowerCase().includes(q) ||
+          s.mobile?.includes(q) ||
+          s.gstin?.toLowerCase().includes(q)
       )
       .slice(0, 4)
       .map((s) => ({
         id: `sup-${s.supplierId}`,
         type: 'supplier',
         title: s.supplierName,
-        subtitle: `Contact: ${s.contactPerson} (${s.mobile || 'N/A'}) • ${s.brandFocus}`,
+        subtitle: `Contact: ${s.contactPerson || 'N/A'} (${s.mobile || 'N/A'}) • ${s.brandFocus || 'All'}`,
         badge: s.status,
-        metaRight: formatCurrency(s.outstanding),
+        metaRight: formatCurrency(s.outstanding || 0),
         metaSubRight: 'Payable Due',
         icon: 'local_shipping',
         action: () => {
@@ -180,19 +180,19 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       (cust.vehicles || []).forEach((veh: CustomerVehicleRecord) => {
         if (
           !q ||
-          veh.regNo.toLowerCase().includes(q) ||
-          veh.model.toLowerCase().includes(q) ||
-          veh.manufacturer.toLowerCase().includes(q) ||
-          cust.name.toLowerCase().includes(q)
+          veh.regNo?.toLowerCase().includes(q) ||
+          veh.model?.toLowerCase().includes(q) ||
+          veh.manufacturer?.toLowerCase().includes(q) ||
+          cust.name?.toLowerCase().includes(q)
         ) {
           if (matchingVehicles.length < 4) {
             matchingVehicles.push({
               id: `veh-${veh.id}`,
-              type: 'vehicle',
-              title: `${veh.regNo} — ${veh.manufacturer} ${veh.model}`,
-              subtitle: `Owner: ${cust.name} (${cust.mobile}) • Year: ${veh.year || '2023'}`,
-              badge: `${veh.serviceHistoryCount || 1} Services`,
-              metaRight: veh.engineNo ? `Eng: ${veh.engineNo}` : 'Registered',
+              type: 'vehicle' as const,
+              title: `${veh.regNo || 'N/A'} — ${veh.manufacturer || ''} ${veh.model || ''}`,
+              subtitle: `Owner: ${cust.name || 'Owner'} (${cust.mobile || 'N/A'}) • Year: ${veh.year || '2023'}`,
+              badge: `${veh.history?.length || 0} Services`,
+              metaRight: veh.variant || `${veh.year || '2023'}`,
               metaSubRight: 'Motorcycle',
               icon: 'moped',
               action: () => {
@@ -210,7 +210,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     const matchingTransactions: SearchResultItem[] = [
       {
         id: 'tx-101',
-        type: 'quotation',
+        type: 'quotation' as const,
         title: 'EST/2026/0084 — Arun Workshop Engine Overhaul',
         subtitle: 'Valid till 30 Sep 2026 • 12 Spare SKUs listed',
         badge: 'ESTIMATE',
@@ -224,7 +224,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       },
       {
         id: 'tx-102',
-        type: 'transaction',
+        type: 'transaction' as const,
         title: 'REC-9042 — Collection from Sri Balaji Auto',
         subtitle: 'Payment Receipt via UPI GPay • Ref: 489201940',
         badge: 'RECEIPT',
@@ -236,7 +236,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
           onNavigate('payment-receipts');
         }
       }
-    ].filter((t) => !q || t.title.toLowerCase().includes(q) || t.subtitle.toLowerCase().includes(q));
+    ].filter((t) => !q || t.title.toLowerCase().includes(q) || t.subtitle.toLowerCase().includes(q)) as SearchResultItem[];
 
     return {
       all: [

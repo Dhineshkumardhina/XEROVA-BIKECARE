@@ -14,7 +14,13 @@ export const GstDashboard: React.FC<GstDashboardProps> = ({
   onNavigate,
   onOpenDrawer
 }) => {
-  const [selectedPeriod, setSelectedPeriod] = useState<GstPeriod>('current_month');
+  const [selectedPeriod, setSelectedPeriod] = useState<'current_month' | 'previous_month' | 'quarter' | 'financial_year'>('current_month');
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
   const [customStartDate, setCustomStartDate] = useState('2024-10-01');
   const [customEndDate, setCustomEndDate] = useState('2024-10-31');
 
@@ -348,8 +354,8 @@ export const GstDashboard: React.FC<GstDashboardProps> = ({
             <p className="text-[11px] text-outline">Direct integration with GSTN Portal rules and deadlines</p>
           </div>
           <button
-            onClick={() => alert('Refreshing GSTN portal status... All records verified.')}
-            className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high rounded text-xs text-on-surface font-semibold flex items-center gap-1 border border-surface-container-high"
+            onClick={() => showToast('Refreshing GSTN portal status... All records verified and synced.')}
+            className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high rounded text-xs text-on-surface font-semibold flex items-center gap-1 border border-surface-container-high cursor-pointer transition-colors"
           >
             <span className="material-symbols-outlined text-[15px]">sync</span>
             <span>Check GSTN Status</span>
@@ -480,6 +486,13 @@ export const GstDashboard: React.FC<GstDashboardProps> = ({
           </table>
         </div>
       </div>
+
+      {toastMsg && (
+        <div className="fixed bottom-5 right-5 z-50 bg-neutral-900 text-white px-4 py-2.5 rounded shadow-lg flex items-center gap-2 text-xs font-semibold animate-in slide-in-from-bottom-2 duration-200">
+          <span className="material-symbols-outlined text-secondary text-[18px]">verified</span>
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 };

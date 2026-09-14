@@ -235,7 +235,7 @@ export class SearchService {
       return {
         items: items.map((i: any) => ({
           id: i.id,
-          type: 'item',
+          type: 'item' as const,
           title: i.name,
           subtitle: `${i.sku} • ${i.brand?.name || 'OEM'} ${i.oemPartNumber ? `• OEM: ${i.oemPartNumber}` : ''}`,
           badge: i.status,
@@ -247,7 +247,7 @@ export class SearchService {
 
         customers: customers.map((c: any) => ({
           id: c.id,
-          type: 'customer',
+          type: 'customer' as const,
           title: c.name,
           subtitle: `${c.customerCode} • ${c.mobile} ${c.city ? `• ${c.city}` : ''}`,
           badge: c.customerType,
@@ -258,7 +258,7 @@ export class SearchService {
 
         suppliers: suppliers.map((s: any) => ({
           id: s.id,
-          type: 'supplier',
+          type: 'supplier' as const,
           title: s.name,
           subtitle: `${s.supplierCode} • ${s.mobile} ${s.city ? `• ${s.city}` : ''}`,
           badge: 'Supplier',
@@ -269,7 +269,7 @@ export class SearchService {
 
         invoices: sales.map((sale: any) => ({
           id: sale.id,
-          type: 'invoice',
+          type: 'invoice' as const,
           title: sale.invoiceNumber,
           subtitle: `${sale.customer?.name || 'Cash Counter'} • ${new Date(sale.invoiceDate).toLocaleDateString()}`,
           badge: sale.paymentStatus || 'PAID',
@@ -280,7 +280,7 @@ export class SearchService {
 
         purchases: purchases.map((po: any) => ({
           id: po.id,
-          type: 'purchase',
+          type: 'purchase' as const,
           title: po.poNumber,
           subtitle: `${po.supplier?.name || 'Vendor'} • ${new Date(po.invoiceDate).toLocaleDateString()}`,
           badge: po.status,
@@ -291,7 +291,7 @@ export class SearchService {
 
         quotations: quotations.map((q: any) => ({
           id: q.id,
-          type: 'quotation',
+          type: 'quotation' as const,
           title: q.quotationNumber,
           subtitle: `${q.customerName} • ${q.vehicleDetails || ''}`,
           badge: q.status,
@@ -301,7 +301,7 @@ export class SearchService {
 
         vehicles: vehicles.map((v: any) => ({
           id: v.id,
-          type: 'vehicle',
+          type: 'vehicle' as const,
           title: v.regNo,
           subtitle: `${v.manufacturer} ${v.model} (${v.year || 'BS6'}) • Owner: ${v.customer?.name || 'Unknown'}`,
           regNo: v.regNo,

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { formatINR } from '../../utils/formatters';
+import { exportToCsv } from '../../utils/exportUtils';
 
 export interface ColumnDef<T> {
   id: string;
@@ -151,25 +152,13 @@ export function CommonReportTable<T extends { id?: string | number }>({
   // Export to CSV
   const handleExportCSV = () => {
     try {
-      const headers = activeColumns.map(c => `"${c.header.replace(/"/g, '""')}"`).join(',');
+      const headers = activeColumns.map(c => c.header);
       const rows = sortedData.map(row => {
-        return activeColumns
-          .map(col => {
-            const val = col.accessor(row);
-            return `"${String(val ?? '').replace(/"/g, '""')}"`;
-          })
-          .join(',');
+        return activeColumns.map(col => col.accessor(row));
       });
-      const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows].join('\n');
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `${exportFileName}-${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      exportToCsv(`${exportFileName}-${new Date().toISOString().slice(0, 10)}`, headers, rows);
     } catch (e) {
-      alert('CSV export could not be completed. Please retry.');
+      console.error('CSV export failed:', e);
     }
   };
 

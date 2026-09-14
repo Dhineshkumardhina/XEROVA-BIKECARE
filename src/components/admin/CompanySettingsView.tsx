@@ -1,22 +1,28 @@
 import React, { useState } from 'react';
 import { CompanyProfile, UserRole } from '../../types';
+import { INITIAL_COMPANY_PROFILE } from '../../data/adminSecurityData';
 
 interface CompanySettingsViewProps {
-  initialProfile: CompanyProfile;
+  initialProfile?: CompanyProfile;
+  companyProfile?: CompanyProfile;
   userRole: UserRole;
-  onSaveProfile: (profile: CompanyProfile) => void;
-  onPreviewInvoice: (profile: CompanyProfile) => void;
+  onSaveProfile?: (profile: CompanyProfile) => void;
+  onSaveCompanyProfile?: (profile: CompanyProfile) => void;
+  onPreviewInvoice?: (profile: CompanyProfile) => void;
   onTriggerPermissionDenied?: (action: string) => void;
 }
 
 export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
   initialProfile,
+  companyProfile,
   userRole,
   onSaveProfile,
+  onSaveCompanyProfile,
   onPreviewInvoice,
   onTriggerPermissionDenied
 }) => {
-  const [profile, setProfile] = useState<CompanyProfile>(initialProfile);
+  const profileToUse = companyProfile || initialProfile || INITIAL_COMPANY_PROFILE;
+  const [profile, setProfile] = useState<CompanyProfile>(profileToUse);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const isAllowedToEdit = userRole === 'super_admin' || userRole === 'admin' || userRole === 'store_admin';
@@ -31,13 +37,14 @@ export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
       if (onTriggerPermissionDenied) onTriggerPermissionDenied('Update Company Settings');
       return;
     }
-    onSaveProfile(profile);
+    const saveFn = onSaveCompanyProfile || onSaveProfile;
+    if (saveFn) saveFn(profile);
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
   const handleCancel = () => {
-    setProfile(initialProfile);
+    setProfile(profileToUse);
   };
 
   return (

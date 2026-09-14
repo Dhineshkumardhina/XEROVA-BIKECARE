@@ -87,7 +87,6 @@ export const Gstr1View: React.FC<Gstr1ViewProps> = ({
         duplicateInvoice: 0
       });
       setIsValidationRunning(false);
-      alert('Validation Engine Completed: 0 duplicates, all checks evaluated.');
     }, 600);
   };
 

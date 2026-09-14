@@ -57,6 +57,7 @@ export const CreateQuotationModal: React.FC<CreateQuotationModalProps> = ({
   // Additional Charges & Notes
   const [fittingCharges, setFittingCharges] = useState<number>(editingQuote?.fittingCharges || 0);
   const [remarks, setRemarks] = useState<string>(editingQuote?.remarks || '');
+  const [formError, setFormError] = useState<string | null>(null);
   const [termsConditions, setTermsConditions] = useState<string>(
     editingQuote?.termsConditions ||
       '1. Rates valid for 15 days from date of estimate.\n2. Fitting charges extra as indicated.\n3. Goods once sold are non-refundable after 7 days.'
@@ -239,15 +240,16 @@ export const CreateQuotationModal: React.FC<CreateQuotationModalProps> = ({
 
   const handleSubmit = (statusToSet: QuotationStatus) => {
     if (!customerName.trim()) {
-      alert('Please enter or select a customer name.');
+      setFormError('Please enter or select a customer name.');
       return;
     }
 
     const validItems = items.filter((i) => i.itemName.trim() || i.partNumber.trim());
     if (validItems.length === 0) {
-      alert('Please add at least one valid spare-part or service item.');
+      setFormError('Please add at least one valid spare-part or service item.');
       return;
     }
+    setFormError(null);
 
     const quotationRecord: Quotation = {
       id: editingQuote?.id || `qt-${Date.now()}`,
@@ -311,6 +313,12 @@ export const CreateQuotationModal: React.FC<CreateQuotationModalProps> = ({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {formError && (
+            <div className="p-2.5 rounded bg-error/15 border border-error/30 text-error font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">error</span>
+              <span>{formError}</span>
+            </div>
+          )}
           {/* Top Section: Quotation Info & Customer Selection */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-surface-container-low p-3.5 rounded border border-surface-container-high">
             {/* Quotation No */}

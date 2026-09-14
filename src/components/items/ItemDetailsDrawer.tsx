@@ -19,6 +19,7 @@ export const ItemDetailsDrawer: React.FC<ItemDetailsDrawerProps> = ({
   onAdjustStock
 }) => {
   const [activeTab, setActiveTab] = useState<'details' | 'compatibility' | 'movements'>('details');
+  const [customPhoto, setCustomPhoto] = useState<string | null>(null);
 
   if (!part) return null;
 
@@ -244,16 +245,38 @@ export const ItemDetailsDrawer: React.FC<ItemDetailsDrawerProps> = ({
               <div className="border border-surface-container-high rounded p-3.5 bg-surface-container-lowest space-y-2">
                 <div className="font-bold text-[11px] uppercase tracking-wider text-outline">Media &amp; Product Image</div>
                 <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 rounded bg-surface-container border border-surface-container-high flex flex-col items-center justify-center text-outline">
-                    <span className="material-symbols-outlined text-[28px]">image</span>
-                    <span className="text-[9px] uppercase font-mono">Part Pic</span>
+                  <div className="w-20 h-20 rounded bg-surface-container border border-surface-container-high flex flex-col items-center justify-center text-outline overflow-hidden">
+                    {customPhoto ? (
+                      <img src={customPhoto} alt={part.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-[28px]">image</span>
+                        <span className="text-[9px] uppercase font-mono">Part Pic</span>
+                      </>
+                    )}
                   </div>
                   <div className="text-xs text-outline space-y-1">
                     <p className="font-semibold text-on-surface">Standard Motorcycle Component Asset</p>
                     <p className="text-[11px]">Direct fit for TVS &amp; Bajaj clutch assembly units. Packaged with factory grease seal.</p>
-                    <button type="button" onClick={() => alert('Image upload module ready.')} className="text-secondary hover:underline font-semibold text-[11px]">
-                      + Upload New High-Res Photo
-                    </button>
+                    <label className="text-secondary hover:underline font-semibold text-[11px] cursor-pointer inline-flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">upload_file</span>
+                      <span>+ Upload High-Res Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              setCustomPhoto(reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
                   </div>
                 </div>
               </div>

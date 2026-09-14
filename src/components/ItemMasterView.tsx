@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { SparePart } from '../types';
+import { exportToCsv, triggerPrintWindow } from '../utils/exportUtils';
 
 interface ItemMasterViewProps {
   parts: SparePart[];
@@ -188,7 +189,12 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
               className="hidden" 
               onChange={(e) => {
                 if (e.target.files?.[0]) {
-                  alert(`Import file selected: ${e.target.files[0].name}. Verified schema with 4,820 entries.`);
+                  const file = e.target.files[0];
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    handleExportCSV();
+                  };
+                  reader.readAsText(file);
                 }
               }}
             />
@@ -200,11 +206,28 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
           >
             <span className="material-symbols-outlined text-[18px] text-on-surface-variant">picture_as_pdf</span>
             <span>Export Price List</span>
-            <span className="material-symbols-outlined text-[16px] text-outline">expand_more</span>
           </button>
 
           <button
-            onClick={() => alert(`Printing ${selectedIds.length ? selectedIds.length : 'all'} Barcode labels on 50x25mm thermal roll printer.`)}
+            onClick={() => {
+              const selectedParts = selectedIds.length 
+                ? parts.filter(p => selectedIds.includes(p.id))
+                : parts.slice(0, 10);
+              
+              const labelsHtml = `
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                  ${selectedParts.map(p => `
+                    <div style="border: 1px dashed #000; padding: 8px; text-align: center; width: 48mm; height: 24mm; box-sizing: border-box; font-family: monospace;">
+                      <div style="font-weight: bold; font-size: 11px;">BIKE ERP — ${p.brand}</div>
+                      <div style="font-size: 10px; margin: 2px 0;">${p.name.slice(0, 26)}</div>
+                      <div style="font-size: 14px; font-weight: bold; letter-spacing: 2px;">*${p.barcode || p.sku}*</div>
+                      <div style="font-size: 10px;">MRP: ₹${p.mrp} | Rack: ${p.rackBin}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+              triggerPrintWindow(`Bulk Barcode Labels (${selectedParts.length} items)`, labelsHtml);
+            }}
             className="flex items-center gap-space-xs h-8 px-space-md bg-surface-container-low hover:bg-surface-container text-on-surface rounded font-table-cell text-table-cell transition-colors"
           >
             <span className="material-symbols-outlined text-[18px] text-on-surface-variant">print</span>
@@ -652,14 +675,24 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
                           <span className="material-symbols-outlined text-[18px]">history</span>
                         </button>
                         <button
-                          onClick={() => alert(`Edit Item: ${part.name} (SKU: ${part.sku})`)}
+                          onClick={() => setSelectedPartForDrawer(part)}
                           className="p-1 rounded hover:bg-surface-container-high text-on-surface-variant"
                           title="Edit Item Details"
                         >
                           <span className="material-symbols-outlined text-[18px]">edit</span>
                         </button>
                         <button
-                          onClick={() => alert(`Printing Barcode for ${part.sku} (Bin: ${part.rackBin})`)}
+                          onClick={() => {
+                            const labelHtml = `
+                              <div style="border: 1px dashed #000; padding: 12px; text-align: center; width: 50mm; height: 28mm; box-sizing: border-box; font-family: monospace; margin: auto;">
+                                <div style="font-weight: bold; font-size: 12px;">BIKE ERP — ${part.brand}</div>
+                                <div style="font-size: 11px; margin: 4px 0;">${part.name}</div>
+                                <div style="font-size: 16px; font-weight: bold; letter-spacing: 2px;">*${part.barcode || part.sku}*</div>
+                                <div style="font-size: 11px; margin-top: 4px;">MRP: ₹${part.mrp} | Rack: ${part.rackBin}</div>
+                              </div>
+                            `;
+                            triggerPrintWindow(`Barcode - ${part.sku}`, labelHtml);
+                          }}
                           className="p-1 rounded hover:bg-surface-container-high text-on-surface-variant"
                           title="Print Barcode Tag"
                         >
@@ -809,10 +842,21 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
                   Recent Stock Audits &amp; In/Out Movements
                 </span>
                 <span 
-                  onClick={() => alert(`Full Stock Card report downloaded for ${selectedPartForDrawer.sku}`)}
+                  onClick={() => {
+                    const headers = ['Date', 'Reference', 'Type', 'Quantity', 'Balance', 'User / Party'];
+                    const rows = (selectedPartForDrawer.stockMovements || []).map(m => [
+                      m.date,
+                      m.ref,
+                      m.type,
+                      m.qty,
+                      m.balance,
+                      m.userOrParty
+                    ]);
+                    exportToCsv(`Stock_Ledger_${selectedPartForDrawer.sku}.csv`, headers, rows);
+                  }}
                   className="font-shortcut-key text-shortcut-key text-secondary cursor-pointer hover:underline"
                 >
-                  Full Stock Card →
+                  Download Stock Card (CSV) →
                 </span>
               </div>
               <div className="overflow-x-auto rounded bg-surface-container-low">
@@ -871,7 +915,17 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
                   Vehicle Compatibility Matrix
                 </span>
                 <button
-                  onClick={() => alert(`Add vehicle link modal for ${selectedPartForDrawer.sku}`)}
+                  onClick={() => {
+                    const newModel = prompt('Enter Vehicle Model Name (e.g., Royal Enfield Hunter 350):');
+                    if (newModel && selectedPartForDrawer) {
+                      selectedPartForDrawer.compatMatrix.push({
+                        model: newModel,
+                        specs: '2023-2026 BS6 Phase 2',
+                        fitType: '100% Direct Fit'
+                      });
+                      setSelectedPartForDrawer({ ...selectedPartForDrawer });
+                    }
+                  }}
                   className="font-shortcut-key text-shortcut-key text-secondary flex items-center gap-0.5 hover:underline"
                 >
                   <span className="material-symbols-outlined text-[14px]">add</span> Add Vehicle Link
@@ -924,9 +978,9 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
               <button
                 onClick={() => {
                   const newBin = prompt('Enter new rack / bin location:', selectedPartForDrawer.rackBin);
-                  if (newBin) {
+                  if (newBin && selectedPartForDrawer) {
                     selectedPartForDrawer.rackBin = newBin;
-                    alert(`Updated bin location to ${newBin}`);
+                    setSelectedPartForDrawer({ ...selectedPartForDrawer });
                   }
                 }}
                 className="px-space-md py-1.5 rounded bg-surface-container-lowest text-secondary font-table-cell text-table-cell hover:bg-surface-container-high border border-surface-container-high transition-colors"
@@ -935,7 +989,6 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
               </button>
               <button
                 onClick={() => {
-                  alert('All stock card parameters and vehicle mappings synced with central cloud!');
                   setSelectedPartForDrawer(null);
                 }}
                 className="px-space-md py-1.5 rounded bg-secondary text-on-secondary font-table-cell text-table-cell hover:bg-secondary-container transition-colors"

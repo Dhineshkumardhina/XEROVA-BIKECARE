@@ -7,6 +7,7 @@ import { ExcelExportModal } from './ExcelExportModal';
 import { BarcodeManagementModal } from '../barcode/BarcodeManagementModal';
 import { BulkBarcodePrintModal } from '../barcode/BulkBarcodePrintModal';
 import { StockAdjustmentModal } from '../inventory/StockAdjustmentModal';
+import { exportToCsv } from '../../utils/exportUtils';
 
 interface ItemMasterDashboardProps {
   parts: SparePart[];
@@ -1013,11 +1014,36 @@ export const ItemMasterDashboard: React.FC<ItemMasterDashboardProps> = ({
       <ExcelExportModal
         isOpen={isExcelExportOpen}
         onClose={() => setIsExcelExportOpen(false)}
-        totalCount={49912}
+        totalCount={parts.length}
         filteredCount={filteredParts.length}
         selectedCount={selectedPartIds.size}
         onConfirmExport={config => {
-          showToast(`Exported ${config.scope} items to ${config.format.toUpperCase()}`);
+          const itemsToExport =
+            config.scope === 'selected'
+              ? parts.filter(p => selectedPartIds.has(p.id))
+              : config.scope === 'filtered'
+              ? filteredParts
+              : parts;
+
+          const headers: string[] = ['SKU / Part Number', 'Item Name'];
+          if (config.fields?.basic) headers.push('Brand', 'Category', 'Barcode');
+          if (config.fields?.pricing) headers.push('MRP', 'Purchase Rate', 'Selling Rate');
+          if (config.fields?.inventory) headers.push('Current Stock', 'Min Reorder', 'Rack / Bin', 'Stock Status');
+          if (config.fields?.gst) headers.push('HSN Code', 'GST Rate (%)');
+          if (config.fields?.vehicles) headers.push('Vehicle Compatibility');
+
+          const rows = itemsToExport.map(item => {
+            const row: (string | number)[] = [item.partNumber || item.sku, item.name];
+            if (config.fields?.basic) row.push(item.brand, item.category, item.barcode);
+            if (config.fields?.pricing) row.push(item.mrp, item.purchasePrice, item.sellingPrice);
+            if (config.fields?.inventory) row.push(item.currentStock, item.minReorder, item.rackBin, item.status);
+            if (config.fields?.gst) row.push(item.hsnCode || '87141090', item.gstRate);
+            if (config.fields?.vehicles) row.push((item.vehicles || []).join('; '));
+            return row;
+          });
+
+          exportToCsv(`BIKE_ERP_Items_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+          showToast(`Exported ${itemsToExport.length} items to CSV successfully`);
         }}
       />
 

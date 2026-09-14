@@ -15,11 +15,12 @@ export const INITIAL_INVOICES: Invoice[] = [];
 export const INITIAL_TOP_MOVING: TopMovingSpare[] = [];
 
 export const INITIAL_TENDER_DATA: TenderReconciliationData = {
-  cash: 0,
-  upi: 0,
-  card: 0,
-  credit: 0,
-  total: 0
+  cashInDrawer: 0,
+  upiCollections: 0,
+  cardPosTerminal: 0,
+  directNeftBank: 0,
+  totalRealized: 0,
+  shiftStatus: 'OPEN'
 };
 
 export const INITIAL_QUOTATIONS: Quotation[] = [];

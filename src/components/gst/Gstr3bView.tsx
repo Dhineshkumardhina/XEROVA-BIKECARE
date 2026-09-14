@@ -13,6 +13,12 @@ export const Gstr3bView: React.FC<Gstr3bViewProps> = ({ userRole, onNavigate }) 
   const [activeTab, setActiveTab] = useState<'3.1' | '4' | 'offset'>('3.1');
   const [challanGenerated, setChallanGenerated] = useState(false);
   const [isReturnFiled, setIsReturnFiled] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
 
   // Table 3.1 Totals
   const totalTaxable = GSTR3B_SUPPLIES.reduce((acc, row) => acc + row.taxableValue, 0);
@@ -74,9 +80,9 @@ export const Gstr3bView: React.FC<Gstr3bViewProps> = ({ userRole, onNavigate }) 
               type="button"
               onClick={() => {
                 setChallanGenerated(true);
-                alert(`Challan PMT-06 for ${formatINR(netCashPayable)} generated successfully. Ready for NEFT payment.`);
+                showToast(`Challan PMT-06 for ${formatINR(netCashPayable)} generated successfully.`);
               }}
-              className="px-3 py-1.5 bg-secondary text-on-secondary hover:bg-secondary-container rounded font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
+              className="px-3 py-1.5 bg-secondary text-on-secondary hover:bg-secondary-container rounded font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">receipt</span>
               <span>Generate Challan ({formatINR(netCashPayable, 0)})</span>
@@ -87,9 +93,9 @@ export const Gstr3bView: React.FC<Gstr3bViewProps> = ({ userRole, onNavigate }) 
               disabled={isReturnFiled}
               onClick={() => {
                 setIsReturnFiled(true);
-                alert('GSTR-3B Return successfully marked as Filed! ARN generated.');
+                showToast('GSTR-3B Return successfully marked as Filed! ARN generated.');
               }}
-              className="px-3 py-1.5 bg-tertiary-fixed text-on-tertiary-fixed font-bold rounded text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50"
+              className="px-3 py-1.5 bg-tertiary-fixed text-on-tertiary-fixed font-bold rounded text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">check_circle</span>
               <span>{isReturnFiled ? 'Return Filed (ARN: AA331024009182Z)' : 'Mark as Filed & Offset'}</span>
@@ -375,8 +381,8 @@ export const Gstr3bView: React.FC<Gstr3bViewProps> = ({ userRole, onNavigate }) 
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => alert(`Creating GST Challan PMT-06 with CPIN 2410330018912 for ${formatINR(netCashPayable)}`)}
-                className="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-semibold text-xs border border-surface-container-high"
+                onClick={() => showToast(`Creating GST Challan PMT-06 with CPIN 2410330018912 for ${formatINR(netCashPayable)}`)}
+                className="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-semibold text-xs border border-surface-container-high cursor-pointer"
               >
                 Create PMT-06 Challan
               </button>
@@ -384,14 +390,22 @@ export const Gstr3bView: React.FC<Gstr3bViewProps> = ({ userRole, onNavigate }) 
                 type="button"
                 onClick={() => {
                   setIsReturnFiled(true);
-                  alert(`Offset successful. GSTR-3B filed with ARN AA331024009182Z on ${new Date().toLocaleDateString('en-IN')}`);
+                  showToast(`Offset successful. GSTR-3B filed with ARN AA331024009182Z.`);
                 }}
-                className="px-3.5 py-1.5 bg-secondary text-on-secondary hover:bg-secondary-container rounded font-bold text-xs shadow-xs"
+                className="px-3.5 py-1.5 bg-secondary text-on-secondary hover:bg-secondary-container rounded font-bold text-xs shadow-xs cursor-pointer"
               >
                 File GSTR-3B with EVC
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toastMsg && (
+        <div className="fixed bottom-5 right-5 z-50 bg-neutral-900 text-white px-4 py-2.5 rounded shadow-lg flex items-center gap-2 text-xs font-semibold animate-in slide-in-from-bottom-2 duration-200">
+          <span className="material-symbols-outlined text-secondary text-[18px]">verified</span>
+          <span>{toastMsg}</span>
         </div>
       )}
     </div>

@@ -55,6 +55,7 @@ export const ItemAddEditModal: React.FC<ItemAddEditModalProps> = ({
   const [customField3, setCustomField3] = useState('');
   const [customField4, setCustomField4] = useState('');
   const [customField5, setCustomField5] = useState('');
+  const [productPhoto, setProductPhoto] = useState<string | null>(null);
 
   // Form errors
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -774,18 +775,33 @@ export const ItemAddEditModal: React.FC<ItemAddEditModalProps> = ({
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded bg-surface-container border border-surface-container-high flex flex-col items-center justify-center text-outline">
-                <span className="material-symbols-outlined text-[24px]">image</span>
+              <div className="w-16 h-16 rounded bg-surface-container border border-surface-container-high flex flex-col items-center justify-center text-outline overflow-hidden">
+                {productPhoto ? (
+                  <img src={productPhoto} alt="Product Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="material-symbols-outlined text-[24px]">image</span>
+                )}
               </div>
               <div className="text-xs text-outline space-y-1">
-                <button
-                  type="button"
-                  onClick={() => alert('Select product image from local disk or capture via scanner.')}
-                  className="px-3 py-1 bg-surface-container hover:bg-surface-container-highest rounded text-on-surface font-semibold flex items-center gap-1"
-                >
+                <label className="px-3 py-1.5 bg-surface-container hover:bg-surface-container-highest rounded text-on-surface font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors">
                   <span className="material-symbols-outlined text-[16px]">upload_file</span>
-                  <span>Upload Product Photo</span>
-                </button>
+                  <span>{productPhoto ? 'Change Product Photo' : 'Upload Product Photo'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setProductPhoto(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
                 <p className="text-[11px]">Supports PNG, JPG, WEBP up to 5MB. Rendered in Item Details Drawer and POS Finder.</p>
               </div>
             </div>

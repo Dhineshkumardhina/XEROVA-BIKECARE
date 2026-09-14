@@ -59,6 +59,14 @@ export const AccountsDashboard: React.FC<AccountsDashboardProps> = ({
   const upiBalance = upiAcc ? upiAcc.balance : 0;
   const todaysCollections = receipts.reduce((sum, r) => sum + (r.amount || 0), 0);
 
+  const trendMonths = [
+    { month: 'Oct 2025', rec: 245000, pay: 180000, net: 65000 },
+    { month: 'Nov 2025', rec: 290000, pay: 210000, net: 80000 },
+    { month: 'Dec 2025', rec: 320000, pay: 240000, net: 80000 },
+    { month: 'Jan 2026', rec: 350000, pay: 285000, net: 65000 },
+    { month: 'Feb 2026', rec: 310000, pay: 230000, net: 80000 },
+    { month: 'Mar 2026', rec: totalReceivables || 380000, pay: totalPayables || 295000, net: (totalReceivables || 380000) - (totalPayables || 295000) }
+  ];
 
   // Accounting Search Results
   const filteredSearchResults = () => {

@@ -20,6 +20,7 @@ export const PartFinderModal: React.FC<PartFinderModalProps> = ({
 
   const [selectedBike, setSelectedBike] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [addedId, setAddedId] = useState<string | null>(null);
 
   const bikeList = [
     'All',
@@ -166,12 +167,19 @@ export const PartFinderModal: React.FC<PartFinderModalProps> = ({
                         <button
                           onClick={() => {
                             onAddToCart(part);
-                            alert(`Added 1x ${part.name} to POS Cart!`);
+                            setAddedId(part.id);
+                            setTimeout(() => setAddedId(null), 2000);
                           }}
-                          className="px-2.5 py-1 bg-secondary hover:bg-secondary-container text-on-secondary rounded text-[11px] font-semibold transition-colors flex items-center gap-1"
+                          className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors flex items-center gap-1 ${
+                            addedId === part.id
+                              ? 'bg-tertiary text-on-tertiary font-bold'
+                              : 'bg-secondary hover:bg-secondary-container text-on-secondary'
+                          }`}
                         >
-                          <span className="material-symbols-outlined text-[14px]">add_shopping_cart</span>
-                          Add to Bill
+                          <span className="material-symbols-outlined text-[14px]">
+                            {addedId === part.id ? 'check' : 'add_shopping_cart'}
+                          </span>
+                          <span>{addedId === part.id ? 'Added to Cart' : 'Add to Bill'}</span>
                         </button>
                       )}
                     </div>

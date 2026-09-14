@@ -228,7 +228,7 @@ export const BulkBarcodePrintModal: React.FC<BulkBarcodePrintModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => alert(`Exported PDF for ${totalLabels} barcode labels.`)}
+              onClick={handlePrint}
               className="px-4 py-2 bg-surface-container hover:bg-surface-container-highest text-on-surface rounded text-xs font-semibold border border-surface-container-highest flex items-center gap-1.5"
             >
               <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>

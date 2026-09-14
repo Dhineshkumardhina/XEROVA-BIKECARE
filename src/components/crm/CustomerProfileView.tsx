@@ -10,6 +10,7 @@ import {
   CustomerQuotation,
   CustomerSalesReturn
 } from '../../types';
+import { triggerPrintWindow } from '../../utils/exportUtils';
 
 interface CustomerProfileViewProps {
   customer: CustomerProfileData;
@@ -26,6 +27,7 @@ interface CustomerProfileViewProps {
   onOpenAdjustPoints: () => void;
   onOpenRedeemPoints: () => void;
   onOpenCreateReceipt: () => void;
+  onCreateQuotation?: (customer: CustomerProfileData) => void;
   onViewInvoice: (inv: Invoice) => void;
   onPrintInvoice: (inv: Invoice) => void;
 }
@@ -45,6 +47,7 @@ export const CustomerProfileView: React.FC<CustomerProfileViewProps> = ({
   onOpenAdjustPoints,
   onOpenRedeemPoints,
   onOpenCreateReceipt,
+  onCreateQuotation,
   onViewInvoice,
   onPrintInvoice
 }) => {
@@ -438,7 +441,37 @@ export const CustomerProfileView: React.FC<CustomerProfileViewProps> = ({
           <div className="p-3 bg-surface-container border-b border-surface-container-high flex items-center justify-between">
             <span className="font-headline-md text-sm font-bold text-on-surface">Estimates &amp; Proforma Quotations</span>
             <button
-              onClick={() => alert(`Creating new quotation for ${customer.name}...`)}
+              onClick={() => {
+                if (onCreateQuotation) {
+                  onCreateQuotation(customer);
+                } else {
+                  triggerPrintWindow(
+                    `New Quotation - ${customer.name}`,
+                    `
+                    <div class="header">
+                      <h1 class="title">BIKE ERP — ESTIMATION / PROFORMA QUOTATION</h1>
+                      <div class="subtitle">Official Quotation Draft for ${customer.name} (${customer.mobile})</div>
+                    </div>
+                    <p><strong>Customer:</strong> ${customer.name} | <strong>Mobile:</strong> ${customer.mobile}</p>
+                    <p><strong>Address:</strong> ${customer.address}, ${customer.city}</p>
+                    <p><strong>Date:</strong> ${new Date().toLocaleDateString('en-GB')} | <strong>Validity:</strong> 15 Days</p>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Item Description</th>
+                          <th>Qty</th>
+                          <th>Unit Rate (₹)</th>
+                          <th>Total (₹)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>Parts & Labor Estimate</td><td>1</td><td>0.00</td><td>0.00</td></tr>
+                      </tbody>
+                    </table>
+                    `
+                  );
+                }
+              }}
               className="px-3 py-1 bg-secondary text-on-secondary rounded text-xs font-semibold flex items-center gap-1 shadow-xs"
             >
               <span className="material-symbols-outlined text-[14px]">add</span>
@@ -477,7 +510,47 @@ export const CustomerProfileView: React.FC<CustomerProfileViewProps> = ({
                       </span>
                     </td>
                     <td className="p-2.5 text-center">
-                      <button onClick={() => alert(`Printing Quotation ${q.id}...`)} className="text-secondary hover:underline font-semibold">Print</button>
+                      <button
+                        onClick={() => {
+                          triggerPrintWindow(
+                            `Quotation ${q.id} - ${customer.name}`,
+                            `
+                            <div class="header">
+                              <h1 class="title">BIKE ERP ESTIMATION / PROFORMA QUOTATION</h1>
+                              <div class="subtitle">Quotation Ref: ${q.id} | Date: ${q.date}</div>
+                            </div>
+                            <p><strong>Customer:</strong> ${customer.name} | <strong>Mobile:</strong> ${customer.mobile}</p>
+                            <p><strong>Vehicle Model:</strong> ${q.bikeModel || 'General'}</p>
+                            <p><strong>Validity Until:</strong> ${q.expiryDate}</p>
+                            <table>
+                              <thead>
+                                <tr>
+                                  <th>Description</th>
+                                  <th>Items</th>
+                                  <th>Status</th>
+                                  <th>Quoted Amount</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td>Estimated Spares & Service Requirements</td>
+                                  <td>${q.itemsCount} items</td>
+                                  <td>${q.status}</td>
+                                  <td>₹${q.totalAmount.toLocaleString('en-IN')}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            <div class="total-box">
+                              <div class="total-row"><span>Total Quoted Amount:</span> <span>₹${q.totalAmount.toLocaleString('en-IN')}</span></div>
+                            </div>
+                            <div class="footer">Quotation valid for 15 days from issue date. Subject to parts availability.</div>
+                            `
+                          );
+                        }}
+                        className="text-secondary hover:underline font-semibold"
+                      >
+                        Print
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -617,7 +690,45 @@ export const CustomerProfileView: React.FC<CustomerProfileViewProps> = ({
                     <td className="p-2.5 text-right font-mono font-bold text-on-tertiary-container">₹{rec.amount.toLocaleString('en-IN')}</td>
                     <td className="p-2.5 text-outline text-[11px]">{rec.createdBy}</td>
                     <td className="p-2.5 text-center">
-                      <button onClick={() => alert(`Printing Receipt Voucher ${rec.receiptNo}...`)} className="text-secondary hover:underline font-semibold">Print</button>
+                      <button
+                        onClick={() => {
+                          triggerPrintWindow(
+                            `Receipt ${rec.receiptNo} - ${rec.customerName || customer.name}`,
+                            `
+                            <div class="header">
+                              <h1 class="title">BIKE ERP PAYMENT RECEIPT VOUCHER</h1>
+                              <div class="subtitle">Receipt Voucher #${rec.receiptNo} | Date: ${rec.date} ${rec.time}</div>
+                            </div>
+                            <p><strong>Customer:</strong> ${rec.customerName || customer.name}</p>
+                            <p><strong>Payment Mode:</strong> ${rec.paymentMode} | <strong>Ref / Txn No:</strong> ${rec.refNo || 'Cash Receipt'}</p>
+                            <p><strong>Issued By:</strong> ${rec.createdBy}</p>
+                            <table>
+                              <thead>
+                                <tr>
+                                  <th>Description</th>
+                                  <th>Mode</th>
+                                  <th>Amount Received (₹)</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td>Customer Outstanding Ledger Clearance / Inward Payment</td>
+                                  <td>${rec.paymentMode}</td>
+                                  <td><strong>₹${rec.amount.toLocaleString('en-IN')}</strong></td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            <div class="total-box">
+                              <div class="total-row"><span>Total Received:</span> <span>₹${rec.amount.toLocaleString('en-IN')}</span></div>
+                            </div>
+                            <div class="footer">Thank you for your business. Authorized signature not required for computer generated receipts.</div>
+                            `
+                          );
+                        }}
+                        className="text-secondary hover:underline font-semibold"
+                      >
+                        Print
+                      </button>
                     </td>
                   </tr>
                 ))}

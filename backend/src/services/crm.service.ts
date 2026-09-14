@@ -819,7 +819,14 @@ export class CrmService {
 
   async createMessageTemplate(input: CreateMessageTemplateDto, actor?: { userId?: string; username?: string }) {
     const template = await prisma.messageTemplate.create({
-      data: input
+      data: {
+        name: input.name,
+        channel: input.channel ?? 'WHATSAPP',
+        category: input.category ?? 'REMINDER',
+        bodyText: input.bodyText,
+        placeholders: input.placeholders ?? [],
+        isActive: input.isActive ?? true
+      }
     });
 
     await recordAuditLog({

@@ -114,10 +114,9 @@ export const ShiftSummaryModal: React.FC<ShiftSummaryModalProps> = ({
           </button>
           <button
             onClick={() => {
-              alert('Shift #1 closed successfully! Handover verified.');
               onClose();
             }}
-            className="px-3 py-1.5 rounded bg-secondary text-on-secondary hover:bg-secondary-container font-semibold text-xs transition-colors"
+            className="px-3.5 py-1.5 rounded bg-secondary text-on-secondary hover:bg-secondary-container font-semibold text-xs transition-colors cursor-pointer"
           >
             Sign-Off &amp; Close Shift
           </button>

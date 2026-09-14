@@ -33,6 +33,7 @@ export const AddCustomerModal: React.FC<AddCustomerModalProps> = ({
   const [address, setAddress] = useState(existingCustomer?.address || '');
   const [city, setCity] = useState(existingCustomer?.city || 'Chennai');
   const [creditLimit, setCreditLimit] = useState(existingCustomer?.creditLimit || 0);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Quick initial bike
   const [vehicleRegNo, setVehicleRegNo] = useState('');
@@ -44,7 +45,7 @@ export const AddCustomerModal: React.FC<AddCustomerModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !mobile.trim()) {
-      alert('Please provide Customer Name and Mobile Number');
+      setFormError('Please provide Customer Name and Mobile Number');
       return;
     }
 
@@ -103,6 +104,13 @@ export const AddCustomerModal: React.FC<AddCustomerModalProps> = ({
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
+
+        {formError && (
+          <div className="p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -290,13 +298,14 @@ export const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
   const [variant, setVariant] = useState('');
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [notes, setNotes] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!regNo.trim()) {
-      alert('Please enter vehicle registration number');
+      setFormError('Please enter vehicle registration number');
       return;
     }
 
@@ -328,6 +337,13 @@ export const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
           </button>
         </div>
 
+        {formError && (
+          <div className="p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div>
             <label className="block text-outline font-medium mb-1">Registration Plate Number *</label>
@@ -335,7 +351,10 @@ export const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
               type="text"
               required
               value={regNo}
-              onChange={e => setRegNo(e.target.value)}
+              onChange={e => {
+                setRegNo(e.target.value);
+                setFormError(null);
+              }}
               placeholder="e.g. TN-01-AB-1234"
               className="w-full px-2.5 py-1.5 bg-surface-container-low border border-surface-container-high rounded font-mono font-bold text-secondary text-sm focus:outline-none focus:border-secondary"
             />
@@ -448,13 +467,14 @@ export const AdjustLoyaltyPointsModal: React.FC<AdjustLoyaltyPointsModalProps> =
   const [pointsDelta, setPointsDelta] = useState<number>(50);
   const [type, setType] = useState<LoyaltyTransactionType>('Bonus');
   const [reason, setReason] = useState<string>('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   if (!isOpen || !customer) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reason.trim()) {
-      alert('Mandatory Audit Requirement: Please specify the reason for adjusting points.');
+      setFormError('Mandatory Audit Requirement: Please specify the reason for adjusting points.');
       return;
     }
     const delta = type === 'Redemption' || type === 'Expiry' ? -Math.abs(pointsDelta) : pointsDelta;
@@ -477,6 +497,13 @@ export const AdjustLoyaltyPointsModal: React.FC<AdjustLoyaltyPointsModalProps> =
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
+
+        {formError && (
+          <div className="p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div className="grid grid-cols-2 gap-2">
@@ -516,7 +543,10 @@ export const AdjustLoyaltyPointsModal: React.FC<AdjustLoyaltyPointsModalProps> =
               required
               rows={3}
               value={reason}
-              onChange={e => setReason(e.target.value)}
+              onChange={e => {
+                setReason(e.target.value);
+                setFormError(null);
+              }}
               placeholder="e.g. Festival goodwill bonus awarded by store manager / Counter bill discrepancy correction"
               className="w-full px-2.5 py-1.5 bg-surface-container-low border border-surface-container-high rounded text-on-surface focus:outline-none focus:border-secondary"
             />
@@ -571,13 +601,14 @@ export const RedeemPointsModal: React.FC<RedeemPointsModalProps> = ({
 }) => {
   const [pointsToRedeem, setPointsToRedeem] = useState<number>(200);
   const [billRef, setBillRef] = useState<string>('COUNTER-BILL');
+  const [formError, setFormError] = useState<string | null>(null);
 
   if (!isOpen || !customer) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (pointsToRedeem > customer.loyaltyPoints) {
-      alert('Cannot redeem more points than current balance');
+      setFormError('Cannot redeem more points than current balance');
       return;
     }
     onConfirmRedemption(customer.id, pointsToRedeem, billRef);
@@ -599,6 +630,13 @@ export const RedeemPointsModal: React.FC<RedeemPointsModalProps> = ({
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
+
+        {formError && (
+          <div className="p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div>
@@ -681,6 +719,7 @@ export const SendMessageModal: React.FC<SendMessageModalProps> = ({
   const [mobile, setMobile] = useState(customer?.mobile || '');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('CUSTOM');
   const [message, setMessage] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -708,7 +747,7 @@ export const SendMessageModal: React.FC<SendMessageModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!mobile.trim() || !message.trim()) {
-      alert('Please enter recipient mobile and message body.');
+      setFormError('Please enter recipient mobile and message body.');
       return;
     }
     onSend(mobile.trim(), message.trim(), channel, selectedTemplateId !== 'CUSTOM' ? selectedTemplateId : undefined);
@@ -731,6 +770,13 @@ export const SendMessageModal: React.FC<SendMessageModalProps> = ({
           </button>
         </div>
 
+        {formError && (
+          <div className="p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -750,7 +796,10 @@ export const SendMessageModal: React.FC<SendMessageModalProps> = ({
                 type="tel"
                 required
                 value={mobile}
-                onChange={e => setMobile(e.target.value)}
+                onChange={e => {
+                  setMobile(e.target.value);
+                  setFormError(null);
+                }}
                 placeholder="10-digit number"
                 className="w-full px-2.5 py-1.5 bg-surface-container-low border border-surface-container-high rounded font-mono font-bold text-on-surface"
               />
@@ -777,7 +826,10 @@ export const SendMessageModal: React.FC<SendMessageModalProps> = ({
               required
               rows={4}
               value={message}
-              onChange={e => setMessage(e.target.value)}
+              onChange={e => {
+                setMessage(e.target.value);
+                setFormError(null);
+              }}
               placeholder="Type message content..."
               className="w-full px-2.5 py-1.5 bg-surface-container-low border border-surface-container-high rounded font-mono text-on-surface focus:outline-none focus:border-secondary"
             />
@@ -826,13 +878,14 @@ export const AddMechanicModal: React.FC<AddMechanicModalProps> = ({
   const [customerCode, setCustomerCode] = useState('');
   const [commissionRate, setCommissionRate] = useState(5.0);
   const [upiId, setUpiId] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !mobile.trim() || !workshopName.trim()) {
-      alert('Please fill mechanic name, mobile, and workshop name.');
+      setFormError('Please fill mechanic name, mobile, and workshop name.');
       return;
     }
 
@@ -870,6 +923,13 @@ export const AddMechanicModal: React.FC<AddMechanicModalProps> = ({
           </button>
         </div>
 
+        {formError && (
+          <div className="p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -878,7 +938,10 @@ export const AddMechanicModal: React.FC<AddMechanicModalProps> = ({
                 type="text"
                 required
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={e => {
+                  setName(e.target.value);
+                  setFormError(null);
+                }}
                 placeholder="e.g. Ramu Asari"
                 className="w-full px-2.5 py-1.5 bg-surface-container-low border border-surface-container-high rounded font-semibold text-on-surface"
               />
@@ -889,7 +952,10 @@ export const AddMechanicModal: React.FC<AddMechanicModalProps> = ({
                 type="tel"
                 required
                 value={mobile}
-                onChange={e => setMobile(e.target.value)}
+                onChange={e => {
+                  setMobile(e.target.value);
+                  setFormError(null);
+                }}
                 placeholder="10-digit number"
                 className="w-full px-2.5 py-1.5 bg-surface-container-low border border-surface-container-high rounded font-mono font-bold text-on-surface"
               />
@@ -902,7 +968,10 @@ export const AddMechanicModal: React.FC<AddMechanicModalProps> = ({
               type="text"
               required
               value={workshopName}
-              onChange={e => setWorkshopName(e.target.value)}
+              onChange={e => {
+                setWorkshopName(e.target.value);
+                setFormError(null);
+              }}
               placeholder="e.g. Sri Balaji Two Wheeler Service"
               className="w-full px-2.5 py-1.5 bg-surface-container-low border border-surface-container-high rounded text-on-surface font-semibold"
             />
@@ -1004,6 +1073,7 @@ export const RecordReferralModal: React.FC<RecordReferralModalProps> = ({
   const [invoiceNo, setInvoiceNo] = useState(`INV-2026-${Math.floor(1000 + Math.random() * 9000)}`);
   const [salesAmount, setSalesAmount] = useState<number>(3500);
   const [notes, setNotes] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -1015,7 +1085,7 @@ export const RecordReferralModal: React.FC<RecordReferralModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim() || !invoiceNo.trim() || salesAmount <= 0) {
-      alert('Please enter referred customer name, invoice number, and valid sales amount.');
+      setFormError('Please enter referred customer name, invoice number, and valid sales amount.');
       return;
     }
 
@@ -1055,6 +1125,13 @@ export const RecordReferralModal: React.FC<RecordReferralModalProps> = ({
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
+
+        {formError && (
+          <div className="p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div className="grid grid-cols-2 gap-2">
@@ -1104,7 +1181,10 @@ export const RecordReferralModal: React.FC<RecordReferralModalProps> = ({
                 type="text"
                 required
                 value={customerName}
-                onChange={e => setCustomerName(e.target.value)}
+                onChange={e => {
+                  setCustomerName(e.target.value);
+                  setFormError(null);
+                }}
                 placeholder="e.g. Ramesh Babu"
                 className="w-full px-2.5 py-1.5 bg-surface-container-low border border-surface-container-high rounded text-on-surface font-semibold"
               />
@@ -1128,7 +1208,10 @@ export const RecordReferralModal: React.FC<RecordReferralModalProps> = ({
                 type="text"
                 required
                 value={invoiceNo}
-                onChange={e => setInvoiceNo(e.target.value)}
+                onChange={e => {
+                  setInvoiceNo(e.target.value);
+                  setFormError(null);
+                }}
                 className="w-full px-2.5 py-1.5 bg-surface-container-low border border-surface-container-high rounded font-mono font-bold text-secondary text-xs"
               />
             </div>
@@ -1209,13 +1292,14 @@ export const SettleMechanicCommissionModal: React.FC<SettleMechanicCommissionMod
   const [paymentMode, setPaymentMode] = useState<string>('UPI');
   const [txnRef, setTxnRef] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   if (!isOpen || !mechanic) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (amount <= 0) {
-      alert('Please specify a valid settlement amount greater than 0.');
+      setFormError('Please specify a valid settlement amount greater than 0.');
       return;
     }
     onConfirmSettlement(mechanic.id, amount, paymentMode, txnRef || 'CASH-SETTLE', notes);
@@ -1238,6 +1322,13 @@ export const SettleMechanicCommissionModal: React.FC<SettleMechanicCommissionMod
           </button>
         </div>
 
+        {formError && (
+          <div className="p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div className="p-3 rounded bg-surface-container-low border border-surface-container-high space-y-1">
             <div className="flex justify-between">
@@ -1259,7 +1350,10 @@ export const SettleMechanicCommissionModal: React.FC<SettleMechanicCommissionMod
                 min="1"
                 max={mechanic.pendingRewardAmount || 100000}
                 value={amount}
-                onChange={e => setAmount(Number(e.target.value))}
+                onChange={e => {
+                  setAmount(Number(e.target.value));
+                  setFormError(null);
+                }}
                 className="w-full px-2.5 py-1.5 bg-surface-container-low border border-surface-container-high rounded font-mono font-bold text-on-surface text-sm focus:outline-none focus:border-secondary"
               />
             </div>

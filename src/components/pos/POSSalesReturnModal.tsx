@@ -23,6 +23,7 @@ export const POSSalesReturnModal: React.FC<POSSalesReturnModalProps> = ({
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [returnQtys, setReturnQtys] = useState<Record<string, number>>({});
   const [refundMode, setRefundMode] = useState<'Cash' | 'UPI (GPay)' | 'Credit Ledger'>('Cash');
+  const [formError, setFormError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -39,6 +40,7 @@ export const POSSalesReturnModal: React.FC<POSSalesReturnModalProps> = ({
 
   const handleSelectInvoice = (inv: Invoice) => {
     setSelectedInvoice(inv);
+    setFormError(null);
     // Initialize return quantities to 0
     const initial: Record<string, number> = {};
     inv.lineItems.forEach(item => {
@@ -48,6 +50,7 @@ export const POSSalesReturnModal: React.FC<POSSalesReturnModalProps> = ({
   };
 
   const handleQtyChange = (partId: string, maxQty: number, qty: number) => {
+    setFormError(null);
     const clamped = Math.max(0, Math.min(maxQty, qty));
     setReturnQtys(prev => ({ ...prev, [partId]: clamped }));
   };
@@ -59,14 +62,16 @@ export const POSSalesReturnModal: React.FC<POSSalesReturnModalProps> = ({
         .map(item => {
           const qty = returnQtys[item.partId] || 0;
           const rate = item.rate;
-          const refundAmount = rate * qty;
+          const lineGross = rate * qty;
+          const lineGst = (lineGross * item.gstRate) / 100;
+          const refundAmount = lineGross + lineGst;
+
           return {
             partId: item.partId,
-            sku: item.sku,
-            name: item.name,
-            originalQty: item.qty,
-            soldRate: rate,
-            returnQty: qty,
+            partName: item.name,
+            partNumber: item.partNumber || item.sku,
+            quantity: qty,
+            unitRate: rate,
             gstRate: item.gstRate,
             refundAmount
           };
@@ -78,7 +83,7 @@ export const POSSalesReturnModal: React.FC<POSSalesReturnModalProps> = ({
   const handleProcessReturn = () => {
     if (!selectedInvoice) return;
     if (returnItems.length === 0) {
-      alert('Please specify return quantity for at least one item.');
+      setFormError('Please specify return quantity for at least one item.');
       return;
     }
 
@@ -106,6 +111,13 @@ export const POSSalesReturnModal: React.FC<POSSalesReturnModalProps> = ({
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
+
+        {formError && (
+          <div className="mx-4 mt-3 p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
 
         <div className="p-4 overflow-y-auto space-y-4 flex-1">
           {/* Search Box */}

@@ -11,6 +11,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('Admin@123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [helperMessage, setHelperMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,12 +220,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               </label>
               <button
                 type="button"
-                onClick={() => alert('Please contact your Store Administrator (admin@bikecare.erp) to reset your password.')}
+                onClick={() => setHelperMessage('To reset your password, contact your Store Administrator (admin@bikecare.erp) or IT Helpdesk.')}
                 className="text-xs font-medium text-primary hover:underline underline-offset-2"
               >
                 Forgot password?
               </button>
             </div>
+
+            {helperMessage && (
+              <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-700 dark:text-blue-300 text-xs font-semibold flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px]">info</span>
+                  <span>{helperMessage}</span>
+                </div>
+                <button type="button" onClick={() => setHelperMessage(null)} className="text-outline hover:text-on-surface">
+                  <span className="material-symbols-outlined text-[14px]">close</span>
+                </button>
+              </div>
+            )}
 
             <div className="pt-2">
               <button
@@ -284,7 +297,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 Need service desk access?{' '}
                 <button
                   type="button"
-                  onClick={() => alert('Please contact the workshop manager or IT administrator.')}
+                  onClick={() => setHelperMessage('Please contact the workshop manager or IT administrator for desk provisioning.')}
                   className="font-semibold text-primary hover:underline underline-offset-2 ml-1"
                 >
                   Contact Shop Manager

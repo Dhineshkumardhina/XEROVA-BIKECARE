@@ -29,13 +29,15 @@ export const NewPartModal: React.FC<NewPartModalProps> = ({
   const [minReorder, setMinReorder] = useState(5);
   const [gstRate, setGstRate] = useState(18);
   const [vehicles, setVehicles] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      alert('Please enter a part name');
+      setFormError('Please enter a spare part name');
       return;
     }
+    setFormError(null);
 
     const newPart: SparePart = {
       id: `part-${Date.now()}`,
@@ -104,6 +106,12 @@ export const NewPartModal: React.FC<NewPartModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-4 overflow-y-auto space-y-3 text-xs">
+          {formError && (
+            <div className="p-2.5 rounded bg-error/15 border border-error/30 text-error font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">error</span>
+              <span>{formError}</span>
+            </div>
+          )}
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="font-bold text-outline uppercase block mb-1">SKU Code</label>

@@ -88,18 +88,12 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
   ], []);
 
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<string>('po-1');
-  const [returnDate, setReturnDate] = useState<string>(() => {
-    const now = new Date();
-    return now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  });
-
-  const [debitNoteNumber, setDebitNoteNumber] = useState<string>(() => {
-    return `DN-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-  });
-
-  const [returnMethod, setReturnMethod] = useState<PurchaseReturnMethod>('Supplier Credit');
-  const [returnReason, setReturnReason] = useState<string>('Defective / Damaged batch from factory');
-  const [defectNotes, setDefectNotes] = useState<string>('');
+  const [debitNoteNumber, setDebitNoteNumber] = useState<string>(`DN-${Date.now().toString().slice(-6)}`);
+  const [returnDate, setReturnDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [settlementMethod, setSettlementMethod] = useState<PurchaseReturnMethod>('Supplier Debit');
+  const [defectCategory, setDefectCategory] = useState<string>('Damaged In Transit');
+  const [notes, setNotes] = useState<string>('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Selected return quantities: Record<partId, qty>
   const [returnQuantities, setReturnQuantities] = useState<Record<string, number>>({});
@@ -166,7 +160,7 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
           unitPrice: line.unitPrice,
           taxRate: line.taxRate,
           amount: Number(lineTotal.toFixed(2)),
-          defectNote: defectNotes || undefined
+          defectNote: notes || undefined
         });
       }
     });
@@ -177,18 +171,19 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
       totalTax: Number(totalTax.toFixed(2)),
       hasItemsToReturn: itemsToReturn.length > 0
     };
-  }, [selectedPurchase, returnQuantities, previousReturnMap, defectNotes]);
+  }, [selectedPurchase, returnQuantities, previousReturnMap, notes]);
 
   const handleProcessReturn = () => {
     if (!selectedPurchase) {
-      alert('Please select a purchase order.');
+      setFormError('Please select a purchase order.');
       return;
     }
 
     if (!returnSummary.hasItemsToReturn) {
-      alert('Please enter a return quantity of at least 1 unit for one or more items.');
+      setFormError('Please enter a return quantity of at least 1 unit for one or more items.');
       return;
     }
+    setFormError(null);
 
     const returnRecord: PurchaseReturnRecord = {
       id: `pr-${Date.now()}`,
@@ -203,9 +198,9 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
       items: returnSummary.items,
       totalAmount: returnSummary.totalDebit,
       taxAmount: returnSummary.totalTax,
-      returnMethod,
-      reason: returnReason,
-      notes: defectNotes ? `Defect notes: ${defectNotes}` : undefined,
+      returnMethod: (settlementMethod as any) || 'Supplier Debit',
+      reason: defectCategory,
+      notes: notes ? `Defect notes: ${notes}` : undefined,
       status: 'COMPLETED',
       createdBy: currentUser,
       createdAt: `${returnDate}, ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
@@ -236,6 +231,12 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {formError && (
+            <div className="p-2.5 rounded bg-error/15 border border-error/30 text-error font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">error</span>
+              <span>{formError}</span>
+            </div>
+          )}
           {/* Step 1: Select Purchase */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-surface-container-low p-3.5 rounded border border-surface-container-high">
             <div className="md:col-span-2">
@@ -372,8 +373,8 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
                   Step 3: Return Reason &amp; Defect Note
                 </span>
                 <select
-                  value={returnReason}
-                  onChange={(e) => setReturnReason(e.target.value)}
+                  value={defectCategory}
+                  onChange={(e) => setDefectCategory(e.target.value)}
                   className="w-full px-2.5 py-1.5 bg-surface-container-lowest border border-surface-container-highest rounded text-xs focus:outline-none focus:border-secondary font-medium"
                 >
                   <option value="Defective / Damaged batch from factory">Defective / Damaged batch from factory</option>
@@ -385,8 +386,8 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
 
                 <textarea
                   rows={2}
-                  value={defectNotes}
-                  onChange={(e) => setDefectNotes(e.target.value)}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
                   placeholder="Specific defect description (e.g. friction lining cracked, thread damaged)..."
                   className="w-full p-2 bg-surface-container-lowest border border-surface-container-highest rounded text-xs focus:outline-none resize-none"
                 />
@@ -399,16 +400,16 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
                 <div className="space-y-2">
                   <label
                     className={`flex items-center gap-2 p-2.5 rounded border cursor-pointer select-none transition-colors ${
-                      returnMethod === 'Supplier Credit'
+                      settlementMethod === 'Supplier Debit'
                         ? 'bg-secondary/10 border-secondary text-secondary font-bold'
                         : 'bg-surface-container-lowest border-surface-container-highest text-on-surface'
                     }`}
                   >
                     <input
                       type="radio"
-                      name="returnMethod"
-                      checked={returnMethod === 'Supplier Credit'}
-                      onChange={() => setReturnMethod('Supplier Credit')}
+                      name="settlementMethod"
+                      checked={settlementMethod === 'Supplier Debit'}
+                      onChange={() => setSettlementMethod('Supplier Debit')}
                       className="text-secondary focus:ring-0"
                     />
                     <div>
@@ -421,16 +422,16 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
 
                   <label
                     className={`flex items-center gap-2 p-2.5 rounded border cursor-pointer select-none transition-colors ${
-                      returnMethod === 'Supplier Refund'
+                      settlementMethod === 'Bank Refund'
                         ? 'bg-secondary/10 border-secondary text-secondary font-bold'
                         : 'bg-surface-container-lowest border-surface-container-highest text-on-surface'
                     }`}
                   >
                     <input
                       type="radio"
-                      name="returnMethod"
-                      checked={returnMethod === 'Supplier Refund'}
-                      onChange={() => setReturnMethod('Supplier Refund')}
+                      name="settlementMethod"
+                      checked={settlementMethod === 'Bank Refund'}
+                      onChange={() => setSettlementMethod('Bank Refund')}
                       className="text-secondary focus:ring-0"
                     />
                     <div>

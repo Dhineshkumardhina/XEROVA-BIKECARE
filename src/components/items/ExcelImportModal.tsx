@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SparePart } from '../../types';
+import { downloadItemMasterTemplateCsv } from '../../utils/exportUtils';
 
 interface ExcelImportModalProps {
   isOpen: boolean;
@@ -198,11 +199,11 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 <span>Need the official template?</span>
                 <button
                   type="button"
-                  onClick={() => alert('Downloading BIKE_ERP_Item_Master_Template.xlsx')}
+                  onClick={downloadItemMasterTemplateCsv}
                   className="text-secondary hover:underline font-semibold flex items-center gap-1"
                 >
                   <span className="material-symbols-outlined text-[16px]">download</span>
-                  <span>Download Blank Excel Template (.xlsx)</span>
+                  <span>Download Blank Excel Template (.csv)</span>
                 </button>
               </div>
             </div>

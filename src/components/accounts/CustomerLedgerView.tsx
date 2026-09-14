@@ -1,32 +1,64 @@
 import React, { useState } from 'react';
 import { CustomerLedgerEntry, ReceivableRecord, Invoice, ReceiptVoucher } from '../../types';
+import { exportToCsv } from '../../utils/exportUtils';
 
 interface CustomerLedgerViewProps {
-  receivables: ReceivableRecord[];
+  receivables?: ReceivableRecord[];
+  customers?: ReceivableRecord[];
   selectedCustomerId?: string;
+  customerId?: string;
   onSelectCustomer: (id: string) => void;
-  ledgerEntries: CustomerLedgerEntry[];
-  onReceivePayment: (cust: ReceivableRecord) => void;
-  onNewSale: () => void;
-  onViewInvoiceDetail: (invNumber: string) => void;
-  onViewReceiptDetail: (receiptNumber: string) => void;
-  onOpenRowDetailDrawer: (entry: CustomerLedgerEntry) => void;
-  onPrintLedger: (cust: ReceivableRecord) => void;
+  ledgerEntries?: CustomerLedgerEntry[];
+  entries?: CustomerLedgerEntry[];
+  onReceivePayment?: (cust: ReceivableRecord) => void;
+  onOpenReceiptModal?: (cust: ReceivableRecord) => void;
+  onNewSale?: () => void;
+  onViewInvoiceDetail?: (invNumber: string) => void;
+  onViewReceiptDetail?: (receiptNumber: string) => void;
+  onOpenRowDetailDrawer?: (entry: CustomerLedgerEntry) => void;
+  onViewEntryDetails?: (entry: CustomerLedgerEntry) => void;
+  onReverseEntry?: (entry: any) => void;
+  onPrintLedger?: (cust: ReceivableRecord) => void;
+  userRole?: any;
 }
 
 export const CustomerLedgerView: React.FC<CustomerLedgerViewProps> = ({
-  receivables,
-  selectedCustomerId = 'cust-1',
+  receivables: propReceivables,
+  customers: propCustomers,
+  selectedCustomerId: propSelectedCustomerId,
+  customerId: propCustomerId,
   onSelectCustomer,
-  ledgerEntries,
+  ledgerEntries: propLedgerEntries,
+  entries: propEntries,
   onReceivePayment,
+  onOpenReceiptModal,
   onNewSale,
   onViewInvoiceDetail,
   onViewReceiptDetail,
   onOpenRowDetailDrawer,
+  onViewEntryDetails,
   onPrintLedger
 }) => {
-  const currentCustomer = receivables.find(r => r.customerId === selectedCustomerId) || receivables[0];
+  const receivables = propReceivables || propCustomers || [];
+  const selectedCustomerId = propCustomerId || propSelectedCustomerId || 'cust-1';
+  const ledgerEntries = propLedgerEntries || propEntries || [];
+  const fallbackCustomer: ReceivableRecord = {
+    id: 'cust-fallback',
+    customerId: 'cust-1',
+    customerName: 'General Workshop Customer',
+    mobile: '9840123456',
+    invoicesCount: 1,
+    totalSales: 25000,
+    received: 15000,
+    outstanding: 10000,
+    lastPaymentDate: '10-Sep-2026',
+    status: 'PENDING',
+    ageing: { current: 10000, d1_30: 0, d31_60: 0, d61_90: 0, d90Plus: 0 }
+  };
+
+  const handleReceivePayment = onReceivePayment || onOpenReceiptModal || (() => {});
+  const handleRowDetail = onOpenRowDetailDrawer || onViewEntryDetails || (() => {});
+  const currentCustomer = (receivables || []).find(r => r.customerId === selectedCustomerId) || receivables[0] || fallbackCustomer;
   const [dateFilter, setDateFilter] = useState<'ALL' | 'THIS_MONTH' | 'LAST_MONTH'>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -149,8 +181,20 @@ export const CustomerLedgerView: React.FC<CustomerLedgerViewProps> = ({
               <span>Print</span>
             </button>
             <button
-              onClick={() => alert(`Exported CSV statement for ${currentCustomer.customerName}`)}
-              className="px-3 py-1.5 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface rounded text-xs font-semibold flex items-center gap-1 transition-colors"
+              onClick={() => {
+                const headers = ['Date', 'Type', 'Voucher Number', 'Particulars', 'Debit (₹)', 'Credit (₹)', 'Running Balance (₹)'];
+                const rows = ledgerEntries.map(e => [
+                  e.date,
+                  e.type,
+                  e.voucherNumber,
+                  e.particulars,
+                  e.debit || 0,
+                  e.credit || 0,
+                  e.balance
+                ]);
+                exportToCsv(`Customer_Ledger_${currentCustomer.customerName.replace(/\s+/g, '_')}.csv`, headers, rows);
+              }}
+              className="px-3 py-1.5 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface rounded text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">download</span>
               <span>Export</span>

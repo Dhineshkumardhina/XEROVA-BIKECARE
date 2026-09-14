@@ -184,9 +184,9 @@ export const PaymentsListView: React.FC<PaymentsListViewProps> = ({
                         <span className="material-symbols-outlined text-[16px]">print</span>
                       </button>
                       <button
-                        onClick={() => alert(`Generated PDF for Payment ${p.paymentNo}`)}
-                        className="p-1 rounded hover:bg-surface-container text-outline"
-                        title="Download PDF"
+                        onClick={() => onPrintPayment(p)}
+                        className="p-1 rounded hover:bg-surface-container text-outline hover:text-on-surface"
+                        title="Download / Print PDF"
                       >
                         <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
                       </button>

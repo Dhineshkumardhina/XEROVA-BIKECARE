@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BankingAccount, BankTransaction, UserRole } from '../../types';
+import { exportToCsv, triggerPrintWindow } from '../../utils/exportUtils';
 
 interface BankingDashboardViewProps {
   accounts: BankingAccount[];
@@ -17,6 +18,7 @@ export const BankingDashboardView: React.FC<BankingDashboardViewProps> = ({
   onOpenDeposit,
   onOpenWithdrawal,
   onOpenTransfer,
+  onToggleReconcile,
   userRole
 }) => {
   const [activeTab, setActiveTab] = useState<'transactions' | 'cashbook' | 'bankbook'>('transactions');
@@ -194,15 +196,31 @@ export const BankingDashboardView: React.FC<BankingDashboardViewProps> = ({
 
         <div className="flex items-center gap-2 text-xs">
           <button
-            onClick={() => alert('Exporting statements to Excel spreadsheet...')}
-            className="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface flex items-center gap-1 font-semibold"
+            onClick={() => {
+              const headers = ['Date', 'Account', 'Type', 'Reference No', 'Description', 'Deposit (₹)', 'Withdrawal (₹)', 'Running Balance (₹)', 'Status'];
+              const rows = transactions.map(t => [
+                t.date,
+                t.accountName,
+                t.type,
+                t.referenceNo,
+                t.description,
+                t.deposit || 0,
+                t.withdrawal || 0,
+                t.balance,
+                t.status
+              ]);
+              exportToCsv(`Banking_Statements_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+            }}
+            className="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface flex items-center gap-1 font-semibold cursor-pointer transition-colors"
           >
             <span className="material-symbols-outlined text-[14px]">file_download</span>
             <span>Excel</span>
           </button>
           <button
-            onClick={() => alert('Exporting official statement PDF...')}
-            className="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface flex items-center gap-1 font-semibold"
+            onClick={() => {
+              window.print();
+            }}
+            className="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface flex items-center gap-1 font-semibold cursor-pointer transition-colors"
           >
             <span className="material-symbols-outlined text-[14px]">picture_as_pdf</span>
             <span>PDF</span>
@@ -307,19 +325,20 @@ export const BankingDashboardView: React.FC<BankingDashboardViewProps> = ({
                       </td>
                       <td className="p-2.5 text-center">
                         <button
+                          disabled={userRole === 'billing_operator'}
                           onClick={() => {
-                            if (userRole === 'billing_operator') {
-                              alert('Reconciliation permissions restricted for Billing Operators.');
-                              return;
+                            if (userRole !== 'billing_operator' && onToggleReconcile) {
+                              onToggleReconcile(t.id);
                             }
-                            if (onToggleReconcile) onToggleReconcile(t.id);
                           }}
                           className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase tracking-wider transition-colors ${
-                            t.status === 'Reconciled'
-                              ? 'bg-tertiary-fixed text-on-tertiary-fixed hover:bg-tertiary-fixed/80'
-                              : 'bg-amber-500/20 text-amber-800 hover:bg-amber-500/30'
+                            userRole === 'billing_operator'
+                              ? 'opacity-60 cursor-not-allowed bg-surface-container text-outline'
+                              : t.status === 'Reconciled'
+                              ? 'bg-tertiary-fixed text-on-tertiary-fixed hover:bg-tertiary-fixed/80 cursor-pointer'
+                              : 'bg-amber-500/20 text-amber-800 hover:bg-amber-500/30 cursor-pointer'
                           }`}
-                          title={userRole !== 'billing_operator' ? 'Click to toggle reconciliation state' : 'Restricted'}
+                          title={userRole !== 'billing_operator' ? 'Click to toggle reconciliation state' : 'Reconciliation permissions restricted for Billing Operators'}
                         >
                           {t.status === 'Reconciled' ? '✓ RECONCILED' : 'UNRECONCILED'}
                         </button>

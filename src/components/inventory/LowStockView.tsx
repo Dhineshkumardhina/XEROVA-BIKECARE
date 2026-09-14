@@ -14,6 +14,7 @@ export const LowStockView: React.FC<LowStockViewProps> = ({
 }) => {
   const [filterType, setFilterType] = useState<'ALL_LOW' | 'OUT_OF_STOCK' | 'BELOW_REORDER'>('ALL_LOW');
   const [searchQuery, setSearchQuery] = useState('');
+  const [actionToast, setActionToast] = useState<string | null>(null);
 
   // Identify low stock and out of stock items
   const lowStockItems = parts.filter(p => {
@@ -36,7 +37,11 @@ export const LowStockView: React.FC<LowStockViewProps> = ({
   });
 
   const handleCreateBulkPO = () => {
-    alert(`Generating automated consolidated Purchase Order for ${filteredItems.length} low-stock spare part items.`);
+    if (filteredItems.length > 0 && onCreatePurchaseOrder) {
+      onCreatePurchaseOrder(filteredItems[0], Math.max(10, (filteredItems[0].minReorder * 2) - filteredItems[0].currentStock));
+    }
+    setActionToast(`Drafted consolidated Purchase Order for ${filteredItems.length} low-stock spare part items.`);
+    setTimeout(() => setActionToast(null), 4000);
   };
 
   return (
@@ -66,6 +71,18 @@ export const LowStockView: React.FC<LowStockViewProps> = ({
           </button>
         </div>
       </div>
+
+      {actionToast && (
+        <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 rounded text-xs font-semibold flex items-center justify-between animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">check_circle</span>
+            <span>{actionToast}</span>
+          </div>
+          <button onClick={() => setActionToast(null)} className="text-outline hover:text-on-surface">
+            <span className="material-symbols-outlined text-[14px]">close</span>
+          </button>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -214,9 +231,9 @@ export const LowStockView: React.FC<LowStockViewProps> = ({
                       onClick={() => {
                         if (onCreatePurchaseOrder) {
                           onCreatePurchaseOrder(p, suggestedQty);
-                        } else {
-                          alert(`Created Draft Purchase Order for ${suggestedQty} ${p.unit} of Part #${partNumber}`);
                         }
+                        setActionToast(`Created Draft Purchase Order for ${suggestedQty} ${p.unit} of Part #${partNumber}`);
+                        setTimeout(() => setActionToast(null), 4000);
                       }}
                       className="px-2.5 py-1 bg-secondary text-on-secondary hover:bg-secondary/90 rounded text-xs font-bold transition-colors shadow-xs"
                     >

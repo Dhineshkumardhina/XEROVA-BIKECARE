@@ -1,30 +1,59 @@
 import React, { useState } from 'react';
 import { SupplierLedgerEntry, PayableRecord, UserRole } from '../../types';
+import { exportToCsv } from '../../utils/exportUtils';
 
 interface SupplierLedgerViewProps {
-  payables: PayableRecord[];
+  payables?: PayableRecord[];
+  suppliers?: PayableRecord[];
   selectedSupplierId?: string;
+  supplierId?: string;
   onSelectSupplier: (id: string) => void;
-  ledgerEntries: SupplierLedgerEntry[];
-  onMakePayment: (supplier: PayableRecord) => void;
-  onNewPurchase: () => void;
-  onOpenRowDetailDrawer: (entry: SupplierLedgerEntry) => void;
-  onPrintLedger: (supplier: PayableRecord) => void;
+  ledgerEntries?: SupplierLedgerEntry[];
+  entries?: SupplierLedgerEntry[];
+  onMakePayment?: (supplier: PayableRecord) => void;
+  onOpenPaymentModal?: (supplier: PayableRecord) => void;
+  onNewPurchase?: () => void;
+  onOpenRowDetailDrawer?: (entry: SupplierLedgerEntry) => void;
+  onViewEntryDetails?: (entry: SupplierLedgerEntry) => void;
+  onReverseEntry?: (entry: any) => void;
+  onPrintLedger?: (supplier: PayableRecord) => void;
   userRole: UserRole;
 }
 
 export const SupplierLedgerView: React.FC<SupplierLedgerViewProps> = ({
-  payables,
-  selectedSupplierId = 'sup-1',
+  payables: propPayables,
+  suppliers: propSuppliers,
+  selectedSupplierId: propSelectedSupplierId,
+  supplierId: propSupplierId,
   onSelectSupplier,
-  ledgerEntries,
+  ledgerEntries: propLedgerEntries,
+  entries: propEntries,
   onMakePayment,
+  onOpenPaymentModal,
   onNewPurchase,
   onOpenRowDetailDrawer,
+  onViewEntryDetails,
   onPrintLedger,
   userRole
 }) => {
-  const currentSupplier = payables.find(p => p.supplierId === selectedSupplierId) || payables[0];
+  const fallbackSupplier: PayableRecord = {
+    id: 'sup-demo',
+    supplierId: 'SUP-001',
+    supplierName: 'General Spares Distributor',
+    purchasesCount: 14,
+    totalPurchase: 185000,
+    paid: 133000,
+    outstanding: 52000,
+    lastPaymentDate: '10-Sep-2026',
+    status: 'PENDING'
+  };
+
+  const payables = propPayables || propSuppliers || [];
+  const selectedSupplierId = propSupplierId || propSelectedSupplierId || 'sup-1';
+  const ledgerEntries = propLedgerEntries || propEntries || [];
+  const handlePayment = onMakePayment || onOpenPaymentModal || (() => {});
+  const handleRowDetail = onOpenRowDetailDrawer || onViewEntryDetails || (() => {});
+  const currentSupplier = (payables || []).find(p => p.supplierId === selectedSupplierId) || payables[0] || fallbackSupplier;
   const [searchTerm, setSearchTerm] = useState('');
 
   if (userRole === 'billing_operator') {
@@ -156,8 +185,20 @@ export const SupplierLedgerView: React.FC<SupplierLedgerViewProps> = ({
               <span>Print</span>
             </button>
             <button
-              onClick={() => alert(`Exported supplier ledger statement for ${currentSupplier.supplierName}`)}
-              className="px-3 py-1.5 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface rounded text-xs font-semibold flex items-center gap-1 transition-colors"
+              onClick={() => {
+                const headers = ['Date', 'Type', 'Voucher Number', 'Particulars', 'Debit (₹)', 'Credit (₹)', 'Running Balance (₹)'];
+                const rows = ledgerEntries.map(e => [
+                  e.date,
+                  e.type,
+                  e.voucherNumber,
+                  e.particulars,
+                  e.debit || 0,
+                  e.credit || 0,
+                  e.balance
+                ]);
+                exportToCsv(`Supplier_Ledger_${currentSupplier.supplierName.replace(/\s+/g, '_')}.csv`, headers, rows);
+              }}
+              className="px-3 py-1.5 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface rounded text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">download</span>
               <span>Export</span>

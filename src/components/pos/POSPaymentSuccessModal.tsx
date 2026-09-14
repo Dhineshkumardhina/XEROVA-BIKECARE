@@ -1,5 +1,6 @@
 import React from 'react';
 import { Invoice } from '../../types';
+import { triggerPrintWindow, getWhatsAppShareUrl } from '../../utils/exportUtils';
 
 interface POSPaymentSuccessModalProps {
   invoice: Invoice | null;
@@ -100,9 +101,9 @@ export const POSPaymentSuccessModal: React.FC<POSPaymentSuccessModalProps> = ({
             <button
               type="button"
               onClick={() => {
-                alert(`PDF for invoice ${invoice.id} downloaded.`);
+                onPrint(invoice, 'A4');
               }}
-              className="py-2 px-3 bg-surface-container-low hover:bg-surface-container rounded font-semibold text-on-surface flex items-center justify-center gap-1.5"
+              className="py-2 px-3 bg-surface-container-low hover:bg-surface-container rounded font-semibold text-on-surface flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">download</span>
               <span>Download PDF</span>
@@ -112,9 +113,10 @@ export const POSPaymentSuccessModal: React.FC<POSPaymentSuccessModalProps> = ({
               type="button"
               onClick={() => {
                 const phone = invoice.customerPhone ? invoice.customerPhone.replace(/\D/g, '') : '';
-                alert(`Invoice ${invoice.id} shared via WhatsApp to ${phone || 'customer'}.`);
+                const msg = `Dear ${invoice.customerName}, thank you for choosing VeloCare Bike ERP! Your invoice ${invoice.id} for ₹${invoice.total.toFixed(2)} has been generated. Payment Mode: ${invoice.paymentMethod}.`;
+                window.open(getWhatsAppShareUrl(phone, msg), '_blank');
               }}
-              className="py-2 px-3 bg-surface-container-low hover:bg-surface-container rounded font-semibold text-on-surface flex items-center justify-center gap-1.5"
+              className="py-2 px-3 bg-surface-container-low hover:bg-surface-container rounded font-semibold text-on-surface flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">share</span>
               <span>Share (WhatsApp)</span>

@@ -16,9 +16,9 @@ export const InvoiceTemplatesView: React.FC<InvoiceTemplatesViewProps> = ({
   onSaveTemplateConfig,
   onTriggerPermissionDenied
 }) => {
-  const [config, setConfig] = useState<InvoiceTemplateConfig>(templateConfig);
-  const [activePreviewFormat, setActivePreviewFormat] = useState<InvoiceTemplateConfig['activeFormat']>(
-    templateConfig.activeFormat
+  const [config, setConfig] = useState<InvoiceTemplateConfig>(templateConfig || {});
+  const [activePreviewFormat, setActivePreviewFormat] = useState<string>(
+    templateConfig?.activeFormat || 'A4_PORTRAIT_GST'
   );
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -160,7 +160,7 @@ export const InvoiceTemplatesView: React.FC<InvoiceTemplatesViewProps> = ({
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-secondary">visibility</span>
               <span className="font-bold text-xs uppercase tracking-wider text-on-surface">
-                Live Rendering Preview ({activePreviewFormat.replace(/_/g, ' ')})
+                Live Rendering Preview ({(activePreviewFormat || 'A4').replace(/_/g, ' ')})
               </span>
             </div>
             <span className="text-[11px] font-mono text-outline">

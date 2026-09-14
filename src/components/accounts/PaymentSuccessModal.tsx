@@ -1,5 +1,6 @@
 import React from 'react';
 import { PaymentVoucher } from '../../types';
+import { getWhatsAppShareUrl } from '../../utils/exportUtils';
 
 interface PaymentSuccessModalProps {
   payment: PaymentVoucher | null;
@@ -70,23 +71,27 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
         <div className="p-4 bg-surface-container border-t border-surface-container-high grid grid-cols-2 gap-2">
           <button
             onClick={() => onPrint(payment)}
-            className="py-2 px-3 bg-primary hover:bg-primary/90 text-on-primary rounded font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+            className="py-2 px-3 bg-primary hover:bg-primary/90 text-on-primary rounded font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">print</span>
             <span>Print Voucher</span>
           </button>
 
           <button
-            onClick={() => alert(`Downloaded PDF voucher for ${payment.paymentNo}`)}
-            className="py-2 px-3 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface rounded font-semibold flex items-center justify-center gap-1.5 transition-colors"
+            onClick={() => onPrint(payment)}
+            className="py-2 px-3 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface rounded font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
             <span>Download PDF</span>
           </button>
 
           <button
-            onClick={() => alert(`Payment advice sent via email to ${payment.supplierName}`)}
-            className="py-2 px-3 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface rounded font-semibold flex items-center justify-center gap-1.5 transition-colors"
+            onClick={() => {
+              const phone = '';
+              const msg = `Payment Advice: Voucher #${payment.paymentNo} for ₹${payment.amount.toFixed(2)} has been processed for ${payment.supplierName}. Payment Mode: ${payment.mode}.`;
+              window.open(getWhatsAppShareUrl(phone, msg), '_blank');
+            }}
+            className="py-2 px-3 bg-surface-container-low hover:bg-surface-container border border-surface-container-high text-on-surface rounded font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">send</span>
             <span>Share / Advise</span>
@@ -97,7 +102,7 @@ export const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
               onClose();
               onNewPayment();
             }}
-            className="py-2 px-3 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded font-bold flex items-center justify-center gap-1.5 transition-colors"
+            className="py-2 px-3 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">add</span>
             <span>+ New Payment</span>

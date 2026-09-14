@@ -45,6 +45,7 @@ export const CreateSalesReturnModal: React.FC<CreateSalesReturnModalProps> = ({
 
   // Selected return quantities: Record<lineItemId, returnQty>
   const [returnQuantities, setReturnQuantities] = useState<Record<string, number>>({});
+  const [formError, setFormError] = useState<string | null>(null);
 
   const selectedInvoice = useMemo(() => {
     return invoices.find((inv) => inv.id === selectedInvoiceId) || null;
@@ -132,14 +133,15 @@ export const CreateSalesReturnModal: React.FC<CreateSalesReturnModalProps> = ({
 
   const handleProcessReturn = () => {
     if (!selectedInvoice) {
-      alert('Please select an invoice to return items from.');
+      setFormError('Please select an invoice to return items from.');
       return;
     }
 
     if (!returnSummary.hasItemsToReturn) {
-      alert('Please specify a return quantity of at least 1 unit for one or more items.');
+      setFormError('Please specify a return quantity of at least 1 unit for one or more items.');
       return;
     }
+    setFormError(null);
 
     const returnRecord: SalesReturnRecord = {
       id: `sr-${Date.now()}`,
@@ -176,7 +178,7 @@ export const CreateSalesReturnModal: React.FC<CreateSalesReturnModalProps> = ({
             <div>
               <h2 className="font-bold text-sm text-on-surface">Process Sales Return &amp; Issue Credit Note</h2>
               <p className="text-[11px] text-outline">
-                Step-by-step counter invoice return, atomic inventory restocking, and customer credit adjustment
+                Verify original invoice, inspect damaged/returned spare items, adjust customer ledger &amp; GST CDNR
               </p>
             </div>
           </div>
@@ -187,6 +189,12 @@ export const CreateSalesReturnModal: React.FC<CreateSalesReturnModalProps> = ({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {formError && (
+            <div className="p-2.5 rounded bg-error/15 border border-error/30 text-error font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">error</span>
+              <span>{formError}</span>
+            </div>
+          )}
           {/* Step 1: Select Invoice & Header */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-surface-container-low p-3.5 rounded border border-surface-container-high">
             {/* Invoice Picker */}

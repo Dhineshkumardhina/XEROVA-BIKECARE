@@ -331,7 +331,6 @@ export const InventoryDashboardView: React.FC<InventoryDashboardViewProps> = ({
                           type="button"
                           onClick={() => {
                             if (onCreatePurchaseOrder) onCreatePurchaseOrder(p);
-                            else alert(`Drafted purchase order for ${p.name}`);
                           }}
                           className="px-2.5 py-1 bg-secondary text-on-secondary hover:bg-secondary/90 rounded text-xs font-bold shadow-xs"
                         >

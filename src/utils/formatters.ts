@@ -3,14 +3,15 @@
 /**
  * Formats a number to Indian Rupee currency standard: ₹1,25,000.00
  */
-export const formatCurrency = (amount: number | string | undefined | null, includeDecimals = true): string => {
+export const formatCurrency = (amount: number | string | undefined | null, includeDecimals: boolean | number = true): string => {
   if (amount === undefined || amount === null || isNaN(Number(amount))) {
     return includeDecimals ? '₹0.00' : '₹0';
   }
   const numericVal = Number(amount);
+  const digits = typeof includeDecimals === 'number' ? includeDecimals : (includeDecimals ? 2 : 0);
   const formatted = numericVal.toLocaleString('en-IN', {
-    minimumFractionDigits: includeDecimals ? 2 : 0,
-    maximumFractionDigits: includeDecimals ? 2 : 0
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
   });
   return `₹${formatted}`;
 };

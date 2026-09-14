@@ -42,8 +42,11 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
     { mode: 'UPI (GPay)', amount: totalDue - Math.floor(totalDue / 2), refNo: '' }
   ]);
 
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+
   useEffect(() => {
     setCashReceived(totalDue);
+    setPaymentError(null);
     // Reset splits
     setSplits([
       { mode: 'Cash', amount: Math.floor(totalDue / 2), refNo: '' },
@@ -58,10 +61,7 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
   const splitDifference = totalDue - splitTotal;
 
   const handleAddSplitLine = () => {
-    setSplits(prev => [
-      ...prev,
-      { mode: 'Card POS', amount: Math.max(0, splitDifference), refNo: '' }
-    ]);
+    setSplits(prev => [...prev, { mode: 'Cash', amount: 0, refNo: '' }]);
   };
 
   const handleRemoveSplitLine = (index: number) => {
@@ -75,9 +75,10 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
   };
 
   const handleComplete = () => {
+    setPaymentError(null);
     if (activeTab === 'CASH') {
       if (cashReceived < totalDue) {
-        alert(`Received amount (₹${cashReceived}) is less than total due (₹${totalDue}).`);
+        setPaymentError(`Received amount (₹${cashReceived}) is less than total due (₹${totalDue}).`);
         return;
       }
       onConfirmSale('Cash', [{ mode: 'Cash', amount: totalDue }], cashReceived, changeToReturn);
@@ -87,7 +88,7 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
       onConfirmSale('Card POS', [{ mode: 'Card POS', amount: totalDue }]);
     } else if (activeTab === 'CREDIT') {
       if (!customer) {
-        alert('Credit payment requires an account with a ledger. Please select or register a customer.');
+        setPaymentError('Credit payment requires an account with a ledger. Please select or register a customer.');
         return;
       }
       onConfirmSale('Credit Ledger', [{ mode: 'Credit Ledger', amount: totalDue }]);
@@ -95,7 +96,7 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
       onConfirmSale('Cheque', [{ mode: 'Cheque', amount: totalDue, refNo: chequeNo, notes: bankName }]);
     } else if (activeTab === 'SPLIT') {
       if (Math.abs(splitDifference) > 0.5) {
-        alert(`Split amounts total (₹${splitTotal.toFixed(2)}) must equal invoice total (₹${totalDue.toFixed(2)}).`);
+        setPaymentError(`Split amounts total (₹${splitTotal.toFixed(2)}) must equal invoice total (₹${totalDue.toFixed(2)}).`);
         return;
       }
       onConfirmSale('Split Payment', splits);
@@ -124,6 +125,13 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
+
+        {paymentError && (
+          <div className="mx-4 mt-3 p-2.5 bg-error/10 border border-error/20 rounded text-error text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            <span>{paymentError}</span>
+          </div>
+        )}
 
         {/* Big Total Due Strip */}
         <div className="bg-surface-container-low px-6 py-4 flex items-center justify-between border-b border-surface-container-high">

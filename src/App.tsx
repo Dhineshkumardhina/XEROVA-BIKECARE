@@ -103,6 +103,8 @@ import { CreateSalesReturnModal } from './components/returns/CreateSalesReturnMo
 import { PurchaseReturnsView } from './components/returns/PurchaseReturnsView';
 import { CreatePurchaseReturnModal } from './components/returns/CreatePurchaseReturnModal';
 import { PrintReturnNoteModal } from './components/returns/PrintReturnNoteModal';
+import { triggerPrintWindow } from './utils/exportUtils';
+import { adminService } from './services/admin.service';
 
 import {
   INITIAL_PARTS,
@@ -412,7 +414,7 @@ export function MainERPContent() {
 
     logAuditEvent(
       'Invoice Voided',
-      'Billing',
+      'Sales',
       targetInvoice.id,
       'PAID',
       'VOID',
@@ -664,7 +666,7 @@ export function MainERPContent() {
       if (item.partId) {
         const foundPart = parts.find(p => p.id === item.partId);
         if (foundPart && foundPart.currentStock < item.quantity) {
-          alert(`Insufficient physical stock for "${foundPart.name}" (Required: ${item.quantity}, Current Stock: ${foundPart.currentStock}). Please replenish inventory before converting.`);
+          showToast(`Insufficient physical stock for "${foundPart.name}" (Required: ${item.quantity}, Current Stock: ${foundPart.currentStock}). Please replenish inventory before converting.`);
           return;
         }
       }
@@ -686,6 +688,7 @@ export function MainERPContent() {
       lineItems: quote.items.map((it, idx) => ({
         id: it.id || `li-${idx}`,
         partId: it.partId || '',
+        sku: it.partNumber || it.partId || 'SKU-GEN',
         partNumber: it.partNumber,
         name: it.itemName,
         brand: 'OEM Spec',
@@ -696,6 +699,7 @@ export function MainERPContent() {
         sellingRate: it.rate,
         discount: it.discount,
         gstRate: it.taxRate,
+        taxableAmount: it.amount,
         total: it.amount
       })),
       subtotal: quote.subtotal,
@@ -1013,7 +1017,23 @@ export function MainERPContent() {
     setRecordedReceiptForSuccess(newReceipt);
     showToast(`Receipt ${newReceipt.receiptNo} saved for ₹${newReceipt.amount.toLocaleString('en-IN')}`);
     if (printAfter) {
-      setTimeout(() => alert(`Printing Receipt Voucher ${newReceipt.receiptNo}...`), 300);
+      setTimeout(() => {
+        triggerPrintWindow(
+          `Receipt ${newReceipt.receiptNo}`,
+          `
+          <div class="header">
+            <h1 class="title">BIKE ERP PAYMENT RECEIPT VOUCHER</h1>
+            <div class="subtitle">Receipt Voucher #${newReceipt.receiptNo} | Date: ${newReceipt.date} ${newReceipt.time}</div>
+          </div>
+          <p><strong>Customer:</strong> ${newReceipt.customerName}</p>
+          <p><strong>Payment Mode:</strong> ${newReceipt.paymentMode} | <strong>Ref No:</strong> ${newReceipt.refNo || 'Cash'}</p>
+          <p><strong>Amount:</strong> ₹${newReceipt.amount.toLocaleString('en-IN')}</p>
+          <div class="total-box">
+            <div class="total-row"><span>Total Amount:</span> <span>₹${newReceipt.amount.toLocaleString('en-IN')}</span></div>
+          </div>
+          `
+        );
+      }, 300);
     }
   };
 
@@ -1090,7 +1110,23 @@ export function MainERPContent() {
     setRecordedPaymentForSuccess(newPayment);
     showToast(`Payment ${newPayment.paymentNo} disbursed for ₹${newPayment.amount.toLocaleString('en-IN')}`);
     if (printAfter) {
-      setTimeout(() => alert(`Printing Payment Voucher ${newPayment.paymentNo}...`), 300);
+      setTimeout(() => {
+        triggerPrintWindow(
+          `Payment Voucher ${newPayment.paymentNo}`,
+          `
+          <div class="header">
+            <h1 class="title">BIKE ERP SUPPLIER PAYMENT VOUCHER</h1>
+            <div class="subtitle">Payment Voucher #${newPayment.paymentNo} | Date: ${newPayment.date} ${newPayment.time}</div>
+          </div>
+          <p><strong>Supplier:</strong> ${newPayment.supplierName}</p>
+          <p><strong>Payment Mode:</strong> ${newPayment.paymentMode} | <strong>Ref No:</strong> ${newPayment.refNo || 'Direct Payout'}</p>
+          <p><strong>Disbursed Amount:</strong> ₹${newPayment.amount.toLocaleString('en-IN')}</p>
+          <div class="total-box">
+            <div class="total-row"><span>Total Disbursed:</span> <span>₹${newPayment.amount.toLocaleString('en-IN')}</span></div>
+          </div>
+          `
+        );
+      }, 300);
     }
   };
 
@@ -1101,7 +1137,7 @@ export function MainERPContent() {
     setBankingOperationType(null);
     logAuditEvent(
       `${tx.type} Recorded`,
-      'Banking',
+      'Accounts',
       tx.reference,
       'PENDING',
       'COMPLETED',
@@ -1118,7 +1154,7 @@ export function MainERPContent() {
           const newStatus = t.status === 'Reconciled' ? 'Pending' : 'Reconciled';
           logAuditEvent(
             'Bank Transaction Reconciled',
-            'Banking',
+            'Accounts',
             t.reference,
             t.status,
             newStatus,
@@ -1340,10 +1376,10 @@ export function MainERPContent() {
       logAuditEvent('User Account Updated', 'Security', user.username, exists.role, user.role, `Updated user account details for @${user.username}`);
       showToast(`User @${user.username} updated`);
       try {
-        await userService.updateUser(user.id, {
-          fullName: user.name,
+        await adminService.updateUser(user.id, {
+          fullName: user.fullName,
           email: user.email,
-          phone: user.phone
+          mobile: user.mobile
         });
       } catch (err) {
         console.warn('Backend sync for user update deferred:', err);
@@ -1353,11 +1389,11 @@ export function MainERPContent() {
       logAuditEvent('User Account Created', 'Security', user.username, 'None', user.role, `Created new ERP user account @${user.username}`);
       showToast(`User @${user.username} registered`);
       try {
-        await userService.createUser({
+        await adminService.createUser({
           username: user.username,
-          fullName: user.name,
+          fullName: user.fullName,
           email: user.email || `${user.username}@bikecare.erp`,
-          phone: user.phone,
+          mobile: user.mobile,
           password: 'Operator@123',
           roleId: user.role
         });
@@ -1371,16 +1407,16 @@ export function MainERPContent() {
     setErpUsers((prev) =>
       prev.map((u) => {
         if (u.id === userId) {
-          const newStatus = u.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE';
+          const newStatus = u.status === 'ACTIVE' || u.status === 'Active' ? 'DISABLED' : 'ACTIVE';
           logAuditEvent('User Status Toggled', 'Security', u.username, u.status, newStatus, `Account status changed to ${newStatus}`, newStatus === 'DISABLED' ? 'Warning' : 'Success');
           showToast(`User @${u.username} marked as ${newStatus}`);
-          return { ...u, status: newStatus };
+          return { ...u, status: newStatus as any };
         }
         return u;
       })
     );
     try {
-      await userService.toggleUserStatus(userId);
+      await adminService.toggleUserStatus(userId);
     } catch (err) {
       console.warn('Backend sync for user status deferred:', err);
     }
@@ -1392,7 +1428,7 @@ export function MainERPContent() {
       logAuditEvent('Password Reset', 'Security', user.username, 'Encrypted', 'Temporary Key', `Admin reset password for @${user.username}`, 'Warning');
       showToast(`Temporary password generated for @${user.username}`);
       try {
-        await userService.resetPassword(userId, 'Reset@BikeERP2026!');
+        await adminService.resetPassword(userId, 'Reset@BikeERP2026!');
       } catch (err) {
         console.warn('Backend sync for password reset deferred:', err);
       }
@@ -1558,7 +1594,7 @@ export function MainERPContent() {
   ) => {
     const cleanedMobile = mobile.replace(/\D/g, '');
     if (cleanedMobile.length < 10) {
-      alert('Validation Error: Please specify a valid 10-digit mobile number.');
+      showToast('Validation Error: Please specify a valid 10-digit mobile number.');
       return;
     }
 
@@ -2725,7 +2761,21 @@ export function MainERPContent() {
         receipt={recordedReceiptForSuccess}
         onClose={() => setRecordedReceiptForSuccess(null)}
         onPrint={(r) => {
-          alert(`Printing Official Receipt Voucher ${r.receiptNo}...`);
+          triggerPrintWindow(
+            `Receipt ${r.receiptNo}`,
+            `
+            <div class="header">
+              <h1 class="title">BIKE ERP PAYMENT RECEIPT VOUCHER</h1>
+              <div class="subtitle">Receipt Voucher #${r.receiptNo} | Date: ${r.date} ${r.time}</div>
+            </div>
+            <p><strong>Customer:</strong> ${r.customerName}</p>
+            <p><strong>Payment Mode:</strong> ${r.paymentMode} | <strong>Ref No:</strong> ${r.refNo || 'Cash'}</p>
+            <p><strong>Amount Received:</strong> ₹${r.amount.toLocaleString('en-IN')}</p>
+            <div class="total-box">
+              <div class="total-row"><span>Total Received:</span> <span>₹${r.amount.toLocaleString('en-IN')}</span></div>
+            </div>
+            `
+          );
         }}
         onNewReceipt={() => {
           setRecordedReceiptForSuccess(null);
@@ -2733,7 +2783,7 @@ export function MainERPContent() {
           setIsCreateReceiptOpen(true);
         }}
         onViewLedger={(customerId) => {
-          setSelectedCustomerIdForLedger(customerId);
+          setSelectedCustomerId(customerId);
           setActiveScreen('customer-ledgers');
         }}
       />
@@ -2752,7 +2802,21 @@ export function MainERPContent() {
         payment={recordedPaymentForSuccess}
         onClose={() => setRecordedPaymentForSuccess(null)}
         onPrint={(p) => {
-          alert(`Printing Official Supplier Payment Voucher ${p.paymentNo}...`);
+          triggerPrintWindow(
+            `Payment Voucher ${p.paymentNo}`,
+            `
+            <div class="header">
+              <h1 class="title">BIKE ERP SUPPLIER PAYMENT VOUCHER</h1>
+              <div class="subtitle">Payment Voucher #${p.paymentNo} | Date: ${p.date} ${p.time}</div>
+            </div>
+            <p><strong>Supplier:</strong> ${p.supplierName}</p>
+            <p><strong>Payment Mode:</strong> ${p.paymentMode} | <strong>Ref No:</strong> ${p.refNo || 'Direct Payout'}</p>
+            <p><strong>Disbursed Amount:</strong> ₹${p.amount.toLocaleString('en-IN')}</p>
+            <div class="total-box">
+              <div class="total-row"><span>Total Disbursed:</span> <span>₹${p.amount.toLocaleString('en-IN')}</span></div>
+            </div>
+            `
+          );
         }}
         onNewPayment={() => {
           setRecordedPaymentForSuccess(null);

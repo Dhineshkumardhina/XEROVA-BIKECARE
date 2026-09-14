@@ -103,17 +103,20 @@ export const GST_FILING_STATUSES = [
 export const INITIAL_GSTR1_RECORDS: Gstr1Record[] = [];
 
 export const INITIAL_GSTR1_VALIDATION: Gstr1ValidationSummary = {
-  totalRecords: 0,
   validRecords: 0,
-  errorRecords: 0,
-  warningRecords: 0,
-  status: 'Clean',
-  issues: []
+  warnings: 0,
+  errors: 0,
+  missingGstin: 0,
+  invalidGstRate: 0,
+  taxMismatch: 0,
+  duplicateInvoice: 0
 };
 
 export const INITIAL_GSTR3B_OUTWARD: Gstr3bSupplyItem[] = [
   {
-    natureOfSupplies: '(a) Outward taxable supplies (other than zero rated, nil rated and exempted)',
+    id: 'out-1',
+    code: '3.1(a)',
+    nature: '(a) Outward taxable supplies (other than zero rated, nil rated and exempted)',
     taxableValue: 0,
     igst: 0,
     cgst: 0,
@@ -121,7 +124,9 @@ export const INITIAL_GSTR3B_OUTWARD: Gstr3bSupplyItem[] = [
     cess: 0
   },
   {
-    natureOfSupplies: '(b) Outward taxable supplies (zero rated)',
+    id: 'out-2',
+    code: '3.1(b)',
+    nature: '(b) Outward taxable supplies (zero rated)',
     taxableValue: 0,
     igst: 0,
     cgst: 0,
@@ -129,7 +134,9 @@ export const INITIAL_GSTR3B_OUTWARD: Gstr3bSupplyItem[] = [
     cess: 0
   },
   {
-    natureOfSupplies: '(c) Other outward supplies (Nil rated, exempted)',
+    id: 'out-3',
+    code: '3.1(c)',
+    nature: '(c) Other outward supplies (Nil rated, exempted)',
     taxableValue: 0,
     igst: 0,
     cgst: 0,
@@ -137,7 +144,9 @@ export const INITIAL_GSTR3B_OUTWARD: Gstr3bSupplyItem[] = [
     cess: 0
   },
   {
-    natureOfSupplies: '(d) Inward supplies (liable to reverse charge)',
+    id: 'out-4',
+    code: '3.1(d)',
+    nature: '(d) Inward supplies (liable to reverse charge)',
     taxableValue: 0,
     igst: 0,
     cgst: 0,
@@ -145,7 +154,9 @@ export const INITIAL_GSTR3B_OUTWARD: Gstr3bSupplyItem[] = [
     cess: 0
   },
   {
-    natureOfSupplies: '(e) Non-GST outward supplies',
+    id: 'out-5',
+    code: '3.1(e)',
+    nature: '(e) Non-GST outward supplies',
     taxableValue: 0,
     igst: 0,
     cgst: 0,
@@ -156,6 +167,8 @@ export const INITIAL_GSTR3B_OUTWARD: Gstr3bSupplyItem[] = [
 
 export const INITIAL_GSTR3B_ITC: Gstr3bItcItem[] = [
   {
+    id: 'itc-1',
+    code: '4(A)(1)',
     details: '(1) Import of goods',
     igst: 0,
     cgst: 0,
@@ -163,6 +176,8 @@ export const INITIAL_GSTR3B_ITC: Gstr3bItcItem[] = [
     cess: 0
   },
   {
+    id: 'itc-2',
+    code: '4(A)(2)',
     details: '(2) Import of services',
     igst: 0,
     cgst: 0,
@@ -170,6 +185,8 @@ export const INITIAL_GSTR3B_ITC: Gstr3bItcItem[] = [
     cess: 0
   },
   {
+    id: 'itc-3',
+    code: '4(A)(3)',
     details: '(3) Inward supplies liable to reverse charge',
     igst: 0,
     cgst: 0,
@@ -177,6 +194,8 @@ export const INITIAL_GSTR3B_ITC: Gstr3bItcItem[] = [
     cess: 0
   },
   {
+    id: 'itc-4',
+    code: '4(A)(4)',
     details: '(4) Inward supplies from ISD',
     igst: 0,
     cgst: 0,
@@ -184,6 +203,8 @@ export const INITIAL_GSTR3B_ITC: Gstr3bItcItem[] = [
     cess: 0
   },
   {
+    id: 'itc-5',
+    code: '4(A)(5)',
     details: '(5) All other ITC (Domestic standard inward purchases)',
     igst: 0,
     cgst: 0,
@@ -203,11 +224,32 @@ export const INITIAL_HSN_RECORDS: HsnTaxRecord[] = [];
 
 export const INITIAL_SALES_REPORT_ROWS: SalesReportRow[] = [];
 export const INITIAL_SALES_REPORTS: SalesReportRow[] = INITIAL_SALES_REPORT_ROWS;
-export const SALES_DASHBOARD_CARDS = { grossSales: 0, netSales: 0, gstCollected: 0, ordersCount: 0 };
+export const SALES_DASHBOARD_CARDS = {
+  grossSales: 0,
+  netSales: 0,
+  gstCollected: 0,
+  ordersCount: 0,
+  discounts: 0,
+  returns: 0,
+  gst: 0,
+  collection: 0,
+  creditSales: 0
+};
 
 export const INITIAL_PURCHASE_REPORT_ROWS: PurchaseReportRow[] = [];
 export const INITIAL_PURCHASE_REPORTS: PurchaseReportRow[] = INITIAL_PURCHASE_REPORT_ROWS;
-export const PURCHASE_KPIS = { totalPurchases: 0, netPayables: 0, itcAvailable: 0, poCount: 0 };
+export const PURCHASE_KPIS = {
+  totalPurchases: 0,
+  totalPurchase: 0,
+  purchaseReturns: 0,
+  tax: 0,
+  netPurchase: 0,
+  paid: 0,
+  outstanding: 0,
+  netPayables: 0,
+  itcAvailable: 0,
+  poCount: 0
+};
 export const PURCHASE_DASHBOARD_CARDS = PURCHASE_KPIS;
 
 export const INITIAL_INVENTORY_REPORT_ROWS: InventoryReportRow[] = [];
@@ -216,7 +258,15 @@ export const INVENTORY_DASHBOARD_CARDS = { totalValuation: 0, lowStockCount: 0, 
 
 export const INITIAL_PROFITABILITY_ROWS: ProfitabilityRow[] = [];
 export const INITIAL_PROFITABILITY_ITEMS: ProfitabilityRow[] = INITIAL_PROFITABILITY_ROWS;
-export const PROFITABILITY_SUMMARY = { grossProfit: 0, netMarginPct: 0, directExpenses: 0, cogs: 0 };
+export const PROFITABILITY_SUMMARY = {
+  grossSales: 0,
+  cogs: 0,
+  grossProfit: 0,
+  grossMarginPct: 0,
+  discounts: 0,
+  netMarginPct: 0,
+  directExpenses: 0
+};
 export const PROFITABILITY_CARDS = PROFITABILITY_SUMMARY;
 
 export const INITIAL_FINANCIAL_REPORT_ROWS: FinancialReportRow[] = [];

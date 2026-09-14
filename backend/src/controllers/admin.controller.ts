@@ -227,7 +227,9 @@ export class AdminController {
     };
 
     const result = await adminService.clearTestData({
-      ...validatedData,
+      confirmationPhrase: validatedData.confirmationPhrase,
+      retainMasters: validatedData.retainMasters ?? true,
+      reason: validatedData.reason,
       userContext
     });
     return sendSuccess(res, result, 'Test data cleared successfully');
@@ -243,7 +245,8 @@ export class AdminController {
     };
 
     const result = await adminService.resetSystemConfig({
-      ...validatedData,
+      confirmationPhrase: validatedData.confirmationPhrase,
+      targetModule: validatedData.targetModule,
       userContext
     });
     return sendSuccess(res, result, 'System configuration reset successfully');
