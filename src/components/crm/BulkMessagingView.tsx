@@ -77,8 +77,8 @@ export const BulkMessagingView: React.FC<BulkMessagingViewProps> = ({
     txt = txt.replace(/\{\{invoice_number\}\}/g, 'INV-2026-0891');
     txt = txt.replace(/\{\{amount\}\}/g, '4,820');
     txt = txt.replace(/\{\{due_date\}\}/g, '15-Aug-2026');
-    txt = txt.replace(/\{\{vehicle_model\}\}/g, previewSampleCustomer.vehicles[0]?.model || 'Hero Splendor');
-    txt = txt.replace(/\{\{reg_no\}\}/g, previewSampleCustomer.vehicles[0]?.regNo || 'TN-01-AB-1234');
+    txt = txt.replace(/\{\{vehicle_model\}\}/g, previewSampleCustomer.vehicles?.[0]?.model || 'Universal');
+    txt = txt.replace(/\{\{reg_no\}\}/g, previewSampleCustomer.vehicles?.[0]?.regNo || 'TN-00-XX-0000');
     txt = txt.replace(/\{\{bill_link\}\}/g, 'https://bill.bike-erp.in/b/891');
     return txt;
   }, [messageText, previewSampleCustomer]);

@@ -648,115 +648,71 @@ export const AccountsDashboard: React.FC<AccountsDashboardProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high font-table-cell">
-              {/* Receipt Example */}
-              <tr className="hover:bg-surface-container-low transition-colors">
-                <td className="p-2.5 text-outline">Today, 11:32 AM</td>
-                <td className="p-2.5">
-                  <span className="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-bold text-[10px]">
-                    RECEIPT
-                  </span>
-                </td>
-                <td className="p-2.5 font-mono font-bold text-secondary">RV-00291</td>
-                <td className="p-2.5 font-semibold text-on-surface">ABC Auto Works</td>
-                <td className="p-2.5">
-                  <span className="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[11px]">UPI</span>
-                </td>
-                <td className="p-2.5 text-right font-mono text-outline">—</td>
-                <td className="p-2.5 text-right font-mono font-bold text-tertiary">₹15,000.00</td>
-                <td className="p-2.5 text-center">
-                  <button
-                    onClick={() => {
-                      const rv = receipts.find(r => r.receiptNo === 'RV-00291') || receipts[0];
-                      onViewReceipt(rv);
-                    }}
-                    className="text-secondary hover:underline font-semibold text-[11px]"
-                  >
-                    View
-                  </button>
-                </td>
-              </tr>
-
-              {/* Payment Example */}
-              <tr className="hover:bg-surface-container-low transition-colors">
-                <td className="p-2.5 text-outline">Today, 10:18 AM</td>
-                <td className="p-2.5">
-                  <span className="px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-bold text-[10px]">
-                    PAYMENT
-                  </span>
-                </td>
-                <td className="p-2.5 font-mono font-bold text-on-surface">PV-00181</td>
-                <td className="p-2.5 font-semibold text-on-surface">TVS Motors</td>
-                <td className="p-2.5">
-                  <span className="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[11px]">NEFT Bank</span>
-                </td>
-                <td className="p-2.5 text-right font-mono font-bold text-error">₹25,000.00</td>
-                <td className="p-2.5 text-right font-mono text-outline">—</td>
-                <td className="p-2.5 text-center">
-                  {userRole !== 'billing_operator' ? (
-                    <button
-                      onClick={() => {
-                        const pv = payments.find(p => p.paymentNo === 'PV-00181') || payments[0];
-                        onViewPayment(pv);
-                      }}
-                      className="text-secondary hover:underline font-semibold text-[11px]"
-                    >
-                      View
-                    </button>
-                  ) : (
-                    <span className="text-[10px] text-outline italic">Restricted</span>
-                  )}
-                </td>
-              </tr>
-
-              {/* POS Bill Entry */}
-              <tr className="hover:bg-surface-container-low transition-colors">
-                <td className="p-2.5 text-outline">Today, 09:42 AM</td>
-                <td className="p-2.5">
-                  <span className="px-2 py-0.5 rounded bg-surface-container text-on-surface font-bold text-[10px]">
-                    INVOICE
-                  </span>
-                </td>
-                <td className="p-2.5 font-mono font-bold text-secondary">INV-10291</td>
-                <td className="p-2.5 font-semibold text-on-surface">Sri Balaji Motors</td>
-                <td className="p-2.5">
-                  <span className="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[11px]">Cash POS</span>
-                </td>
-                <td className="p-2.5 text-right font-mono text-outline">—</td>
-                <td className="p-2.5 text-right font-mono font-bold text-on-surface">₹3,068.00</td>
-                <td className="p-2.5 text-center">
-                  <button
-                    onClick={() => onNavigate('invoices')}
-                    className="text-secondary hover:underline font-semibold text-[11px]"
-                  >
-                    View
-                  </button>
-                </td>
-              </tr>
-
-              {/* Bank Contra Deposit */}
-              <tr className="hover:bg-surface-container-low transition-colors">
-                <td className="p-2.5 text-outline">Today, 09:10 AM</td>
-                <td className="p-2.5">
-                  <span className="px-2 py-0.5 rounded bg-surface-container text-on-surface font-bold text-[10px]">
-                    CONTRA
-                  </span>
-                </td>
-                <td className="p-2.5 font-mono font-bold text-outline">DEP-8910</td>
-                <td className="p-2.5 font-semibold text-on-surface">HDFC Bank Deposit (Cash Drawer)</td>
-                <td className="p-2.5">
-                  <span className="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[11px]">Cash → Bank</span>
-                </td>
-                <td className="p-2.5 text-right font-mono font-bold text-on-surface">₹20,000.00</td>
-                <td className="p-2.5 text-right font-mono font-bold text-on-surface">₹20,000.00</td>
-                <td className="p-2.5 text-center">
-                  <button
-                    onClick={() => onNavigate('banking')}
-                    className="text-secondary hover:underline font-semibold text-[11px]"
-                  >
-                    Slip
-                  </button>
-                </td>
-              </tr>
+              {receipts.length === 0 && payments.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="p-8 text-center text-outline">
+                    <span className="material-symbols-outlined text-3xl mb-1 text-outline">receipt_long</span>
+                    <p className="font-medium text-xs">No payment or receipt vouchers recorded yet.</p>
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  {receipts.slice(0, 5).map((r) => (
+                    <tr key={r.id} className="hover:bg-surface-container-low transition-colors">
+                      <td className="p-2.5 text-outline">{r.date} {r.time}</td>
+                      <td className="p-2.5">
+                        <span className="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-bold text-[10px]">
+                          RECEIPT
+                        </span>
+                      </td>
+                      <td className="p-2.5 font-mono font-bold text-secondary">{r.receiptNo}</td>
+                      <td className="p-2.5 font-semibold text-on-surface">{r.customerName}</td>
+                      <td className="p-2.5">
+                        <span className="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[11px]">{r.paymentMode}</span>
+                      </td>
+                      <td className="p-2.5 text-right font-mono text-outline">—</td>
+                      <td className="p-2.5 text-right font-mono font-bold text-tertiary">₹{r.amount.toLocaleString('en-IN')}</td>
+                      <td className="p-2.5 text-center">
+                        <button
+                          onClick={() => onViewReceipt(r)}
+                          className="text-secondary hover:underline font-semibold text-[11px]"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {payments.slice(0, 5).map((p) => (
+                    <tr key={p.id} className="hover:bg-surface-container-low transition-colors">
+                      <td className="p-2.5 text-outline">{p.date} {p.time}</td>
+                      <td className="p-2.5">
+                        <span className="px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-bold text-[10px]">
+                          PAYMENT
+                        </span>
+                      </td>
+                      <td className="p-2.5 font-mono font-bold text-on-surface">{p.paymentNo}</td>
+                      <td className="p-2.5 font-semibold text-on-surface">{p.supplierName}</td>
+                      <td className="p-2.5">
+                        <span className="px-1.5 py-0.5 rounded bg-surface-container font-mono text-[11px]">{p.paymentMode}</span>
+                      </td>
+                      <td className="p-2.5 text-right font-mono font-bold text-error">₹{p.amount.toLocaleString('en-IN')}</td>
+                      <td className="p-2.5 text-right font-mono text-outline">—</td>
+                      <td className="p-2.5 text-center">
+                        {userRole !== 'billing_operator' ? (
+                          <button
+                            onClick={() => onViewPayment(p)}
+                            className="text-secondary hover:underline font-semibold text-[11px]"
+                          >
+                            View
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-outline italic">Restricted</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </>
+              )}
             </tbody>
           </table>
         </div>

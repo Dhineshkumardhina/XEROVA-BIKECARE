@@ -152,7 +152,7 @@ export const POSCartTable: React.FC<POSCartTableProps> = ({
 
                 const lineTotal = Math.max(0, effectiveRate * item.qty - discountAmount);
                 const isSelected = selectedCartItemId === item.id;
-                const activeVehicle = item.selectedVehicle || selectedCustomerVehicle || item.part.vehicles[0] || 'Universal';
+                const activeVehicle = item.selectedVehicle || selectedCustomerVehicle || item.part?.vehicles?.[0] || 'Universal';
 
                 return (
                   <React.Fragment key={item.id}>

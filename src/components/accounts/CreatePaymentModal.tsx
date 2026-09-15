@@ -34,11 +34,11 @@ export const CreatePaymentModal: React.FC<CreatePaymentModalProps> = ({
   if (!isOpen) return null;
 
   const currentSupplier = payables.find(p => p.supplierId === selectedSupplierId) || payables[0];
-  const previousPayable = currentSupplier ? currentSupplier.outstanding : 52000;
+  const previousPayable = currentSupplier ? currentSupplier.outstanding : 0;
   const remainingPayable = Math.max(0, previousPayable - (amount || 0));
 
   const cashAcc = bankAccounts.find(a => a.type === 'Cash');
-  const currentCashBalance = cashAcc ? cashAcc.balance : 85400;
+  const currentCashBalance = cashAcc ? cashAcc.balance : 0;
 
   const handleModeChange = (mode: 'Cash' | 'Bank' | 'UPI' | 'Cheque') => {
     setPaymentMode(mode);
@@ -66,7 +66,7 @@ export const CreatePaymentModal: React.FC<CreatePaymentModalProps> = ({
     }
 
     // Critical Accounting Validation: Insufficient cash balance check
-    if (paymentMode === 'Cash' && amount > currentCashBalance) {
+    if (paymentMode === 'Cash' && amount > currentCashBalance && currentCashBalance > 0) {
       setValidationError(
         `Insufficient cash balance: Available ₹${currentCashBalance.toLocaleString('en-IN')}, Requested ₹${amount.toLocaleString('en-IN')}. Please deposit cash or use Bank Transfer.`
       );
@@ -82,9 +82,9 @@ export const CreatePaymentModal: React.FC<CreatePaymentModalProps> = ({
     const newPayment: PaymentVoucher = {
       id: 'pv-' + Date.now(),
       paymentNo: randomVoucherNum,
-      supplierId: currentSupplier.supplierId,
-      supplierName: currentSupplier.supplierName,
-      reference: 'PO-8413',
+      supplierId: currentSupplier?.supplierId || selectedSupplierId,
+      supplierName: currentSupplier?.supplierName || 'Supplier',
+      reference: 'PO-DIRECT',
       amount: amount,
       paymentMode: paymentMode,
       refNo: referenceNo.trim() || undefined,

@@ -49,7 +49,7 @@ export const CreateReceiptModal: React.FC<CreateReceiptModalProps> = ({
   if (!isOpen) return null;
 
   const currentCustomer = receivables.find(r => r.customerId === selectedCustomerId) || receivables[0];
-  const previousBalance = currentCustomer ? currentCustomer.outstanding : 42000;
+  const previousBalance = currentCustomer ? currentCustomer.outstanding : 0;
   const remainingBalance = Math.max(0, previousBalance - (amount || 0));
 
   // Auto-allocate FIFO
@@ -94,10 +94,10 @@ export const CreateReceiptModal: React.FC<CreateReceiptModalProps> = ({
     const newReceipt: ReceiptVoucher = {
       id: 'rv-' + Date.now(),
       receiptNo: randomVoucherNum,
-      customerId: currentCustomer.customerId,
-      customerName: currentCustomer.customerName,
-      customerMobile: currentCustomer.mobile,
-      invoiceRef: invoices[0]?.invoiceNo || 'INV-10291',
+      customerId: currentCustomer?.customerId || selectedCustomerId,
+      customerName: currentCustomer?.customerName || 'Customer',
+      customerMobile: currentCustomer?.mobile || '',
+      invoiceRef: invoices[0]?.invoiceNo || 'INV-DIRECT',
       amount: amount,
       paymentMode: paymentMode,
       refNo: referenceNo.trim() || undefined,
