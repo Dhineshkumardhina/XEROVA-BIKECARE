@@ -2904,17 +2904,19 @@ export function MainERPContent() {
             />
           )}
 
-          {activeScreen === 'receivables' && (
+          {(activeScreen === 'receivables' || activeScreen === 'customer-receivables') && (
             <ReceivablesView
               receivables={receivables}
-              userRole={userRole}
-              onNavigate={setActiveScreen}
-              onSelectCustomer={(custId) => {
+              onOpenCustomerLedger={(custId) => {
                 setSelectedCustomerId(custId);
                 setActiveScreen('customer-ledgers');
               }}
-              onRecordReceipt={(cust) => {
+              onReceivePayment={(cust) => {
                 setPreSelectedCustomerForReceipt(cust);
+                setIsCreateReceiptOpen(true);
+              }}
+              onOpenNewReceipt={() => {
+                setPreSelectedCustomerForReceipt(null);
                 setIsCreateReceiptOpen(true);
               }}
             />
@@ -2949,17 +2951,20 @@ export function MainERPContent() {
             />
           )}
 
-          {activeScreen === 'payables' && (
+          {(activeScreen === 'payables' || activeScreen === 'suppliers-master' || activeScreen === 'suppliers') && (
             <PayablesView
               payables={payables}
               userRole={userRole}
-              onNavigate={setActiveScreen}
-              onSelectSupplier={(supId) => {
+              onOpenSupplierLedger={(supId) => {
                 setSelectedSupplierId(supId);
                 setActiveScreen('supplier-ledgers');
               }}
-              onRecordPayment={(sup) => {
+              onMakePayment={(sup) => {
                 setPreSelectedSupplierForPayment(sup);
+                setIsCreatePaymentOpen(true);
+              }}
+              onOpenNewPayment={() => {
+                setPreSelectedSupplierForPayment(null);
                 setIsCreatePaymentOpen(true);
               }}
             />
@@ -3234,6 +3239,100 @@ export function MainERPContent() {
               onClearTestData={handleClearTestData}
               onReindexDatabase={handleReindexDatabase}
               onTriggerPermissionDenied={(action) => setPermissionDeniedAction(action)}
+            />
+          )}
+
+          {/* Safe Fallback for any unmatched screen */}
+          {![
+            'dashboard',
+            'items-master',
+            'spare-parts-master',
+            'live-stock-valuation',
+            'stock-valuation',
+            'stock-ledger-batches',
+            'stock-reports',
+            'low-stock',
+            'vehicle-compatibility',
+            'barcode-print',
+            'pos',
+            'fast-counter-pos',
+            'quotations',
+            'sales-returns',
+            'purchase-returns',
+            'invoices',
+            'purchase-orders',
+            'categories-master',
+            'brands-master',
+            'garage-ledgers',
+            'stock-adjustments',
+            'reports',
+            'crm-dashboard',
+            'customers',
+            'mechanics',
+            'loyalty-program',
+            'referral-system',
+            'messaging',
+            'bulk-messaging',
+            'payment-reminders',
+            'customer-segments',
+            'crm-reports',
+            'accounts-dashboard',
+            'receivables',
+            'customer-receivables',
+            'customer-ledgers',
+            'payment-receipts',
+            'payables',
+            'suppliers-master',
+            'suppliers',
+            'supplier-ledgers',
+            'payment-vouchers',
+            'banking',
+            'gst-dashboard',
+            'gstr-1',
+            'gstr-reports',
+            'gstr-3b',
+            'hsn-tax-report',
+            'sales-reports',
+            'daily-sales-bi',
+            'purchase-reports',
+            'inventory-reports',
+            'stock-aging-dead',
+            'profitability-dashboard',
+            'financial-reports',
+            'business-insights',
+            'admin-dashboard',
+            'users-roles',
+            'permissions',
+            'company-settings',
+            'settings-gst',
+            'branch-settings',
+            'invoice-templates',
+            'numbering-prefixes',
+            'tax-settings',
+            'payment-modes',
+            'printer-settings',
+            'backup-restore',
+            'audit-logs',
+            'audit-trail',
+            'system-activity',
+            'security-settings'
+          ].includes(activeScreen) && (
+            <DashboardView
+              invoices={invoices}
+              parts={parts}
+              tenderData={tenderData}
+              onNavigate={setActiveScreen}
+              onOpenNewBill={() => setActiveScreen('pos')}
+              onOpenPartFinder={() => setIsPartFinderOpen(true)}
+              onOpenNewPart={() => setIsNewPartOpen(true)}
+              onViewInvoice={setViewingInvoice}
+              onPrintInvoice={setViewingInvoice}
+              onOpenShiftSummary={() => setIsShiftSummaryOpen(true)}
+              onOrderPo={(name) => setPoModalPartName(name)}
+              onFilterLowStock={() => {
+                setInitialStockFilter('LOW_REORDER');
+                setActiveScreen('items-master');
+              }}
             />
           )}
         </main>
