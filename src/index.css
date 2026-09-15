@@ -4,61 +4,62 @@
   --font-inter: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --color-tertiary: #000000;
-  --color-on-secondary-fixed: #00174b;
-  --color-on-surface: #0b1c30;
-  --color-on-secondary-container: #fefcff;
-  --color-error-container: #ffdad6;
+  /* Modern, Clean Slate / Zinc Neutral Theme */
+  --color-tertiary: #0f172a;
+  --color-on-secondary-fixed: #1e3a8a;
+  --color-on-surface: #0f172a;
+  --color-on-secondary-container: #ffffff;
+  --color-error-container: #fee2e2;
   --color-on-error: #ffffff;
-  --color-secondary: #0051d5;
-  --color-surface-bright: #f8f9ff;
+  --color-secondary: #2563eb;
+  --color-surface-bright: #ffffff;
   --color-on-secondary: #ffffff;
-  --color-outline-variant: #c6c6cd;
-  --color-on-tertiary-fixed-variant: #005236;
-  --color-tertiary-fixed-dim: #4edea3;
-  --color-on-error-container: #93000a;
+  --color-outline-variant: #e2e8f0;
+  --color-on-tertiary-fixed-variant: #065f46;
+  --color-tertiary-fixed-dim: #34d399;
+  --color-on-error-container: #991b1b;
   --color-on-tertiary: #ffffff;
-  --color-on-background: #0b1c30;
-  --color-surface: #f8f9ff;
-  --color-on-tertiary-container: #009668;
-  --color-error: #ba1a1a;
-  --color-on-tertiary-fixed: #002113;
-  --color-surface-container-low: #eff4ff;
-  --color-secondary-container: #316bf3;
-  --color-outline: #76777d;
-  --color-primary-container: #131b2e;
-  --color-surface-variant: #d3e4fe;
-  --color-secondary-fixed-dim: #b4c5ff;
-  --color-on-primary-fixed-variant: #3f465c;
-  --color-background: #f8f9ff;
+  --color-on-background: #0f172a;
+  --color-surface: #f8fafc;
+  --color-on-tertiary-container: #16a34a;
+  --color-error: #ef4444;
+  --color-on-tertiary-fixed: #064e3b;
+  --color-surface-container-low: #f8fafc;
+  --color-secondary-container: #1d4ed8;
+  --color-outline: #64748b;
+  --color-primary-container: #0f172a;
+  --color-surface-variant: #f1f5f9;
+  --color-secondary-fixed-dim: #93c5fd;
+  --color-on-primary-fixed-variant: #334155;
+  --color-background: #f8fafc;
   --color-on-primary: #ffffff;
-  --color-on-secondary-fixed-variant: #003ea8;
-  --color-primary-fixed-dim: #bec6e0;
-  --color-on-surface-variant: #45464d;
-  --color-tertiary-container: #002113;
-  --color-on-primary-container: #7c839b;
-  --color-on-primary-fixed: #131b2e;
-  --color-secondary-fixed: #dbe1ff;
-  --color-inverse-on-surface: #eaf1ff;
-  --color-inverse-primary: #bec6e0;
-  --color-surface-container-highest: #d3e4fe;
-  --color-surface-container: #e5eeff;
-  --color-surface-dim: #cbdbf5;
+  --color-on-secondary-fixed-variant: #1d4ed8;
+  --color-primary-fixed-dim: #94a3b8;
+  --color-on-surface-variant: #475569;
+  --color-tertiary-container: #064e3b;
+  --color-on-primary-container: #94a3b8;
+  --color-on-primary-fixed: #0f172a;
+  --color-secondary-fixed: #dbeafe;
+  --color-inverse-on-surface: #f8fafc;
+  --color-inverse-primary: #94a3b8;
+  --color-surface-container-highest: #cbd5e1;
+  --color-surface-container: #f1f5f9;
+  --color-surface-dim: #e2e8f0;
   --color-surface-container-lowest: #ffffff;
-  --color-inverse-surface: #213145;
-  --color-surface-tint: #565e74;
-  --color-surface-container-high: #dce9ff;
-  --color-primary: #000000;
-  --color-primary-fixed: #dae2fd;
-  --color-tertiary-fixed: #6ffbbe;
+  --color-inverse-surface: #1e293b;
+  --color-surface-tint: #475569;
+  --color-surface-container-high: #e2e8f0;
+  --color-primary: #0f172a;
+  --color-primary-fixed: #e2e8f0;
+  --color-tertiary-fixed: #4ade80;
 
-  --spacing-gutter: 0.75rem;
-  --spacing-gutter-dense: 0.5rem;
+  --spacing-gutter: 1rem;
+  --spacing-gutter-dense: 0.75rem;
   --spacing-space-xs: 0.25rem;
-  --spacing-space-sm: 0.375rem;
-  --spacing-space-md: 0.5rem;
-  --spacing-space-lg: 0.75rem;
-  --spacing-space-xl: 1rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 0.75rem;
+  --spacing-space-lg: 1rem;
+  --spacing-space-xl: 1.5rem;
 }
 
 @layer base {
@@ -66,8 +67,8 @@
     margin: 0;
     padding: 0;
     font-family: var(--font-inter);
-    background-color: #f8f9ff;
-    color: #0b1c30;
+    background-color: #f8fafc;
+    color: #0f172a;
     -webkit-font-smoothing: antialiased;
   }
 }
@@ -75,24 +76,24 @@
 .font-shortcut-key {
   font-family: var(--font-mono);
   font-size: 11px;
-  line-height: 12px;
-  letter-spacing: 0.02em;
-  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 0.01em;
+  font-weight: 500;
 }
 
 .font-numeric-data {
   font-family: var(--font-mono);
   font-size: 13px;
-  line-height: 16px;
-  letter-spacing: -0.02em;
+  line-height: 18px;
+  letter-spacing: -0.01em;
   font-weight: 500;
 }
 
 .font-numeric-lg {
   font-family: var(--font-mono);
-  font-size: 20px;
-  line-height: 24px;
-  letter-spacing: -0.03em;
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: -0.02em;
   font-weight: 700;
 }
 
@@ -111,22 +112,22 @@
 .font-table-cell {
   font-family: var(--font-inter);
   font-size: 13px;
-  line-height: 16px;
-  font-weight: 500;
+  line-height: 18px;
+  font-weight: 400;
 }
 
 .font-label-caps {
   font-family: var(--font-inter);
   font-size: 11px;
   line-height: 14px;
-  letter-spacing: 0.05em;
-  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-weight: 600;
 }
 
 .font-headline-md {
   font-family: var(--font-inter);
   font-size: 16px;
-  line-height: 24px;
+  line-height: 22px;
   letter-spacing: -0.01em;
   font-weight: 600;
 }
@@ -134,7 +135,7 @@
 .font-headline-lg {
   font-family: var(--font-inter);
   font-size: 20px;
-  line-height: 28px;
+  line-height: 26px;
   letter-spacing: -0.015em;
   font-weight: 600;
 }
@@ -142,7 +143,7 @@
 .font-headline-xl {
   font-family: var(--font-inter);
   font-size: 24px;
-  line-height: 32px;
+  line-height: 30px;
   letter-spacing: -0.02em;
   font-weight: 700;
 }
@@ -154,18 +155,18 @@
   line-height: 1;
 }
 
-/* Custom scrollbars */
+/* Custom modern sleek scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #eff4ff;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c6c6cd;
-  border-radius: 3px;
+  background: #cbd5e1;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #76777d;
+  background: #94a3b8;
 }

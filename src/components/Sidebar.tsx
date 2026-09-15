@@ -8,110 +8,101 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) => {
   const navSections = [
     {
-      title: 'MAIN',
+      title: 'OVERVIEW',
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
       ]
     },
     {
-      title: 'SALES',
+      title: 'SALES & BILLING',
       items: [
-        { id: 'pos', label: 'POS', icon: 'point_of_sale', shortcut: 'F4' },
-        { id: 'invoices', label: 'Invoices', icon: 'receipt_long' },
+        { id: 'pos', label: 'Point of Sale (POS)', icon: 'point_of_sale', shortcut: 'F4' },
+        { id: 'invoices', label: 'Invoices Register', icon: 'receipt_long' },
         { id: 'quotations', label: 'Quotations', icon: 'request_quote' },
-        { id: 'sales-returns', label: 'Sales Returns', icon: 'assignment_return' }
+        { id: 'sales-returns', label: 'Sales Returns (Credit)', icon: 'assignment_return' }
       ]
     },
     {
-      title: 'PURCHASE',
+      title: 'PURCHASE & INWARDS',
       items: [
-        { id: 'purchase-orders', label: 'Purchase Entry', icon: 'inventory_2' },
-        { id: 'suppliers-master', label: 'Suppliers', icon: 'local_shipping' },
-        { id: 'purchase-returns', label: 'Purchase Returns', icon: 'replay' }
+        { id: 'purchase-orders', label: 'Purchase Entry (GRN)', icon: 'inventory_2' },
+        { id: 'suppliers-master', label: 'Suppliers Master', icon: 'local_shipping' },
+        { id: 'purchase-returns', label: 'Purchase Returns (Debit)', icon: 'replay' }
       ]
     },
     {
-      title: 'INVENTORY',
+      title: 'INVENTORY & CATALOG',
       items: [
-        { id: 'items-master', label: 'Items', icon: 'two_wheeler', shortcut: 'F2' },
-        { id: 'live-stock-valuation', label: 'Stock', icon: 'monitoring' },
+        { id: 'items-master', label: 'Spare Parts Master', icon: 'two_wheeler', shortcut: 'F2' },
+        { id: 'live-stock-valuation', label: 'Stock Valuation', icon: 'monitoring' },
         { id: 'stock-ledger-batches', label: 'Stock Ledger', icon: 'layers' },
         { id: 'categories-master', label: 'Categories', icon: 'category' },
         { id: 'brands-master', label: 'Brands', icon: 'branding_watermark' },
-        { id: 'vehicle-compatibility', label: 'Vehicles', icon: 'moped' },
-        { id: 'barcode-print', label: 'Barcode', icon: 'qr_code_2' }
+        { id: 'vehicle-compatibility', label: 'Vehicle Fitment', icon: 'moped' },
+        { id: 'barcode-print', label: 'Barcode Print', icon: 'qr_code_2' }
       ]
     },
     {
-      title: 'ACCOUNTS',
+      title: 'FINANCE & GST',
       items: [
-        { id: 'accounts-dashboard', label: 'Overview', icon: 'account_balance_wallet' },
+        { id: 'accounts-dashboard', label: 'Accounts Overview', icon: 'account_balance_wallet' },
         { id: 'receivables', label: 'Receivables', icon: 'groups', shortcut: 'F6' },
         { id: 'payables', label: 'Payables', icon: 'local_shipping' },
         { id: 'payment-receipts', label: 'Receipts', icon: 'receipt', shortcut: 'F8' },
         { id: 'payment-vouchers', label: 'Payments', icon: 'payments' },
-        { id: 'customer-ledgers', label: 'Ledgers', icon: 'menu_book' },
-        { id: 'banking', label: 'Banking', icon: 'account_balance' }
+        { id: 'customer-ledgers', label: 'Customer Ledgers', icon: 'menu_book' },
+        { id: 'banking', label: 'Banking & Cash', icon: 'account_balance' },
+        { id: 'gst-dashboard', label: 'GST Dashboard', icon: 'analytics' },
+        { id: 'gstr-1', label: 'GSTR-1 Returns', icon: 'assignment' },
+        { id: 'gstr-3b', label: 'GSTR-3B Summary', icon: 'summarize' },
+        { id: 'hsn-tax-report', label: 'HSN Tax Reports', icon: 'percent' }
       ]
     },
     {
-      title: 'GST',
-      items: [
-        { id: 'gst-dashboard', label: 'GST Dashboard', icon: 'account_balance' },
-        { id: 'gstr-1', label: 'GSTR-1', icon: 'assignment' },
-        { id: 'gstr-3b', label: 'GSTR-3B', icon: 'summarize' },
-        { id: 'hsn-tax-report', label: 'Tax Reports', icon: 'percent' }
-      ]
-    },
-    {
-      title: 'CRM & DIRECTORY',
+      title: 'CRM & CUSTOMERS',
       items: [
         { id: 'crm-dashboard', label: 'CRM Overview', icon: 'dashboard' },
-        { id: 'customers', label: 'Customers', icon: 'contacts' },
-        { id: 'mechanics', label: 'Mechanics', icon: 'engineering' },
-        { id: 'loyalty-program', label: 'Loyalty', icon: 'loyalty' },
-        { id: 'referral-system', label: 'Referrals', icon: 'share' },
-        { id: 'messaging', label: 'Messaging', icon: 'chat' }
+        { id: 'customers', label: 'Customer Directory', icon: 'contacts' },
+        { id: 'mechanics', label: 'Mechanics & Partners', icon: 'engineering' },
+        { id: 'loyalty-program', label: 'Loyalty Rewards', icon: 'loyalty' },
+        { id: 'referral-system', label: 'Referral System', icon: 'share' },
+        { id: 'messaging', label: 'SMS & WhatsApp', icon: 'chat' }
       ]
     },
     {
-      title: 'REPORTS',
+      title: 'REPORTS & BI',
       items: [
-        { id: 'sales-reports', label: 'Sales', icon: 'point_of_sale' },
-        { id: 'purchase-reports', label: 'Purchase', icon: 'local_shipping' },
-        { id: 'inventory-reports', label: 'Inventory', icon: 'inventory_2' },
-        { id: 'profitability-dashboard', label: 'Profitability', icon: 'trending_up' },
-        { id: 'financial-reports', label: 'Financial', icon: 'balance' },
-        { id: 'business-insights', label: 'Insights', icon: 'insights' }
+        { id: 'sales-reports', label: 'Sales Reports', icon: 'point_of_sale' },
+        { id: 'purchase-reports', label: 'Purchase Reports', icon: 'local_shipping' },
+        { id: 'inventory-reports', label: 'Inventory Reports', icon: 'inventory_2' },
+        { id: 'profitability-dashboard', label: 'Profitability BI', icon: 'trending_up' },
+        { id: 'financial-reports', label: 'Financial Statements', icon: 'balance' },
+        { id: 'business-insights', label: 'Business Insights', icon: 'insights' }
       ]
     },
     {
-      title: 'ADMINISTRATION',
+      title: 'SETTINGS & ADMIN',
       items: [
         { id: 'admin-dashboard', label: 'Admin Hub', icon: 'admin_panel_settings' },
         { id: 'users-roles', label: 'Users & Roles', icon: 'manage_accounts' },
-        { id: 'company-settings', label: 'Company Settings', icon: 'business' },
+        { id: 'company-settings', label: 'Company Profile', icon: 'business' },
         { id: 'invoice-templates', label: 'Invoice Templates', icon: 'receipt_long' },
-        { id: 'numbering-prefixes', label: 'Numbering', icon: 'pin' },
+        { id: 'numbering-prefixes', label: 'Numbering Series', icon: 'pin' },
         { id: 'tax-settings', label: 'Tax Settings', icon: 'percent' },
         { id: 'printer-settings', label: 'Printer Settings', icon: 'print' },
         { id: 'backup-restore', label: 'Backup & Restore', icon: 'settings_backup_restore' },
-        { id: 'audit-logs', label: 'Audit Logs', icon: 'history' },
-        { id: 'security-settings', label: 'Security', icon: 'security' }
+        { id: 'audit-logs', label: 'Audit Trail', icon: 'history' },
+        { id: 'security-settings', label: 'Security & Access', icon: 'security' }
       ]
     }
   ];
 
   return (
-    <aside className="fixed left-0 top-14 bottom-8 w-60 bg-surface-container-lowest border-r border-surface-container-high z-40 flex flex-col">
-      <nav className="flex-1 overflow-y-auto p-space-xs space-y-space-xs select-none">
+    <aside className="fixed left-0 top-14 bottom-8 w-60 bg-white border-r border-slate-200/80 z-40 flex flex-col">
+      <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-4 select-none">
         {navSections.map((sec, idx) => (
-          <div key={idx}>
-            <div
-              className={`px-space-sm ${
-                idx === 0 ? 'pt-space-xs' : 'pt-space-md'
-              } pb-1 font-label-caps text-[10px] font-bold text-outline uppercase tracking-wider`}
-            >
+          <div key={idx} className="space-y-0.5">
+            <div className="px-2 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
               {sec.title}
             </div>
             {sec.items.map((item) => {
@@ -122,16 +113,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) =>
                   data-screen={item.id}
                   onClick={() => onNavigate(item.id)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`w-full flex items-center justify-between px-space-sm py-1.5 rounded transition-colors text-left ${
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-all text-left group cursor-pointer ${
                     isActive
-                      ? 'bg-secondary text-on-secondary font-semibold shadow-xs'
-                      : 'font-table-cell text-table-cell text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                      ? 'bg-blue-50 text-blue-600 font-semibold shadow-2xs'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-normal'
                   }`}
                 >
-                  <div className="flex items-center gap-space-sm min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <span
-                      className={`material-symbols-outlined text-[18px] flex-shrink-0 ${
-                        isActive ? 'text-on-secondary' : 'text-outline'
+                      className={`material-symbols-outlined text-[18px] flex-shrink-0 transition-colors ${
+                        isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'
                       }`}
                     >
                       {item.icon}
@@ -140,10 +131,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) =>
                   </div>
                   {item.shortcut && (
                     <kbd
-                      className={`px-1 py-0.2 rounded font-shortcut-key text-[10px] font-mono ${
+                      className={`px-1.5 py-0.2 rounded font-mono text-[10px] ${
                         isActive
-                          ? 'bg-on-secondary-fixed text-on-secondary'
-                          : 'bg-surface-container-high text-on-surface-variant'
+                          ? 'bg-blue-100 text-blue-700 font-semibold'
+                          : 'bg-slate-100 text-slate-500'
                       }`}
                     >
                       {item.shortcut}
@@ -158,3 +149,4 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) =>
     </aside>
   );
 };
+

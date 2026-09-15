@@ -14,56 +14,57 @@ export const Footer: React.FC<FooterProps> = ({
   onPrintLastBill
 }) => {
   return (
-    <footer className="fixed bottom-0 left-0 right-0 h-8 bg-surface-container-lowest border-t border-surface-container-high z-50 flex items-center justify-between px-gutter select-none">
-      <div className="flex items-center gap-gutter font-shortcut-key text-shortcut-key text-on-surface-variant">
+    <footer className="fixed bottom-0 left-0 right-0 h-8 bg-white border-t border-slate-200/80 z-50 flex items-center justify-between px-4 select-none text-xs text-slate-500">
+      <div className="flex items-center gap-4">
         <button
           onClick={onSearchPart}
-          className="flex items-center gap-space-xs hover:text-secondary transition-colors"
+          className="flex items-center gap-1.5 hover:text-blue-600 transition-colors cursor-pointer"
         >
-          <kbd className="px-1.5 py-0.5 rounded bg-surface-container border border-surface-container-highest text-primary font-bold">
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 font-mono text-[10px] font-semibold">
             F2
           </kbd>
           <span>Search Part</span>
         </button>
-        <div className="h-3 w-px bg-surface-container-high"></div>
+        <div className="h-3 w-px bg-slate-200"></div>
         <button
           onClick={onNewSale}
-          className="flex items-center gap-space-xs hover:text-secondary transition-colors"
+          className="flex items-center gap-1.5 hover:text-blue-600 transition-colors cursor-pointer"
         >
-          <kbd className="px-1.5 py-0.5 rounded bg-surface-container border border-surface-container-highest text-primary font-bold">
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 font-mono text-[10px] font-semibold">
             F4
           </kbd>
           <span>New Sale / POS</span>
         </button>
-        <div className="h-3 w-px bg-surface-container-high"></div>
+        <div className="h-3 w-px bg-slate-200"></div>
         <button
           onClick={onGlobalSearch}
-          className="flex items-center gap-space-xs hover:text-secondary transition-colors"
+          className="flex items-center gap-1.5 hover:text-blue-600 transition-colors cursor-pointer"
         >
-          <kbd className="px-1.5 py-0.5 rounded bg-surface-container border border-surface-container-highest text-primary font-bold">
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 font-mono text-[10px] font-semibold">
             Ctrl+K
           </kbd>
           <span>Global Search</span>
         </button>
-        <div className="h-3 w-px bg-surface-container-high"></div>
+        <div className="h-3 w-px bg-slate-200"></div>
         <button
           onClick={onPrintLastBill}
-          className="flex items-center gap-space-xs hover:text-secondary transition-colors"
+          className="flex items-center gap-1.5 hover:text-blue-600 transition-colors cursor-pointer"
         >
-          <kbd className="px-1.5 py-0.5 rounded bg-surface-container border border-surface-container-highest text-primary font-bold">
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 font-mono text-[10px] font-semibold">
             Alt+P
           </kbd>
           <span>Print Last Bill</span>
         </button>
       </div>
 
-      <div className="flex items-center gap-gutter font-shortcut-key text-shortcut-key">
-        <div className="flex items-center gap-space-xs text-on-tertiary-container">
-          <span className="w-2 h-2 rounded-full bg-on-tertiary-container animate-pulse"></span>
-          <span>DB: Online</span>
+      <div className="flex items-center gap-4 text-[11px]">
+        <div className="flex items-center gap-1.5 text-emerald-600 font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span>System Online</span>
         </div>
-        <span className="text-outline font-numeric-data text-numeric-data">v4.8.2 Pro</span>
+        <span className="text-slate-400 font-mono">v4.8 Pro</span>
       </div>
     </footer>
   );
 };
+

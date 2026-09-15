@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [showNotifications, setShowNotifications] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState<'all' | 'unread'>('all');
   const [notifications, setNotifications] = useState<ErpNotification[]>(INITIAL_NOTIFICATIONS);
-  const [selectedBranch, setSelectedBranch] = useState('Main Branch - Chennai Central');
+  const [selectedBranch, setSelectedBranch] = useState('Main Branch - Chennai');
   const [showBranchMenu, setShowBranchMenu] = useState(false);
   const [showRoleMenu, setShowRoleMenu] = useState(false);
 
@@ -70,101 +70,93 @@ export const Header: React.FC<HeaderProps> = ({
   const getNotificationIcon = (type: ErpNotification['type']) => {
     switch (type) {
       case 'out_of_stock':
-        return { icon: 'error', color: 'text-error' };
+        return { icon: 'error', color: 'text-rose-500' };
       case 'low_stock':
-        return { icon: 'warning', color: 'text-tertiary-fixed' };
+        return { icon: 'warning', color: 'text-amber-500' };
       case 'outstanding_payment':
-        return { icon: 'pending_actions', color: 'text-secondary' };
+        return { icon: 'pending_actions', color: 'text-blue-500' };
       case 'gst_error':
-        return { icon: 'report', color: 'text-error' };
+        return { icon: 'report', color: 'text-rose-500' };
       case 'backup_completed':
-        return { icon: 'check_circle', color: 'text-on-tertiary-container' };
+        return { icon: 'check_circle', color: 'text-emerald-500' };
       case 'backup_failed':
-        return { icon: 'cloud_off', color: 'text-error' };
+        return { icon: 'cloud_off', color: 'text-rose-500' };
       case 'permission_request':
-        return { icon: 'admin_panel_settings', color: 'text-secondary' };
+        return { icon: 'admin_panel_settings', color: 'text-blue-500' };
       default:
-        return { icon: 'notifications', color: 'text-outline' };
+        return { icon: 'notifications', color: 'text-slate-400' };
     }
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-14 bg-surface-container-lowest border-b border-surface-container-high z-50 flex items-center justify-between px-gutter select-none">
-      {/* Left: Logo + Branch + Global Status */}
-      <div className="flex items-center gap-space-md flex-shrink-0">
+    <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-200/80 z-50 flex items-center justify-between px-4 select-none shadow-xs">
+      {/* Left: Brand Logo + Branch Selector */}
+      <div className="flex items-center gap-4 flex-shrink-0">
         <div
           className="flex items-center gap-2.5 cursor-pointer group"
           onClick={() => onNavigate('dashboard')}
-          title="Go to XEROVA BIKE SOFTWARE Dashboard"
+          title="Go to Dashboard"
         >
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-secondary via-primary to-secondary text-white flex items-center justify-center shadow-xs border border-secondary/20 group-hover:scale-105 transition-transform">
-            <span className="material-symbols-outlined text-[22px]">two_wheeler</span>
+          <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shadow-xs group-hover:bg-blue-600 transition-colors">
+            <span className="material-symbols-outlined text-[19px]">two_wheeler</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-headline-md text-sm text-primary tracking-tight leading-none font-bold flex items-center gap-1">
-              <span className="text-secondary font-black tracking-wider">XEROVA</span>
-              <span className="text-on-surface">BIKE SOFTWARE</span>
-            </span>
-            <span className="font-label-caps text-[9px] text-outline uppercase tracking-wider font-semibold mt-0.5">
-              Care &amp; Spares Platform
+            <span className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5 leading-none">
+              <span>XEROVA</span>
+              <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                BIKE ERP
+              </span>
             </span>
           </div>
         </div>
 
-        <div className="h-6 w-px bg-surface-container-high"></div>
+        <div className="h-5 w-px bg-slate-200"></div>
 
         {/* Branch Selector */}
         <div className="relative">
           <button
             onClick={() => setShowBranchMenu(!showBranchMenu)}
-            className="flex items-center gap-space-xs px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container border border-surface-container-highest transition-colors text-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition-colors text-xs font-medium"
           >
-            <span className="material-symbols-outlined text-secondary text-[16px]">
+            <span className="material-symbols-outlined text-slate-500 text-[15px]">
               storefront
             </span>
-            <div className="flex flex-col text-left">
-              <span className="font-semibold text-on-surface leading-tight text-[11px]">
-                {selectedBranch}
-              </span>
-              <span className="text-[9px] text-outline">
-                Retail &amp; Wholesale
-              </span>
-            </div>
-            <span className="material-symbols-outlined text-outline text-[14px]">
+            <span className="truncate max-w-[150px]">{selectedBranch}</span>
+            <span className="material-symbols-outlined text-slate-400 text-[14px]">
               expand_more
             </span>
           </button>
 
           {showBranchMenu && (
-            <div className="absolute top-full left-0 mt-1 w-64 bg-surface-container-lowest border border-surface-container-highest rounded shadow-xl py-1 z-50 text-xs">
-              <div className="px-3 py-1 text-[10px] font-bold text-outline uppercase tracking-wider">
-                Select Active Store / Outlet
+            <div className="absolute top-full left-0 mt-1.5 w-60 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-50 text-xs">
+              <div className="px-3 py-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                Select Store Branch
               </div>
               <button
                 onClick={() => {
-                  setSelectedBranch('Main Branch - Chennai Central');
+                  setSelectedBranch('Main Branch - Chennai');
                   setShowBranchMenu(false);
                 }}
-                className={`w-full text-left px-3 py-2 hover:bg-surface-container-low flex items-center justify-between ${
-                  selectedBranch.includes('Central')
-                    ? 'bg-surface-container font-semibold text-secondary'
-                    : 'text-on-surface'
+                className={`w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between ${
+                  selectedBranch.includes('Chennai')
+                    ? 'bg-blue-50 font-semibold text-blue-600'
+                    : 'text-slate-700'
                 }`}
               >
-                <span>Main Branch - Chennai Central</span>
-                {selectedBranch.includes('Central') && (
+                <span>Main Branch - Chennai</span>
+                {selectedBranch.includes('Chennai') && (
                   <span className="material-symbols-outlined text-[14px]">check</span>
                 )}
               </button>
               <button
                 onClick={() => {
-                  setSelectedBranch('Hub Warehouse - Ambattur Industrial');
+                  setSelectedBranch('Hub Warehouse - Ambattur');
                   setShowBranchMenu(false);
                 }}
-                className={`w-full text-left px-3 py-2 hover:bg-surface-container-low flex items-center justify-between ${
+                className={`w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between ${
                   selectedBranch.includes('Ambattur')
-                    ? 'bg-surface-container font-semibold text-secondary'
-                    : 'text-on-surface'
+                    ? 'bg-blue-50 font-semibold text-blue-600'
+                    : 'text-slate-700'
                 }`}
               >
                 <span>Hub Warehouse - Ambattur</span>
@@ -177,10 +169,10 @@ export const Header: React.FC<HeaderProps> = ({
                   setSelectedBranch('Express Counter - Guindy');
                   setShowBranchMenu(false);
                 }}
-                className={`w-full text-left px-3 py-2 hover:bg-surface-container-low flex items-center justify-between ${
+                className={`w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between ${
                   selectedBranch.includes('Guindy')
-                    ? 'bg-surface-container font-semibold text-secondary'
-                    : 'text-on-surface'
+                    ? 'bg-blue-50 font-semibold text-blue-600'
+                    : 'text-slate-700'
                 }`}
               >
                 <span>Express Counter - Guindy</span>
@@ -191,91 +183,65 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
         </div>
-
-        {/* Global System Status Indicators (Clean & Non-distracting) */}
-        <div className="hidden xl:flex items-center gap-2.5 px-2.5 py-1 rounded bg-surface-container-low border border-surface-container-highest text-[11px]">
-          <div className="flex items-center gap-1 text-on-surface-variant">
-            <span className="w-2 h-2 rounded-full bg-on-tertiary-container animate-pulse"></span>
-            <span className="font-medium">Online</span>
-          </div>
-          <span className="text-outline-variant font-mono">|</span>
-          <div className="flex items-center gap-1 text-secondary">
-            <span className="material-symbols-outlined text-[14px]">sync</span>
-            <span>GST Live</span>
-          </div>
-          <span className="text-outline-variant font-mono">|</span>
-          <div className="flex items-center gap-1 text-outline">
-            <span className="material-symbols-outlined text-[14px]">verified</span>
-            <span>FY 2026-27</span>
-          </div>
-        </div>
       </div>
 
-      {/* Center: Global Search Omnibox (Ctrl + K) */}
-      <div className="flex-1 max-w-xl mx-gutter">
+      {/* Center: Minimalist Global Search (Ctrl + K) */}
+      <div className="flex-1 max-w-lg mx-6">
         <div
           onClick={onOpenGlobalSearch}
           className="relative flex items-center cursor-pointer group"
-          title="Global Search Across Parts, Barcodes, Customers, Invoices (Ctrl + K)"
+          title="Search parts, customers, invoices (Ctrl + K)"
         >
-          <span className="material-symbols-outlined absolute left-3 text-outline group-hover:text-secondary pointer-events-none text-[18px] transition-colors">
+          <span className="material-symbols-outlined absolute left-3 text-slate-400 group-hover:text-blue-600 pointer-events-none text-[18px] transition-colors">
             search
           </span>
-          <div className="w-full h-9 pl-9 pr-24 bg-surface-container-low hover:bg-surface-container-lowest border border-surface-container-highest group-hover:border-secondary rounded text-xs text-on-surface flex items-center transition-colors">
-            <span className="text-outline text-xs truncate">
-              Search by Part # (BP-1234), Mobile, Pulsar 150, Invoice, or Supplier...
+          <div className="w-full h-9 pl-9 pr-18 bg-slate-50 group-hover:bg-white border border-slate-200 group-hover:border-blue-400 rounded-lg text-xs text-slate-700 flex items-center transition-all shadow-xs">
+            <span className="text-slate-400 text-xs truncate">
+              Search parts, bikes, invoices, customers...
             </span>
           </div>
-          <div className="absolute right-2 flex items-center gap-1 pointer-events-none">
-            <kbd className="px-1.5 py-0.5 bg-surface-container-high border border-surface-container-highest rounded text-[10px] font-mono text-on-surface-variant">
-              Ctrl
-            </kbd>
-            <span className="text-[10px] text-outline font-mono">+</span>
-            <kbd className="px-1.5 py-0.5 bg-surface-container-high border border-surface-container-highest rounded text-[10px] font-mono text-on-surface-variant">
-              K
+          <div className="absolute right-2.5 flex items-center pointer-events-none">
+            <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-mono text-slate-500 shadow-2xs">
+              Ctrl+K
             </kbd>
           </div>
         </div>
       </div>
 
-      {/* Right: Quick Actions + Notifications + Role Switcher */}
-      <div className="flex items-center gap-space-sm flex-shrink-0">
-        {/* Quick Actions (Ctrl + /) */}
+      {/* Right: Quick Action + Notifications + User Avatar */}
+      <div className="flex items-center gap-2.5 flex-shrink-0">
+        {/* Quick Add Button */}
         <button
           onClick={onOpenQuickActions}
-          className="flex items-center gap-1.5 h-8 px-3 bg-secondary hover:bg-secondary-container text-on-secondary rounded text-xs font-bold transition-colors shadow-xs"
+          className="flex items-center gap-1.5 h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer"
           title="Quick Action Command Menu (Ctrl + /)"
         >
-          <span className="material-symbols-outlined text-[16px]">bolt</span>
+          <span className="material-symbols-outlined text-[16px]">add</span>
           <span>Quick Add</span>
-          <kbd className="hidden sm:inline px-1 py-0.2 bg-on-secondary-fixed text-on-secondary text-[9px] font-mono rounded">
-            Ctrl + /
-          </kbd>
         </button>
 
-        {/* Notifications Center Popover */}
+        {/* Notifications Popover */}
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-1.5 rounded hover:bg-surface-container text-on-surface-variant transition-colors"
-            title="Notification Center"
+            className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+            title="Notifications"
           >
-            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            <span className="material-symbols-outlined text-[19px]">notifications</span>
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 flex items-center justify-center min-w-[15px] h-[15px] px-0.5 bg-error text-on-error text-[9px] font-bold rounded-full">
+              <span className="absolute top-1.5 right-1.5 flex items-center justify-center min-w-[14px] h-[14px] px-0.5 bg-rose-500 text-white text-[9px] font-bold rounded-full">
                 {unreadCount}
               </span>
             )}
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 top-full mt-1.5 w-88 bg-surface-container-lowest border border-surface-container-highest rounded-lg shadow-2xl py-2 z-50 text-xs">
-              {/* Notification Header */}
-              <div className="px-3.5 pb-2 border-b border-surface-container-high flex items-center justify-between">
+            <div className="absolute right-0 top-full mt-1.5 w-80 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50 text-xs">
+              <div className="px-3.5 pb-2 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-on-surface">Notifications</span>
+                  <span className="font-semibold text-slate-900">Notifications</span>
                   {unreadCount > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-error-container text-on-error-container text-[10px] font-bold">
+                    <span className="px-1.5 py-0.2 rounded-full bg-rose-50 text-rose-600 text-[10px] font-semibold">
                       {unreadCount} new
                     </span>
                   )}
@@ -285,24 +251,23 @@ export const Header: React.FC<HeaderProps> = ({
                     onClick={() =>
                       setNotificationFilter(notificationFilter === 'all' ? 'unread' : 'all')
                     }
-                    className="text-[10px] text-outline hover:text-on-surface underline"
+                    className="text-[10px] text-slate-500 hover:text-slate-900 underline"
                   >
-                    {notificationFilter === 'all' ? 'Show unread' : 'Show all'}
+                    {notificationFilter === 'all' ? 'Unread only' : 'All'}
                   </button>
                   <button
                     onClick={handleMarkAllRead}
-                    className="text-[10px] text-secondary font-semibold hover:underline"
+                    className="text-[10px] text-blue-600 font-semibold hover:underline"
                   >
                     Mark all read
                   </button>
                 </div>
               </div>
 
-              {/* Notification List */}
-              <div className="divide-y divide-surface-container-high max-h-80 overflow-y-auto">
+              <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
                 {filteredNotifications.length === 0 ? (
-                  <div className="p-6 text-center text-outline text-xs">
-                    No {notificationFilter === 'unread' ? 'unread ' : ''}notifications at this time.
+                  <div className="p-6 text-center text-slate-400 text-xs">
+                    No notifications at this time.
                   </div>
                 ) : (
                   filteredNotifications.map((notif) => {
@@ -310,12 +275,12 @@ export const Header: React.FC<HeaderProps> = ({
                     return (
                       <div
                         key={notif.id}
-                        className={`p-3 hover:bg-surface-container-low transition-colors flex gap-2.5 ${
-                          !notif.isRead ? 'bg-surface-container/30' : ''
+                        className={`p-3 hover:bg-slate-50 transition-colors flex gap-2.5 ${
+                          !notif.isRead ? 'bg-blue-50/40' : ''
                         }`}
                       >
                         <span
-                          className={`material-symbols-outlined text-[20px] flex-shrink-0 ${iconStyle.color}`}
+                          className={`material-symbols-outlined text-[18px] flex-shrink-0 ${iconStyle.color}`}
                         >
                           {iconStyle.icon}
                         </span>
@@ -323,29 +288,29 @@ export const Header: React.FC<HeaderProps> = ({
                           <div className="flex items-start justify-between gap-1">
                             <span
                               className={`text-xs font-semibold leading-tight ${
-                                !notif.isRead ? 'text-on-surface' : 'text-on-surface-variant'
+                                !notif.isRead ? 'text-slate-900' : 'text-slate-600'
                               }`}
                             >
                               {notif.title}
                             </span>
-                            <span className="text-[10px] text-outline whitespace-nowrap">
+                            <span className="text-[10px] text-slate-400 whitespace-nowrap">
                               {notif.time}
                             </span>
                           </div>
-                          <p className="text-[11px] text-outline mt-0.5 leading-snug">
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
                             {notif.description}
                           </p>
 
-                          <div className="flex items-center justify-between mt-2 pt-1 border-t border-surface-container-high/30">
+                          <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-100">
                             {notif.actionScreen ? (
                               <button
                                 onClick={() => {
                                   setShowNotifications(false);
                                   onNavigate(notif.actionScreen!);
                                 }}
-                                className="text-[11px] text-secondary font-bold hover:underline flex items-center gap-1"
+                                className="text-[11px] text-blue-600 font-semibold hover:underline flex items-center gap-1"
                               >
-                                <span>{notif.actionLabel || 'View Details'}</span>
+                                <span>{notif.actionLabel || 'View'}</span>
                                 <span className="material-symbols-outlined text-[12px]">
                                   arrow_forward
                                 </span>
@@ -355,7 +320,7 @@ export const Header: React.FC<HeaderProps> = ({
                             )}
                             <button
                               onClick={() => handleToggleRead(notif.id)}
-                              className="text-[10px] text-outline hover:text-on-surface"
+                              className="text-[10px] text-slate-400 hover:text-slate-700"
                             >
                               {notif.isRead ? 'Mark unread' : 'Mark read'}
                             </button>
@@ -370,37 +335,39 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        <div className="h-6 w-px bg-surface-container-high"></div>
+        <div className="h-5 w-px bg-slate-200"></div>
 
         {/* User Profile & Role Switcher */}
         <div className="relative">
           <button
             onClick={() => setShowRoleMenu(!showRoleMenu)}
-            className="flex items-center gap-space-xs p-1 rounded hover:bg-surface-container transition-colors"
-            title="Current Operator Role & Entitlements"
+            className="flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            title="User Profile"
           >
-            <div className="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-xs">
+            <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
               {userRole === 'billing_operator' ? 'KS' : 'RK'}
             </div>
             <div className="hidden md:flex flex-col text-left">
-              <span className="font-semibold text-on-surface text-xs leading-tight">
+              <span className="font-semibold text-slate-800 text-xs leading-tight">
                 {userRole === 'billing_operator' ? 'Kavitha S.' : 'Rajesh Kumar'}
               </span>
-              <span className="text-[10px] text-secondary font-bold flex items-center gap-0.5">
+              <span className="text-[10px] text-slate-500 font-medium">
                 {userRole === 'store_admin'
                   ? 'Store Admin'
                   : userRole === 'manager'
                   ? 'Manager'
                   : 'Billing Operator'}
-                <span className="material-symbols-outlined text-[12px]">expand_more</span>
               </span>
             </div>
+            <span className="material-symbols-outlined text-slate-400 text-[14px]">
+              expand_more
+            </span>
           </button>
 
           {showRoleMenu && (
-            <div className="absolute right-0 top-full mt-1.5 w-64 bg-surface-container-lowest border border-surface-container-highest rounded-lg shadow-xl py-1 z-50 text-xs">
-              <div className="px-3 py-1.5 text-[10px] font-bold text-outline uppercase tracking-wider border-b border-surface-container-high">
-                Role-Based Interface
+            <div className="absolute right-0 top-full mt-1.5 w-60 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-50 text-xs">
+              <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                Switch Role Mode
               </div>
 
               <button
@@ -408,18 +375,18 @@ export const Header: React.FC<HeaderProps> = ({
                   if (onUserRoleChange) onUserRoleChange('store_admin');
                   setShowRoleMenu(false);
                 }}
-                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-surface-container-low ${
+                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-50 ${
                   userRole === 'store_admin'
-                    ? 'bg-surface-container font-bold text-secondary'
-                    : 'text-on-surface'
+                    ? 'bg-blue-50 font-semibold text-blue-600'
+                    : 'text-slate-700'
                 }`}
               >
                 <div>
                   <div className="font-semibold">Store Admin</div>
-                  <div className="text-[10px] text-outline">Full system access, profits, audits</div>
+                  <div className="text-[10px] text-slate-400">Full system access</div>
                 </div>
                 {userRole === 'store_admin' && (
-                  <span className="material-symbols-outlined text-secondary text-[16px]">check</span>
+                  <span className="material-symbols-outlined text-blue-600 text-[16px]">check</span>
                 )}
               </button>
 
@@ -428,18 +395,18 @@ export const Header: React.FC<HeaderProps> = ({
                   if (onUserRoleChange) onUserRoleChange('manager');
                   setShowRoleMenu(false);
                 }}
-                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-surface-container-low ${
+                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-50 ${
                   userRole === 'manager'
-                    ? 'bg-surface-container font-bold text-secondary'
-                    : 'text-on-surface'
+                    ? 'bg-blue-50 font-semibold text-blue-600'
+                    : 'text-slate-700'
                 }`}
               >
                 <div>
                   <div className="font-semibold">Manager</div>
-                  <div className="text-[10px] text-outline">Ledgers, payables, stock management</div>
+                  <div className="text-[10px] text-slate-400">Ledgers &amp; stock management</div>
                 </div>
                 {userRole === 'manager' && (
-                  <span className="material-symbols-outlined text-secondary text-[16px]">check</span>
+                  <span className="material-symbols-outlined text-blue-600 text-[16px]">check</span>
                 )}
               </button>
 
@@ -448,32 +415,32 @@ export const Header: React.FC<HeaderProps> = ({
                   if (onUserRoleChange) onUserRoleChange('billing_operator');
                   setShowRoleMenu(false);
                 }}
-                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-surface-container-low ${
+                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-50 ${
                   userRole === 'billing_operator'
-                    ? 'bg-surface-container font-bold text-secondary'
-                    : 'text-on-surface'
+                    ? 'bg-blue-50 font-semibold text-blue-600'
+                    : 'text-slate-700'
                 }`}
               >
                 <div>
                   <div className="font-semibold">Billing Operator</div>
-                  <div className="text-[10px] text-outline">Fast POS &amp; receipts only</div>
+                  <div className="text-[10px] text-slate-400">Fast POS &amp; receipts</div>
                 </div>
                 {userRole === 'billing_operator' && (
-                  <span className="material-symbols-outlined text-secondary text-[16px]">check</span>
+                  <span className="material-symbols-outlined text-blue-600 text-[16px]">check</span>
                 )}
               </button>
 
-              <div className="border-t border-surface-container-high my-1" />
+              <div className="border-t border-slate-100 my-1" />
 
               <button
                 onClick={async () => {
                   setShowRoleMenu(false);
                   await logout();
                 }}
-                className="w-full text-left px-3 py-2 flex items-center gap-2 text-error hover:bg-error-container/20 transition-colors font-semibold"
+                className="w-full text-left px-3 py-2 flex items-center gap-2 text-rose-600 hover:bg-rose-50 transition-colors font-semibold"
               >
                 <span className="material-symbols-outlined text-[16px]">logout</span>
-                <span>Sign Out of Terminal</span>
+                <span>Sign Out</span>
               </button>
             </div>
           )}
@@ -482,3 +449,4 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+
