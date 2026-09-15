@@ -1,152 +1,245 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface SidebarProps {
   activeScreen: string;
   onNavigate: (screenId: string) => void;
 }
 
+interface NavItem {
+  id: string;
+  label: string;
+  icon: string;
+  shortcut?: string;
+  children?: { id: string; label: string }[];
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) => {
-  const navSections = [
+  const [expandedSection, setExpandedSection] = useState<string | null>(() => {
+    if (['invoices', 'quotations', 'sales-returns'].includes(activeScreen)) return 'sales';
+    if (['items-master', 'live-stock-valuation', 'stock-ledger-batches', 'categories-master', 'brands-master', 'vehicle-compatibility', 'barcode-print'].includes(activeScreen)) return 'inventory';
+    if (['purchase-orders', 'suppliers-master', 'purchase-returns'].includes(activeScreen)) return 'purchases';
+    if (['accounts-dashboard', 'receivables', 'payables', 'payment-receipts', 'payment-vouchers', 'customer-ledgers', 'banking', 'gst-dashboard', 'gstr-1', 'gstr-3b', 'hsn-tax-report'].includes(activeScreen)) return 'accounts';
+    if (['customers', 'mechanics', 'loyalty-program', 'referral-system', 'messaging', 'crm-dashboard'].includes(activeScreen)) return 'crm';
+    if (['company-settings', 'sales-reports', 'purchase-reports', 'inventory-reports', 'profitability-dashboard', 'financial-reports', 'users-roles', 'tax-settings', 'backup-restore', 'audit-logs', 'security-settings', 'admin-dashboard'].includes(activeScreen)) return 'settings';
+    return null;
+  });
+
+  const toggleSection = (sectionId: string, defaultScreenId?: string) => {
+    if (expandedSection === sectionId) {
+      setExpandedSection(null);
+    } else {
+      setExpandedSection(sectionId);
+      if (defaultScreenId && activeScreen !== defaultScreenId) {
+        onNavigate(defaultScreenId);
+      }
+    }
+  };
+
+  const navItems: { sectionId: string; item: NavItem }[] = [
     {
-      title: 'OVERVIEW',
-      items: [
-        { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
-      ]
+      sectionId: 'dashboard',
+      item: { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
     },
     {
-      title: 'SALES & BILLING',
-      items: [
-        { id: 'pos', label: 'Point of Sale (POS)', icon: 'point_of_sale', shortcut: 'F4' },
-        { id: 'invoices', label: 'Invoices Register', icon: 'receipt_long' },
-        { id: 'quotations', label: 'Quotations', icon: 'request_quote' },
-        { id: 'sales-returns', label: 'Sales Returns (Credit)', icon: 'assignment_return' }
-      ]
+      sectionId: 'pos',
+      item: { id: 'pos', label: 'Point of Sale (POS)', icon: 'point_of_sale', shortcut: 'F4' }
     },
     {
-      title: 'PURCHASE & INWARDS',
-      items: [
-        { id: 'purchase-orders', label: 'Purchase Entry (GRN)', icon: 'inventory_2' },
-        { id: 'suppliers-master', label: 'Suppliers Master', icon: 'local_shipping' },
-        { id: 'purchase-returns', label: 'Purchase Returns (Debit)', icon: 'replay' }
-      ]
+      sectionId: 'sales',
+      item: {
+        id: 'invoices',
+        label: 'Sales & Billing',
+        icon: 'receipt_long',
+        children: [
+          { id: 'invoices', label: 'Invoices Register' },
+          { id: 'quotations', label: 'Quotations & Estimates' },
+          { id: 'sales-returns', label: 'Sales Returns (Credit)' }
+        ]
+      }
     },
     {
-      title: 'INVENTORY & CATALOG',
-      items: [
-        { id: 'items-master', label: 'Spare Parts Master', icon: 'two_wheeler', shortcut: 'F2' },
-        { id: 'live-stock-valuation', label: 'Stock Valuation', icon: 'monitoring' },
-        { id: 'stock-ledger-batches', label: 'Stock Ledger', icon: 'layers' },
-        { id: 'categories-master', label: 'Categories', icon: 'category' },
-        { id: 'brands-master', label: 'Brands', icon: 'branding_watermark' },
-        { id: 'vehicle-compatibility', label: 'Vehicle Fitment', icon: 'moped' },
-        { id: 'barcode-print', label: 'Barcode Print', icon: 'qr_code_2' }
-      ]
+      sectionId: 'inventory',
+      item: {
+        id: 'items-master',
+        label: 'Inventory & Spares',
+        icon: 'two_wheeler',
+        shortcut: 'F2',
+        children: [
+          { id: 'items-master', label: 'Spare Parts Master' },
+          { id: 'live-stock-valuation', label: 'Stock Valuation' },
+          { id: 'stock-ledger-batches', label: 'Stock Movement Ledger' },
+          { id: 'vehicle-compatibility', label: 'Vehicle Compatibility' },
+          { id: 'barcode-print', label: 'Barcode Print' }
+        ]
+      }
     },
     {
-      title: 'FINANCE & GST',
-      items: [
-        { id: 'accounts-dashboard', label: 'Accounts Overview', icon: 'account_balance_wallet' },
-        { id: 'receivables', label: 'Receivables', icon: 'groups', shortcut: 'F6' },
-        { id: 'payables', label: 'Payables', icon: 'local_shipping' },
-        { id: 'payment-receipts', label: 'Receipts', icon: 'receipt', shortcut: 'F8' },
-        { id: 'payment-vouchers', label: 'Payments', icon: 'payments' },
-        { id: 'customer-ledgers', label: 'Customer Ledgers', icon: 'menu_book' },
-        { id: 'banking', label: 'Banking & Cash', icon: 'account_balance' },
-        { id: 'gst-dashboard', label: 'GST Dashboard', icon: 'analytics' },
-        { id: 'gstr-1', label: 'GSTR-1 Returns', icon: 'assignment' },
-        { id: 'gstr-3b', label: 'GSTR-3B Summary', icon: 'summarize' },
-        { id: 'hsn-tax-report', label: 'HSN Tax Reports', icon: 'percent' }
-      ]
+      sectionId: 'purchases',
+      item: {
+        id: 'purchase-orders',
+        label: 'Purchases & Suppliers',
+        icon: 'local_shipping',
+        children: [
+          { id: 'purchase-orders', label: 'Purchase Entry (GRN)' },
+          { id: 'suppliers-master', label: 'Suppliers Master' },
+          { id: 'purchase-returns', label: 'Purchase Returns (Debit)' }
+        ]
+      }
     },
     {
-      title: 'CRM & CUSTOMERS',
-      items: [
-        { id: 'crm-dashboard', label: 'CRM Overview', icon: 'dashboard' },
-        { id: 'customers', label: 'Customer Directory', icon: 'contacts' },
-        { id: 'mechanics', label: 'Mechanics & Partners', icon: 'engineering' },
-        { id: 'loyalty-program', label: 'Loyalty Rewards', icon: 'loyalty' },
-        { id: 'referral-system', label: 'Referral System', icon: 'share' },
-        { id: 'messaging', label: 'SMS & WhatsApp', icon: 'chat' }
-      ]
+      sectionId: 'accounts',
+      item: {
+        id: 'accounts-dashboard',
+        label: 'Accounts & GST',
+        icon: 'account_balance_wallet',
+        shortcut: 'F6',
+        children: [
+          { id: 'accounts-dashboard', label: 'Financial Overview' },
+          { id: 'receivables', label: 'Customer Receivables' },
+          { id: 'payables', label: 'Supplier Payables' },
+          { id: 'payment-receipts', label: 'Payment Receipts' },
+          { id: 'banking', label: 'Banking & Cash' },
+          { id: 'gst-dashboard', label: 'GST Filings & Reports' }
+        ]
+      }
     },
     {
-      title: 'REPORTS & BI',
-      items: [
-        { id: 'sales-reports', label: 'Sales Reports', icon: 'point_of_sale' },
-        { id: 'purchase-reports', label: 'Purchase Reports', icon: 'local_shipping' },
-        { id: 'inventory-reports', label: 'Inventory Reports', icon: 'inventory_2' },
-        { id: 'profitability-dashboard', label: 'Profitability BI', icon: 'trending_up' },
-        { id: 'financial-reports', label: 'Financial Statements', icon: 'balance' },
-        { id: 'business-insights', label: 'Business Insights', icon: 'insights' }
-      ]
+      sectionId: 'crm',
+      item: {
+        id: 'customers',
+        label: 'Customers & CRM',
+        icon: 'contacts',
+        children: [
+          { id: 'customers', label: 'Customer Directory' },
+          { id: 'mechanics', label: 'Mechanic Partners' },
+          { id: 'loyalty-program', label: 'Loyalty Rewards' },
+          { id: 'messaging', label: 'SMS & WhatsApp' }
+        ]
+      }
     },
     {
-      title: 'SETTINGS & ADMIN',
-      items: [
-        { id: 'admin-dashboard', label: 'Admin Hub', icon: 'admin_panel_settings' },
-        { id: 'users-roles', label: 'Users & Roles', icon: 'manage_accounts' },
-        { id: 'company-settings', label: 'Company Profile', icon: 'business' },
-        { id: 'invoice-templates', label: 'Invoice Templates', icon: 'receipt_long' },
-        { id: 'numbering-prefixes', label: 'Numbering Series', icon: 'pin' },
-        { id: 'tax-settings', label: 'Tax Settings', icon: 'percent' },
-        { id: 'printer-settings', label: 'Printer Settings', icon: 'print' },
-        { id: 'backup-restore', label: 'Backup & Restore', icon: 'settings_backup_restore' },
-        { id: 'audit-logs', label: 'Audit Trail', icon: 'history' },
-        { id: 'security-settings', label: 'Security & Access', icon: 'security' }
-      ]
+      sectionId: 'reports',
+      item: {
+        id: 'sales-reports',
+        label: 'Reports & Analytics',
+        icon: 'trending_up',
+        children: [
+          { id: 'sales-reports', label: 'Sales Reports' },
+          { id: 'purchase-reports', label: 'Purchase Reports' },
+          { id: 'inventory-reports', label: 'Inventory Reports' },
+          { id: 'profitability-dashboard', label: 'Profit & Loss BI' }
+        ]
+      }
+    },
+    {
+      sectionId: 'settings',
+      item: {
+        id: 'company-settings',
+        label: 'Settings & Admin',
+        icon: 'settings',
+        children: [
+          { id: 'company-settings', label: 'Company Profile' },
+          { id: 'users-roles', label: 'Users & Permissions' },
+          { id: 'backup-restore', label: 'Backup & Restore' },
+          { id: 'audit-logs', label: 'Audit Trail' }
+        ]
+      }
     }
   ];
 
   return (
-    <aside className="fixed left-0 top-14 bottom-8 w-60 bg-white border-r border-slate-200/80 z-40 flex flex-col">
-      <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-4 select-none">
-        {navSections.map((sec, idx) => (
-          <div key={idx} className="space-y-0.5">
-            <div className="px-2 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-              {sec.title}
-            </div>
-            {sec.items.map((item) => {
-              const isActive = activeScreen === item.id;
-              return (
-                <button
-                  key={item.id}
-                  data-screen={item.id}
-                  onClick={() => onNavigate(item.id)}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-all text-left group cursor-pointer ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-600 font-semibold shadow-2xs'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-normal'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span
-                      className={`material-symbols-outlined text-[18px] flex-shrink-0 transition-colors ${
-                        isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'
-                      }`}
-                    >
-                      {item.icon}
-                    </span>
-                    <span className="truncate text-xs">{item.label}</span>
-                  </div>
+    <aside className="fixed left-0 top-14 bottom-0 w-60 bg-white border-r border-slate-200/80 z-40 flex flex-col shadow-xs">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5 select-none">
+        <div className="px-2 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          Main Menu
+        </div>
+
+        {navItems.map(({ sectionId, item }) => {
+          const isDirectActive = activeScreen === item.id;
+          const isChildActive = item.children?.some(c => c.id === activeScreen);
+          const isExpanded = expandedSection === sectionId;
+          const hasChildren = !!item.children?.length;
+
+          return (
+            <div key={sectionId} className="space-y-1">
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasChildren) {
+                    toggleSection(sectionId, item.id);
+                  } else {
+                    onNavigate(item.id);
+                  }
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all text-left group cursor-pointer ${
+                  isDirectActive || isChildActive
+                    ? 'bg-blue-50 text-blue-600 font-semibold'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className={`material-symbols-outlined text-[19px] flex-shrink-0 transition-colors ${
+                      isDirectActive || isChildActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  <span className="truncate text-xs">{item.label}</span>
+                </div>
+
+                <div className="flex items-center gap-1">
                   {item.shortcut && (
                     <kbd
                       className={`px-1.5 py-0.2 rounded font-mono text-[10px] ${
-                        isActive
-                          ? 'bg-blue-100 text-blue-700 font-semibold'
+                        isDirectActive
+                          ? 'bg-blue-100 text-blue-700 font-bold'
                           : 'bg-slate-100 text-slate-500'
                       }`}
                     >
                       {item.shortcut}
                     </kbd>
                   )}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+                  {hasChildren && (
+                    <span
+                      className={`material-symbols-outlined text-[16px] text-slate-400 transition-transform duration-200 ${
+                        isExpanded ? 'rotate-180 text-blue-600' : ''
+                      }`}
+                    >
+                      expand_more
+                    </span>
+                  )}
+                </div>
+              </button>
+
+              {/* Collapsible Sub-menu */}
+              {hasChildren && isExpanded && (
+                <div className="pl-8 pr-1 py-1 space-y-0.5 animate-in slide-in-from-top-1 duration-150 border-l-2 border-slate-100 ml-5">
+                  {item.children!.map((child) => {
+                    const isSelected = activeScreen === child.id;
+                    return (
+                      <button
+                        key={child.id}
+                        type="button"
+                        onClick={() => onNavigate(child.id)}
+                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'font-bold text-blue-600 bg-blue-50/80'
+                            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-normal'
+                        }`}
+                      >
+                        {child.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </nav>
     </aside>
   );
 };
+
 

@@ -32,7 +32,6 @@ export const POSHeaderRibbon: React.FC<POSHeaderRibbonProps> = ({
   onNewSale,
   cartCount
 }) => {
-  // Common fast-moving spares
   const quickCategories = [
     { label: 'Engine Oil', keywords: ['engine oil', 'motul', '20w40', '4t'] },
     { label: 'Spark Plug', keywords: ['spark plug', 'rg6yc', 'champion', 'ngk'] },
@@ -40,12 +39,10 @@ export const POSHeaderRibbon: React.FC<POSHeaderRibbonProps> = ({
     { label: 'Chain Lube', keywords: ['chain lube', 'c2'] },
     { label: 'Air Filter', keywords: ['air filter', 'filter'] },
     { label: 'Clutch Cable', keywords: ['clutch cable', 'cable'] },
-    { label: 'Front Brake Pad', keywords: ['brake pad', 'pad'] },
-    { label: 'Disc Oil DOT4', keywords: ['dot 4', 'brake fluid'] },
+    { label: 'Brake Pad', keywords: ['brake pad', 'pad'] },
   ];
 
   const handleQuickAdd = (keywords: string[]) => {
-    // Find first matching part in catalog
     const match = parts.find(p =>
       keywords.some(k =>
         p.name.toLowerCase().includes(k) ||
@@ -61,138 +58,117 @@ export const POSHeaderRibbon: React.FC<POSHeaderRibbonProps> = ({
   };
 
   return (
-    <div className="space-y-2 bg-surface-container-low p-2.5 rounded-md border border-surface-container-high">
-      {/* Top Bar: Mode Toggle + Quick Actions */}
+    <div className="space-y-2 bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
+      {/* Top Bar: Mode Toggle + Clean Action Buttons */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {/* Left: Terminal info + Quotation vs Invoice mode toggle */}
+        {/* Left: Invoice Mode Toggle */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 text-xs font-mono font-bold text-on-surface bg-surface-container px-2 py-1 rounded">
-            <span className="w-2 h-2 rounded-full bg-secondary"></span>
-            <span>Counter POS • Pos-01</span>
-          </div>
-
-          <div className="flex items-center bg-surface-container rounded p-0.5 text-xs font-bold">
+          <div className="flex items-center bg-slate-100 rounded-lg p-0.5 text-xs font-semibold">
             <button
               type="button"
               onClick={() => onToggleQuotation(false)}
-              className={`px-2.5 py-1 rounded transition-colors ${
+              className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
                 !isQuotation
-                  ? 'bg-secondary text-on-secondary shadow-xs'
-                  : 'text-outline hover:text-on-surface'
+                  ? 'bg-white text-blue-600 shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              GST Invoice
+              Tax Invoice
             </button>
             <button
               type="button"
               onClick={() => onToggleQuotation(true)}
-              className={`px-2.5 py-1 rounded transition-colors ${
+              className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
                 isQuotation
-                  ? 'bg-secondary text-on-secondary shadow-xs'
-                  : 'text-outline hover:text-on-surface'
+                  ? 'bg-white text-blue-600 shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              Proforma / Quotation
+              Estimate / Quotation
             </button>
           </div>
         </div>
 
         {/* Right: Quick Action Buttons */}
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          {/* New Sale */}
           <button
             type="button"
             onClick={onNewSale}
-            className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface rounded border border-surface-container-highest font-bold flex items-center gap-1"
+            className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium flex items-center gap-1 transition-colors cursor-pointer"
             title="Start a fresh sale (F4)"
           >
             <span className="material-symbols-outlined text-[15px]">refresh</span>
-            <span>New Sale</span>
-            <kbd className="hidden md:inline text-[9px] bg-surface-container-high px-1 py-0.2 rounded font-mono">F4</kbd>
+            <span>New (F4)</span>
           </button>
 
-          {/* + New Customer */}
           <button
             type="button"
             onClick={onOpenNewCustomer}
-            className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface rounded border border-surface-container-highest font-bold flex items-center gap-1"
+            className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[15px]">person_add</span>
             <span>+ Customer</span>
           </button>
 
-          {/* Hold Bill */}
           <button
             type="button"
             disabled={cartCount === 0}
             onClick={onHoldCurrentBill}
-            className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high disabled:opacity-40 text-on-surface rounded border border-surface-container-highest font-bold flex items-center gap-1"
+            className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 rounded-lg font-medium flex items-center gap-1 transition-colors cursor-pointer"
             title="Hold current bill (Ctrl+S)"
           >
             <span className="material-symbols-outlined text-[15px]">pause_circle</span>
-            <span>Hold Bill</span>
-            <kbd className="hidden md:inline text-[9px] bg-surface-container-high px-1 py-0.2 rounded font-mono">Ctrl+S</kbd>
+            <span>Hold</span>
           </button>
 
-          {/* Recall Bill with Badge */}
           <button
             type="button"
             onClick={onOpenHeldBills}
-            className={`px-2.5 py-1 rounded border font-bold flex items-center gap-1.5 transition-colors ${
+            className={`px-2.5 py-1 rounded-lg font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
               heldCount > 0
-                ? 'bg-secondary/15 border-secondary text-secondary hover:bg-secondary/25'
-                : 'bg-surface-container border-surface-container-highest text-outline hover:text-on-surface'
+                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
             title="Recall held bills (Alt+R)"
           >
             <span className="material-symbols-outlined text-[15px]">play_circle</span>
-            <span>Recall Bill</span>
-            {heldCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-secondary text-on-secondary font-mono text-[10px] font-extrabold">
-                {heldCount}
-              </span>
-            )}
-            <kbd className="hidden md:inline text-[9px] bg-surface-container-high px-1 py-0.2 rounded font-mono text-outline">Alt+R</kbd>
+            <span>Recall ({heldCount})</span>
           </button>
 
-          {/* Sales Return */}
           <button
             type="button"
             onClick={onOpenSalesReturn}
-            className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface rounded border border-surface-container-highest font-bold flex items-center gap-1"
-            title="Process sales return against invoice"
+            className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[15px]">assignment_return</span>
-            <span>Sales Return</span>
+            <span>Return</span>
           </button>
 
-          {/* Print Last Invoice */}
           <button
             type="button"
             disabled={!hasLastInvoice}
             onClick={onPrintLastInvoice}
-            className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high disabled:opacity-40 text-on-surface rounded border border-surface-container-highest font-bold flex items-center gap-1"
-            title="Reprint last generated invoice (Alt+P)"
+            className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 rounded-lg font-medium flex items-center gap-1 transition-colors cursor-pointer"
+            title="Reprint last invoice (Alt+P)"
           >
             <span className="material-symbols-outlined text-[15px]">print</span>
             <span>Last Bill</span>
-            <kbd className="hidden md:inline text-[9px] bg-surface-container-high px-1 py-0.2 rounded font-mono">Alt+P</kbd>
           </button>
         </div>
       </div>
 
-      {/* Requirement 22: FAST SPARES / HIGH-TURNOVER SELECTION CHIP STRIP */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 pt-0.5">
-        <span className="text-[10px] font-bold uppercase text-outline shrink-0 flex items-center gap-1">
-          <span className="material-symbols-outlined text-[13px] text-secondary">bolt</span>
-          Fast Spares:
+      {/* Quick Spares Chips */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pt-1">
+        <span className="text-[10px] font-semibold uppercase text-slate-400 shrink-0 flex items-center gap-1">
+          <span className="material-symbols-outlined text-[13px] text-blue-600">bolt</span>
+          Fast Add:
         </span>
         {quickCategories.map((cat, idx) => (
           <button
             key={idx}
             type="button"
             onClick={() => handleQuickAdd(cat.keywords)}
-            className="px-2 py-0.5 rounded-full bg-surface-container hover:bg-secondary/15 hover:text-secondary hover:border-secondary border border-surface-container-high text-[11px] font-medium text-on-surface whitespace-nowrap transition-colors flex items-center gap-1 shrink-0"
+            className="px-2.5 py-0.5 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-[11px] font-medium text-slate-600 whitespace-nowrap transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
           >
             <span>+</span>
             <span>{cat.label}</span>
@@ -202,3 +178,4 @@ export const POSHeaderRibbon: React.FC<POSHeaderRibbonProps> = ({
     </div>
   );
 };
+

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
-import { Footer } from './components/Footer';
 import { DashboardView } from './components/DashboardView';
 import { ItemMasterView } from './components/ItemMasterView';
 import { FastPOSView } from './components/FastPOSView';
@@ -2448,7 +2447,7 @@ export function MainERPContent() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col font-body-sm text-on-surface antialiased selection:bg-secondary selection:text-on-secondary">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-body-sm text-slate-900 antialiased selection:bg-blue-600 selection:text-white">
       {/* Fixed Application Header */}
       <Header
         activeScreen={activeScreen}
@@ -2462,12 +2461,12 @@ export function MainERPContent() {
       />
 
       {/* Main Structural Body */}
-      <div className="flex flex-1 pt-12 pb-8">
+      <div className="flex flex-1 pt-14">
         {/* Fixed ERP Module Sidebar */}
         <Sidebar activeScreen={activeScreen} onNavigate={setActiveScreen} />
 
         {/* Dynamic Main Workspace Container */}
-        <main className="flex-1 ml-60 p-gutter overflow-x-hidden min-h-[calc(100vh-80px)]">
+        <main className="flex-1 ml-60 p-5 overflow-x-hidden min-h-[calc(100vh-56px)] pb-10">
           {activeScreen === 'dashboard' && (
             <DashboardView
               invoices={invoices}
@@ -3239,17 +3238,6 @@ export function MainERPContent() {
           )}
         </main>
       </div>
-
-      {/* Fixed Operational Shortcut Footer */}
-      <Footer
-        onSearchPart={() => setIsPartFinderOpen(true)}
-        onNewSale={() => setActiveScreen('pos')}
-        onGlobalSearch={() => setIsGlobalSearchOpen(true)}
-        onPrintLastBill={() => {
-          if (invoices.length > 0) setViewingInvoice(invoices[0]);
-          else showToast('No invoices available to print');
-        }}
-      />
 
       {/* Modals & Dialogs */}
       <InvoiceModal
