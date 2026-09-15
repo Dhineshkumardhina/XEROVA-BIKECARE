@@ -33,56 +33,46 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   return (
     <div className="bg-surface min-h-screen flex flex-col md:flex-row font-sans text-on-surface selection:bg-primary selection:text-white">
       {/* Left Panel: Branding & Mission */}
-      <div className="hidden md:flex flex-col justify-center items-start w-1/2 bg-surface-container-low border-r border-outline-variant p-[8%] lg:p-[10%] relative overflow-hidden">
-        {/* Minimal Graphic Grid Element */}
-        <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage:
-              'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)',
-            backgroundSize: '32px 32px'
-          }}
-        />
-
+      <div className="hidden md:flex flex-col justify-center items-start w-1/2 bg-slate-100 border-r border-slate-200 p-[8%] lg:p-[10%] relative overflow-hidden">
         <div className="relative z-10 max-w-lg">
           {/* Logo & Header */}
           <div className="flex items-center gap-3.5 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-secondary via-primary to-secondary text-white flex items-center justify-center shadow-md border border-secondary/20">
+            <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
               <span className="material-symbols-outlined text-[30px]">two_wheeler</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-2xl text-primary tracking-tight font-extrabold flex items-center gap-1.5">
-                <span className="text-secondary font-black">XEROVA</span> BIKE SOFTWARE
+              <span className="text-2xl text-slate-900 tracking-tight font-extrabold flex items-center gap-1.5">
+                <span className="text-blue-600 font-black">XEROVA</span> BIKE SOFTWARE
               </span>
-              <span className="text-[11px] text-on-surface-variant uppercase tracking-widest font-semibold">
+              <span className="text-[11px] text-slate-500 uppercase tracking-widest font-semibold">
                 Professional Bike Care &amp; Workshop ERP
               </span>
             </div>
           </div>
 
-          <h1 className="text-3xl lg:text-4xl font-bold text-primary mb-4 tracking-tight leading-tight">
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4 tracking-tight leading-tight">
             Smart Care &amp; Management for Every Two-Wheeler
           </h1>
 
-          <p className="text-base text-on-surface-variant leading-relaxed mb-8">
+          <p className="text-base text-slate-600 leading-relaxed mb-8">
             High-speed counter POS, complete spare-part inventory, automated GST compliance, and precision diagnostics for two-wheeler service workshops and spare-parts retailers.
           </p>
 
           <div className="flex flex-wrap gap-2.5 pt-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-container border border-outline-variant rounded text-xs font-medium text-on-surface">
-              <span className="material-symbols-outlined text-[16px] text-primary">two_wheeler</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 shadow-2xs">
+              <span className="material-symbols-outlined text-[16px] text-blue-600">two_wheeler</span>
               Bike Spares Master
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-container border border-outline-variant rounded text-xs font-medium text-on-surface">
-              <span className="material-symbols-outlined text-[16px] text-primary">point_of_sale</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 shadow-2xs">
+              <span className="material-symbols-outlined text-[16px] text-blue-600">point_of_sale</span>
               Fast POS Billing (F4)
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-container border border-outline-variant rounded text-xs font-medium text-on-surface">
-              <span className="material-symbols-outlined text-[16px] text-primary">receipt_long</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 shadow-2xs">
+              <span className="material-symbols-outlined text-[16px] text-blue-600">receipt_long</span>
               GST &amp; Accounts Ledger
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-container border border-outline-variant rounded text-xs font-medium text-on-surface">
-              <span className="material-symbols-outlined text-[16px] text-primary">engineering</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 shadow-2xs">
+              <span className="material-symbols-outlined text-[16px] text-blue-600">engineering</span>
               Mechanic &amp; Workshop Care
             </span>
           </div>
@@ -90,24 +80,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
         {/* Institutional Footer */}
         <div className="absolute bottom-[6%] left-[8%] lg:left-[10%] z-10">
-          <p className="font-mono text-xs text-on-surface-variant opacity-70 uppercase tracking-widest">
+          <p className="font-mono text-xs text-slate-400 uppercase tracking-widest">
             XEROVA BIKE SOFTWARE v4.2 • Certified Two-Wheeler ERP Platform
           </p>
         </div>
       </div>
 
       {/* Right Panel: Login Form */}
-      <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-surface-container-lowest p-6 sm:p-12 md:p-16 min-h-screen">
+      <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-white p-6 sm:p-12 md:p-16 min-h-screen">
         <div className="w-full max-w-sm">
           {/* Mobile Header (Visible only on small screens) */}
           <div className="md:hidden mb-8 flex flex-col items-center text-center">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-secondary via-primary to-secondary text-white flex items-center justify-center mb-2 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center mb-2 shadow-sm">
               <span className="material-symbols-outlined text-[28px]">two_wheeler</span>
             </div>
-            <h1 className="text-2xl font-bold text-primary">
-              <span className="text-secondary font-black">XEROVA</span> BIKE SOFTWARE
+            <h1 className="text-2xl font-bold text-slate-900">
+              <span className="text-blue-600 font-black">XEROVA</span> BIKE SOFTWARE
             </h1>
-            <p className="text-xs text-on-surface-variant uppercase tracking-wider">
+            <p className="text-xs text-slate-500 uppercase tracking-wider">
               Bike Service &amp; Spare Parts Management
             </p>
           </div>
