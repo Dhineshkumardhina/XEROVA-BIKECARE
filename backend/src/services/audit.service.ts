@@ -1,4 +1,5 @@
 import { prisma } from '../config/database.js';
+import { sanitizeUuid } from '../utils/uuid.js';
 
 export interface AuditLogQueryFilters {
   module?: string;
@@ -72,7 +73,7 @@ export class AuditService {
     try {
       const dbRecord = await prisma.auditLog.create({
         data: {
-          userId: params.userId,
+          userId: sanitizeUuid(params.userId),
           username: params.username,
           action: params.action,
           module: params.module,

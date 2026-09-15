@@ -99,9 +99,10 @@ async function runAdminManagementTestSuite() {
   assert(branches.length >= 1, `Discovered ${branches.length} registered branches`);
   assert(branches.some((b) => b.isMain === true), 'Main head office branch identified');
 
+  const testCode = `BR-SLM-${Date.now().toString().slice(-4)}`;
   const newBranchPayload = {
     name: 'Salem Regional Spares Depot',
-    code: 'BR-SLM',
+    code: testCode,
     address: '45, Junction Main Road, Meyyanur',
     city: 'Salem',
     state: 'Tamil Nadu',
@@ -116,7 +117,7 @@ async function runAdminManagementTestSuite() {
 
   const validatedBranch = createBranchSchema.parse(newBranchPayload);
   const createdBranch = await adminService.createBranch(validatedBranch as any, { username: 'admin' });
-  assert(createdBranch.code === 'BR-SLM', 'Salem regional branch created with unique code BR-SLM');
+  assert(createdBranch.code === testCode, `Salem regional branch created with unique code ${testCode}`);
 
   // --------------------------------------------------------------------------
   console.log('\n--- Test 3: Document Numbering Sequence Engine ---');

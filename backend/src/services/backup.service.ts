@@ -3,6 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { prisma } from '../config/database.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { sanitizeUuid } from '../utils/uuid.js';
 
 export interface BackupMetadata {
   id: string;
@@ -195,7 +196,7 @@ export class BackupService {
       // Record Audit Log
       await prisma.auditLog.create({
         data: {
-          userId: params.userId,
+          userId: sanitizeUuid(params.userId),
           username: params.username,
           action: 'Database Backup Created',
           module: 'Admin',
@@ -321,7 +322,7 @@ export class BackupService {
     // 3. Log Critical Audit Entry
     await prisma.auditLog.create({
       data: {
-        userId: params.userId,
+        userId: sanitizeUuid(params.userId),
         username: params.username,
         action: 'Database Restored',
         module: 'Admin',

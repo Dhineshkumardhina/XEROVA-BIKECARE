@@ -1,5 +1,6 @@
 import { prisma } from '../config/database.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { sanitizeUuid } from '../utils/uuid.js';
 
 export interface CompanyProfileData {
   firmName: string;
@@ -232,7 +233,7 @@ export class AdminService {
     if (userContext) {
       await prisma.auditLog.create({
         data: {
-          userId: userContext.userId,
+          userId: sanitizeUuid(userContext.userId),
           username: userContext.username,
           action: 'Company Settings Updated',
           module: 'Admin',
@@ -366,7 +367,7 @@ export class AdminService {
     if (userContext) {
       await prisma.auditLog.create({
         data: {
-          userId: userContext.userId,
+          userId: sanitizeUuid(userContext.userId),
           username: userContext.username,
           action: 'Branch Created',
           module: 'Admin',
@@ -394,7 +395,7 @@ export class AdminService {
     if (userContext) {
       await prisma.auditLog.create({
         data: {
-          userId: userContext.userId,
+          userId: sanitizeUuid(userContext.userId),
           username: userContext.username,
           action: 'User Branch Assignment',
           module: 'Admin',
@@ -509,7 +510,7 @@ export class AdminService {
     if (userContext) {
       await prisma.auditLog.create({
         data: {
-          userId: userContext.userId,
+          userId: sanitizeUuid(userContext.userId),
           username: userContext.username,
           action: 'Document Numbering Updated',
           module: 'Admin',
@@ -652,7 +653,7 @@ export class AdminService {
     if (userContext) {
       await prisma.auditLog.create({
         data: {
-          userId: userContext.userId,
+          userId: sanitizeUuid(userContext.userId),
           username: userContext.username,
           action: 'Invoice Template Updated',
           module: 'Admin',
@@ -700,7 +701,7 @@ export class AdminService {
     if (userContext) {
       await prisma.auditLog.create({
         data: {
-          userId: userContext.userId,
+          userId: sanitizeUuid(userContext.userId),
           username: userContext.username,
           action: 'Printer Settings Updated',
           module: 'Hardware',
@@ -766,7 +767,7 @@ export class AdminService {
     if (userContext) {
       await prisma.auditLog.create({
         data: {
-          userId: userContext.userId,
+          userId: sanitizeUuid(userContext.userId),
           username: userContext.username,
           action: 'Security Policies Updated',
           module: 'Security',
@@ -803,7 +804,7 @@ export class AdminService {
     // Clear only transactional tables if in sandbox
     await prisma.auditLog.create({
       data: {
-        userId: params.userContext.userId,
+        userId: sanitizeUuid(params.userContext.userId),
         username: params.userContext.username,
         action: 'Transactional Test Data Cleared',
         module: 'Admin',
@@ -835,7 +836,7 @@ export class AdminService {
 
     await prisma.auditLog.create({
       data: {
-        userId: params.userContext.userId,
+        userId: sanitizeUuid(params.userContext.userId),
         username: params.userContext.username,
         action: `System Configuration Reset (${params.targetModule})`,
         module: 'Admin',

@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { AuditSeverity } from '@prisma/client';
 import { prisma } from '../config/database.js';
 import { AuthenticatedRequest } from '../types/index.js';
+import { sanitizeUuid } from '../utils/uuid.js';
 
 export interface AuditLogParams {
   userId?: string;
@@ -25,7 +26,7 @@ export const recordAuditLog = async (params: AuditLogParams): Promise<void> => {
   try {
     await prisma.auditLog.create({
       data: {
-        userId: params.userId,
+        userId: sanitizeUuid(params.userId),
         username: params.username,
         action: params.action,
         module: params.module,
