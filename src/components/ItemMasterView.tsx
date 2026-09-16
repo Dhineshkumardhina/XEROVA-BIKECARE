@@ -100,6 +100,27 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
     });
   }, [parts, searchTerm, stockFilter, selectedBrand, selectedCategory, selectedVehicle]);
 
+  // Dynamic statistics
+  const stats = useMemo(() => {
+    const totalParts = parts.length;
+    const totalValuation = parts.reduce((sum, p) => sum + ((p.currentStock || 0) * (p.purchasePrice || 0)), 0);
+    const stockOut = parts.filter(p => (p.currentStock || 0) === 0).length;
+    const lowStock = parts.filter(p => (p.currentStock || 0) > 0 && (p.currentStock || 0) <= (p.minReorder || 0)).length;
+    const mappedVehicles = new Set(parts.flatMap(p => p.vehicles || [])).size;
+    const activeBins = new Set(parts.map(p => p.rackBin).filter(Boolean)).size;
+    const fastMovers = 0; // Requires sales data, defaulting to 0
+    
+    return {
+      totalParts,
+      totalValuation,
+      stockOut,
+      lowStock,
+      mappedVehicles,
+      activeBins,
+      fastMovers
+    };
+  }, [parts]);
+
   // Pagination calculation
   const totalPages = Math.max(1, Math.ceil(filteredParts.length / rowsPerPage));
   const displayedParts = filteredParts.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
@@ -149,7 +170,7 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
           </div>
           <div className="flex items-center gap-space-sm mt-1">
             <span className="font-numeric-data text-numeric-data text-on-surface-variant font-semibold">
-              4,820 Active SKUs
+              {stats.totalParts.toLocaleString()} Active SKUs
             </span>
             <span className="text-outline-variant text-label-caps">•</span>
             <span 
@@ -157,7 +178,7 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
               className="font-numeric-data text-numeric-data text-error font-semibold flex items-center gap-1 cursor-pointer hover:underline"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
-              127 Low Stock Alerts
+              {stats.lowStock.toLocaleString()} Low Stock Alerts
             </span>
             <span className="text-outline-variant text-label-caps">•</span>
             <span className="font-table-cell text-table-cell text-outline flex items-center gap-0.5">
@@ -244,8 +265,8 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
             <span className="material-symbols-outlined text-secondary text-[16px]">account_balance_wallet</span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="font-numeric-lg text-numeric-lg text-on-surface">₹42,88,190</span>
-            <span className="font-shortcut-key text-shortcut-key text-on-tertiary-container">+2.4%</span>
+            <span className="font-numeric-lg text-numeric-lg text-on-surface">{formatCurrency(stats.totalValuation)}</span>
+            <span className="font-shortcut-key text-shortcut-key text-on-tertiary-container"></span>
           </div>
         </div>
 
@@ -260,8 +281,8 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
             <span className="material-symbols-outlined text-error text-[16px]">do_not_disturb_on</span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="font-numeric-lg text-numeric-lg text-error">18 SKUs</span>
-            <span className="font-shortcut-key text-shortcut-key text-error font-semibold">Immediate PO</span>
+            <span className="font-numeric-lg text-numeric-lg text-error">{stats.stockOut.toLocaleString()} SKUs</span>
+            {stats.stockOut > 0 && <span className="font-shortcut-key text-shortcut-key text-error font-semibold">Immediate PO</span>}
           </div>
         </div>
 
@@ -276,8 +297,8 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
             <span className="material-symbols-outlined text-on-secondary-fixed-variant text-[16px]">warning</span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="font-numeric-lg text-numeric-lg text-on-secondary-fixed-variant">109 Items</span>
-            <span className="font-shortcut-key text-shortcut-key text-outline">Action req.</span>
+            <span className="font-numeric-lg text-numeric-lg text-on-secondary-fixed-variant">{stats.lowStock.toLocaleString()} Items</span>
+            {stats.lowStock > 0 && <span className="font-shortcut-key text-shortcut-key text-outline">Action req.</span>}
           </div>
         </div>
 
@@ -287,8 +308,8 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
             <span className="material-symbols-outlined text-on-tertiary-container text-[16px]">speed</span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="font-numeric-lg text-numeric-lg text-on-surface">640 SKUs</span>
-            <span className="font-shortcut-key text-shortcut-key text-secondary">72% Turnover</span>
+            <span className="font-numeric-lg text-numeric-lg text-on-surface">{stats.fastMovers.toLocaleString()} SKUs</span>
+            {stats.fastMovers > 0 && <span className="font-shortcut-key text-shortcut-key text-secondary">High Turnover</span>}
           </div>
         </div>
 
@@ -298,8 +319,8 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
             <span className="material-symbols-outlined text-secondary text-[16px]">two_wheeler</span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="font-numeric-lg text-numeric-lg text-on-surface">94 Models</span>
-            <span className="font-shortcut-key text-shortcut-key text-outline">BS-IV / BS-VI</span>
+            <span className="font-numeric-lg text-numeric-lg text-on-surface">{stats.mappedVehicles.toLocaleString()} Models</span>
+            {stats.mappedVehicles > 0 && <span className="font-shortcut-key text-shortcut-key text-outline">BS-IV / BS-VI</span>}
           </div>
         </div>
 
@@ -309,8 +330,8 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
             <span className="material-symbols-outlined text-outline text-[16px]">shelves</span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="font-numeric-lg text-numeric-lg text-on-surface">324 Bins</span>
-            <span className="font-shortcut-key text-shortcut-key text-on-tertiary-container">98% Indexed</span>
+            <span className="font-numeric-lg text-numeric-lg text-on-surface">{stats.activeBins.toLocaleString()} Bins</span>
+            {stats.activeBins > 0 && <span className="font-shortcut-key text-shortcut-key text-on-tertiary-container">Indexed</span>}
           </div>
         </div>
       </div>
@@ -350,7 +371,7 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
                   : 'bg-surface-container-low hover:bg-surface-container text-on-surface-variant'
               }`}
             >
-              All SKUs (4,820)
+              All SKUs ({stats.totalParts})
             </button>
             <button
               onClick={() => setStockFilter('OUT_OF_STOCK')}
@@ -360,7 +381,7 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
                   : 'bg-surface-container-low hover:bg-surface-container text-error'
               }`}
             >
-              Out of Stock (18)
+              Out of Stock ({stats.stockOut})
             </button>
             <button
               onClick={() => setStockFilter('LOW_REORDER')}
@@ -370,7 +391,7 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
                   : 'bg-surface-container-low hover:bg-surface-container text-on-surface-variant'
               }`}
             >
-              Low Reorder (109)
+              Low Reorder ({stats.lowStock})
             </button>
             <button
               onClick={() => setStockFilter('ENGINE')}
@@ -528,6 +549,17 @@ export const ItemMasterView: React.FC<ItemMasterViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high font-body-sm text-body-sm text-on-surface">
+              {displayedParts.length === 0 && (
+                <tr>
+                  <td colSpan={14} className="py-16 text-center text-outline">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl opacity-50">inventory_2</span>
+                      <p className="font-semibold text-on-surface text-base">No spare parts found in inventory.</p>
+                      <p className="text-xs">Adjust your search, change filters, or click "New Spare Part" to add one.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
               {displayedParts.map((part) => {
                 const isSelected = selectedIds.includes(part.id);
                 const isOutOfStock = part.currentStock === 0;
