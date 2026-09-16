@@ -244,7 +244,7 @@ export const ProfitabilityDashboard: React.FC<ProfitabilityDashboardProps> = ({
           <span className="font-mono text-base font-bold text-on-tertiary-container mt-1 block">
             {formatPercent(PROFITABILITY_SUMMARY.grossMarginPct)}
           </span>
-          <span className="text-[10px] text-tertiary">+1.4% vs Sep 2024</span>
+          <span className="text-[10px] text-tertiary">No prior data</span>
         </div>
 
         <div className="p-3.5 bg-surface-container-lowest rounded border border-surface-container-high">
@@ -258,7 +258,7 @@ export const ProfitabilityDashboard: React.FC<ProfitabilityDashboardProps> = ({
         <div className="p-3.5 bg-surface-container-lowest rounded border border-surface-container-high">
           <span className="text-[10px] text-primary font-bold uppercase block">Net Margin %</span>
           <span className="font-mono text-base font-bold text-primary mt-1 block">
-            23.4%
+            0.0%
           </span>
           <span className="text-[10px] text-outline">After shop overheads</span>
         </div>

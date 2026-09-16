@@ -266,35 +266,35 @@ export const FinancialReportsView: React.FC<FinancialReportsViewProps> = ({
             <div className="p-3 space-y-2 font-mono divide-y divide-surface-container-high">
               <div className="flex justify-between py-1 text-on-surface">
                 <span>To Opening Stock</span>
-                <span>{formatINR(1840000.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-on-surface">
                 <span>To Purchases (Net of Returns)</span>
-                <span>{formatINR(1825400.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-on-surface">
                 <span>To Freight &amp; Cartage Inward</span>
-                <span>{formatINR(24500.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 font-bold text-secondary">
                 <span>To Gross Profit c/d</span>
-                <span>{formatINR(640250.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-outline pt-2">
                 <span>To Staff Salaries (Operators)</span>
-                <span>{formatINR(45000.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-outline">
                 <span>To Shop Rent &amp; Electricity</span>
-                <span>{formatINR(18200.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-outline">
                 <span>To Discount Allowed to Garages</span>
-                <span>{formatINR(42150.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-2 font-bold text-base text-tertiary pt-3 border-t-2 border-surface-container-high">
                 <span>Net Profit Transferred to Capital</span>
-                <span>{formatINR(534900.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
             </div>
           </div>
@@ -307,23 +307,23 @@ export const FinancialReportsView: React.FC<FinancialReportsViewProps> = ({
             <div className="p-3 space-y-2 font-mono divide-y divide-surface-container-high">
               <div className="flex justify-between py-1 text-on-surface">
                 <span>By Sales (Domestic Net)</span>
-                <span>{formatINR(2480450.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-on-surface">
                 <span>By Closing Stock (Estimated)</span>
-                <span>{formatINR(1849700.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-outline">
                 <span>By Scrap &amp; Battery Core Rebate</span>
-                <span>{formatINR(4800.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 font-bold text-secondary pt-3 border-t-2 border-surface-container-high">
                 <span>By Gross Profit b/d</span>
-                <span>{formatINR(640250.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-2 font-bold text-base text-tertiary pt-3 border-t-2 border-surface-container-high">
                 <span>Total Net Revenue Balanced</span>
-                <span>{formatINR(645050.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
             </div>
           </div>
@@ -341,23 +341,23 @@ export const FinancialReportsView: React.FC<FinancialReportsViewProps> = ({
             <div className="p-3 space-y-2 font-mono divide-y divide-surface-container-high">
               <div className="flex justify-between py-1 text-on-surface">
                 <span>Capital Account (Proprietor)</span>
-                <span>{formatINR(1500000.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-tertiary font-semibold">
                 <span>Add: Net Profit for Year</span>
-                <span>+{formatINR(534900.0)}</span>
+                <span>+{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-on-surface">
                 <span>Sundry Creditors (Spares Distributors)</span>
-                <span>{formatINR(186200.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-primary">
-                <span>Net GST Payable (Oct 24)</span>
-                <span>{formatINR(115245.0)}</span>
+                <span>Net GST Payable</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-2 font-bold text-base text-secondary pt-3 border-t-2 border-surface-container-high">
                 <span>Total Liabilities</span>
-                <span>{formatINR(2336345.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
             </div>
           </div>
@@ -370,27 +370,27 @@ export const FinancialReportsView: React.FC<FinancialReportsViewProps> = ({
             <div className="p-3 space-y-2 font-mono divide-y divide-surface-container-high">
               <div className="flex justify-between py-1 text-on-surface">
                 <span>Closing Stock (Spares Inventory)</span>
-                <span>{formatINR(1417245.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-on-surface">
                 <span>Sundry Debtors (Affiliated Garages)</span>
-                <span>{formatINR(342800.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-on-surface">
                 <span>HDFC Current Account</span>
-                <span>{formatINR(428600.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-on-surface">
                 <span>Cash-in-Hand (Counter Floats)</span>
-                <span>{formatINR(85400.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-1 text-on-surface">
                 <span>ICICI UPI Settlement Ledger</span>
-                <span>{formatINR(62300.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
               <div className="flex justify-between py-2 font-bold text-base text-secondary pt-3 border-t-2 border-surface-container-high">
                 <span>Total Assets</span>
-                <span>{formatINR(2336345.0)}</span>
+                <span>{formatINR(0.0)}</span>
               </div>
             </div>
           </div>
@@ -423,11 +423,11 @@ export const FinancialReportsView: React.FC<FinancialReportsViewProps> = ({
               sgst: 0,
               igst: 0,
               totalAmount: r.debit || r.credit,
-              user: 'Accounts Manager (Rajesh)',
+              user: 'Current User',
               timestamp: `${r.date} 10:30:00 IST`,
               items: [],
               auditHistory: [
-                { timestamp: r.date, action: `Posted to ${r.account} in General Ledger`, user: 'Rajesh' }
+                { timestamp: r.date, action: `Posted to ${r.account} in General Ledger`, user: 'Current User' }
               ],
               notes: r.notes || `Ref: ${r.refNo}`
             });

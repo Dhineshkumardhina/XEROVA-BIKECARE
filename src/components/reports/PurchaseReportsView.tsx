@@ -331,14 +331,14 @@ export const PurchaseReportsView: React.FC<PurchaseReportsViewProps> = ({
             sgst: r.tax / 2,
             igst: 0,
             totalAmount: r.netPurchase,
-            user: 'Store Manager (Karthik)',
+            user: 'Current User',
             timestamp: `2024-10-23 16:15:00 IST`,
             items: [
               { name: r.itemSummary, sku: 'SKU-INW', hsn: '8714', qty: r.qty, unitPrice: r.taxableValue / r.qty, gstRate: 18, total: r.netPurchase }
             ],
             auditHistory: [
-              { timestamp: r.date, action: 'Goods received in Bay 1 and quantity counted', user: 'Karthik' },
-              { timestamp: r.date, action: `Recorded against Supplier Invoice ${r.supplierInvoiceNo}`, user: 'Karthik' }
+              { timestamp: r.date, action: 'Goods received in Bay 1 and quantity counted', user: 'Current User' },
+              { timestamp: r.date, action: `Recorded against Supplier Invoice ${r.supplierInvoiceNo}`, user: 'Current User' }
             ],
             notes: `Supplier Invoice: ${r.supplierInvoiceNo}. Remaining outstanding: ${formatINR(r.outstanding)}.`
           });

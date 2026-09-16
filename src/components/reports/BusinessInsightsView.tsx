@@ -65,10 +65,10 @@ export const BusinessInsightsView: React.FC<BusinessInsightsViewProps> = ({
             <span className="material-symbols-outlined text-[18px] text-tertiary">trending_up</span>
           </div>
           <div className="my-2">
-            <div className="font-mono text-base font-bold text-on-surface">+14.8% Growth</div>
-            <span className="text-[10px] text-outline">Pre-Diwali bike servicing surge</span>
+            <div className="font-mono text-base font-bold text-on-surface">0.0% Growth</div>
+            <span className="text-[10px] text-outline">No recent activity</span>
           </div>
-          <div className="text-[10px] text-tertiary font-semibold">Exceeding Monthly Targets</div>
+          <div className="text-[10px] text-tertiary font-semibold">Pending Data</div>
         </div>
 
         <div className="p-3.5 bg-surface-container-lowest rounded border border-surface-container-high flex flex-col justify-between">
@@ -77,10 +77,10 @@ export const BusinessInsightsView: React.FC<BusinessInsightsViewProps> = ({
             <span className="material-symbols-outlined text-[18px] text-secondary">speed</span>
           </div>
           <div className="my-2">
-            <div className="font-mono text-base font-bold text-on-surface">18.4 Days</div>
+            <div className="font-mono text-base font-bold text-on-surface">0.0 Days</div>
             <span className="text-[10px] text-outline">Average spare part replenishment cycle</span>
           </div>
-          <div className="text-[10px] text-secondary font-semibold">Healthy Liquidity</div>
+          <div className="text-[10px] text-secondary font-semibold">Pending Data</div>
         </div>
 
         <div className="p-3.5 bg-surface-container-lowest rounded border border-surface-container-high flex flex-col justify-between">
@@ -89,10 +89,10 @@ export const BusinessInsightsView: React.FC<BusinessInsightsViewProps> = ({
             <span className="material-symbols-outlined text-[18px] text-warning">warning</span>
           </div>
           <div className="my-2">
-            <div className="font-mono text-base font-bold text-warning">1 Hold Active</div>
-            <span className="text-[10px] text-outline">₹38.5k overdue by &gt; 25 days</span>
+            <div className="font-mono text-base font-bold text-warning">0 Holds Active</div>
+            <span className="text-[10px] text-outline">₹0 overdue by &gt; 25 days</span>
           </div>
-          <div className="text-[10px] text-outline">Royal Riders Garage blocked</div>
+          <div className="text-[10px] text-outline">All accounts clear</div>
         </div>
 
         <div className="p-3.5 bg-surface-container-lowest rounded border border-surface-container-high flex flex-col justify-between">
@@ -101,8 +101,8 @@ export const BusinessInsightsView: React.FC<BusinessInsightsViewProps> = ({
             <span className="material-symbols-outlined text-[18px] text-outline">hourglass_empty</span>
           </div>
           <div className="my-2">
-            <div className="font-mono text-base font-bold text-on-surface">1.8% of Total Stock</div>
-            <span className="text-[10px] text-outline">₹7,400 in idle fairings</span>
+            <div className="font-mono text-base font-bold text-on-surface">0.0% of Total Stock</div>
+            <span className="text-[10px] text-outline">₹0 in idle inventory</span>
           </div>
           <div className="text-[10px] text-tertiary font-semibold">Well below 5% benchmark</div>
         </div>
@@ -135,73 +135,81 @@ export const BusinessInsightsView: React.FC<BusinessInsightsViewProps> = ({
 
       {/* Insights Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
-        {filteredInsights.map(item => {
-          const isPositive = item.type === 'positive';
-          const isAlert = item.type === 'alert';
-          const isWarning = item.type === 'warning';
+        {filteredInsights.length === 0 ? (
+          <div className="col-span-1 md:col-span-2 p-12 text-center border border-surface-container-high rounded bg-surface-container-lowest">
+            <span className="material-symbols-outlined text-4xl text-outline mb-2">insights</span>
+            <div className="font-bold text-on-surface">No Insights Available</div>
+            <p className="text-xs text-outline">Generate more operational data for automated telemetry.</p>
+          </div>
+        ) : (
+          filteredInsights.map(item => {
+            const isPositive = item.type === 'positive';
+            const isAlert = item.type === 'alert';
+            const isWarning = item.type === 'warning';
 
-          return (
-            <div
-              key={item.id}
-              className={`p-4 rounded shadow-xs border flex flex-col justify-between transition-all hover:border-secondary/50 ${
-                isAlert
-                  ? 'bg-surface-container-lowest border-error/40'
-                  : isWarning
-                  ? 'bg-surface-container-lowest border-warning/40'
-                  : isPositive
-                  ? 'bg-surface-container-lowest border-tertiary/40'
-                  : 'bg-surface-container-lowest border-surface-container-high'
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`material-symbols-outlined text-[20px] ${
-                        isAlert
-                          ? 'text-error'
-                          : isWarning
-                          ? 'text-warning'
-                          : isPositive
-                          ? 'text-tertiary'
-                          : 'text-secondary'
-                      }`}
-                    >
-                      {isAlert ? 'error' : isWarning ? 'warning' : isPositive ? 'check_circle' : 'info'}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-surface-container text-on-surface-variant">
-                      {item.category}
-                    </span>
+            return (
+              <div
+                key={item.id}
+                className={`p-4 rounded shadow-xs border flex flex-col justify-between transition-all hover:border-secondary/50 ${
+                  isAlert
+                    ? 'bg-surface-container-lowest border-error/40'
+                    : isWarning
+                    ? 'bg-surface-container-lowest border-warning/40'
+                    : isPositive
+                    ? 'bg-surface-container-lowest border-tertiary/40'
+                    : 'bg-surface-container-lowest border-surface-container-high'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`material-symbols-outlined text-[20px] ${
+                          isAlert
+                            ? 'text-error'
+                            : isWarning
+                            ? 'text-warning'
+                            : isPositive
+                            ? 'text-tertiary'
+                            : 'text-secondary'
+                        }`}
+                      >
+                        {isAlert ? 'error' : isWarning ? 'warning' : isPositive ? 'check_circle' : 'info'}
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-surface-container text-on-surface-variant">
+                        {item.category}
+                      </span>
+                    </div>
+                    <span className="font-mono text-[11px] font-bold text-outline">{item.change}</span>
                   </div>
-                  <span className="font-mono text-[11px] font-bold text-outline">{item.change}</span>
+
+                  <h3 className="font-headline-sm text-sm font-bold text-on-surface">{item.title}</h3>
+                  <div className="font-mono text-base font-bold my-1.5 text-on-surface">{item.metric}</div>
+                  <p className="text-xs text-on-surface-variant leading-relaxed">{item.description}</p>
                 </div>
 
-                <h3 className="font-headline-sm text-sm font-bold text-on-surface">{item.title}</h3>
-                <div className="font-mono text-base font-bold my-1.5 text-on-surface">{item.metric}</div>
-                <p className="text-xs text-on-surface-variant leading-relaxed">{item.description}</p>
+                <div className="mt-4 pt-3 border-t border-surface-container-high flex items-center justify-between">
+                  <span className="text-[10px] text-outline">Actionable Recommendation</span>
+                  {item.actionScreen && (
+                    <button
+                      onClick={() => onNavigate(item.actionScreen)}
+                      className={`px-3 py-1 rounded text-xs font-bold flex items-center gap-1 transition-colors ${
+                        isAlert
+                          ? 'bg-error-container text-on-error-container hover:opacity-80'
+                          : isWarning
+                          ? 'bg-warning-container text-on-warning-container hover:opacity-80'
+                          : 'bg-secondary text-on-secondary hover:bg-secondary-container shadow-xs'
+                      }`}
+                    >
+                      <span>{item.actionLabel}</span>
+                      <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                    </button>
+                  )}
+                </div>
               </div>
-
-              <div className="mt-4 pt-3 border-t border-surface-container-high flex items-center justify-between">
-                <span className="text-[10px] text-outline">Actionable Recommendation</span>
-                {item.actionScreen && (
-                  <button
-                    onClick={() => onNavigate(item.actionScreen)}
-                    className={`px-3 py-1 rounded text-xs font-bold flex items-center gap-1 transition-colors ${
-                      isAlert
-                        ? 'bg-error-container text-on-error-container hover:opacity-80'
-                        : isWarning
-                        ? 'bg-warning-container text-on-warning-container hover:opacity-80'
-                        : 'bg-secondary text-on-secondary hover:bg-secondary-container shadow-xs'
-                    }`}
-                  >
-                    <span>{item.actionLabel}</span>
-                    <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );

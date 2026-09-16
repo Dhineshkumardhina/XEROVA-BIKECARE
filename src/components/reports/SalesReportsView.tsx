@@ -253,7 +253,7 @@ export const SalesReportsView: React.FC<SalesReportsViewProps> = ({
           <span className="font-mono text-base font-bold text-outline mt-1 block">
             {formatINR(SALES_DASHBOARD_CARDS.discounts)}
           </span>
-          <span className="text-[10px] text-outline">1.65% average rate</span>
+          <span className="text-[10px] text-outline">Average discount rate</span>
         </div>
 
         <div className="p-3 bg-surface-container-lowest rounded border border-surface-container-high">
@@ -261,7 +261,7 @@ export const SalesReportsView: React.FC<SalesReportsViewProps> = ({
           <span className="font-mono text-base font-bold text-error mt-1 block">
             {formatINR(SALES_DASHBOARD_CARDS.returns)}
           </span>
-          <span className="text-[10px] text-outline">Mismatch &amp; warranty</span>
+          <span className="text-[10px] text-outline">Refunds &amp; warranty</span>
         </div>
 
         <div className="p-3 bg-surface-container-lowest rounded border border-surface-container-high">
@@ -293,7 +293,7 @@ export const SalesReportsView: React.FC<SalesReportsViewProps> = ({
           <span className="font-mono text-base font-bold text-on-surface mt-1 block">
             {formatINR(SALES_DASHBOARD_CARDS.creditSales)}
           </span>
-          <span className="text-[10px] text-outline">15-Day Garage terms</span>
+          <span className="text-[10px] text-outline">Standard credit terms</span>
         </div>
       </div>
 

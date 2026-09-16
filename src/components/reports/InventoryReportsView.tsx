@@ -275,7 +275,7 @@ export const InventoryReportsView: React.FC<InventoryReportsViewProps> = ({
         <div className="p-3 bg-surface-container-lowest rounded border border-surface-container-high">
           <span className="text-[10px] text-tertiary font-bold uppercase block">Fast-Moving SKUs</span>
           <span className="font-mono text-base font-bold text-on-tertiary-container mt-1 block">
-            3 Lines
+            0 Lines
           </span>
           <span className="text-[10px] text-tertiary">Turnover &lt; 7 days</span>
         </div>
@@ -308,7 +308,7 @@ export const InventoryReportsView: React.FC<InventoryReportsViewProps> = ({
           <div className="p-3 bg-surface-container-lowest rounded border border-surface-container-high">
             <span className="text-[10px] text-outline font-bold uppercase block">Dead Stock Items</span>
             <span className="font-mono text-base font-bold text-outline mt-1 block">
-              1 SKU (4 Units)
+              0 SKUs (0 Units)
             </span>
             <span className="text-[10px] text-outline">&gt; 180 days idle</span>
           </div>
@@ -365,19 +365,11 @@ export const InventoryReportsView: React.FC<InventoryReportsViewProps> = ({
             user: 'Inventory Supervisor',
             timestamp: `2024-10-24 10:00:00 IST`,
             items: [
-              {
-                name: r.name,
-                sku: r.sku,
-                hsn: '8714',
-                qty: r.quantity,
-                unitPrice: canViewCosts ? r.purchaseRate : r.sellingRate,
-                gstRate: 18,
-                total: canViewCosts ? r.stockValue : r.quantity * r.sellingRate
-              }
+              { name: r.name, sku: 'SKU-' + r.rackBin, hsn: '8714', qty: r.quantity, unitPrice: r.purchaseRate || 0, gstRate: 28, total: r.stockValue || 0 }
             ],
             auditHistory: [
-              { timestamp: r.lastSoldDate, action: 'Stock level updated after POS counter invoice sale', user: 'POS Terminal' },
-              { timestamp: '01 Oct 2024', action: 'Physical count verified in Rack ' + r.rackBin, user: 'Karthik' }
+              { timestamp: r.lastSoldDate, action: 'Stock level updated after POS counter invoice sale', user: 'System' },
+              { timestamp: '01 Oct 2024', action: 'Physical count verified in Rack ' + r.rackBin, user: 'Current User' }
             ],
             notes: `OEM Code: ${r.oemCode}. MRP: ${formatINR(r.mrp)}. Reorder safety minimum: ${r.reorderLevel} ${r.unit}.`
           });
