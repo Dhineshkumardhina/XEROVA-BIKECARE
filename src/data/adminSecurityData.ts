@@ -33,32 +33,6 @@ export const INITIAL_USERS: ERPUser[] = [
     status: 'Active',
     lastLogin: 'Today',
     createdDate: '01 Jan 2026'
-  },
-  {
-    id: 'usr-2',
-    fullName: 'Counter Billing Operator',
-    username: 'billing',
-    mobile: '+91 98403 55667',
-    email: 'billing@bikecare.erp',
-    role: 'billing_operator',
-    roleDisplayName: 'Billing Operator',
-    branch: 'Main Branch - Chennai Central',
-    status: 'Active',
-    lastLogin: 'Today',
-    createdDate: '01 Jan 2026'
-  },
-  {
-    id: 'usr-3',
-    fullName: 'Purchase & Inventory Manager',
-    username: 'purchase',
-    mobile: '+91 98406 12345',
-    email: 'purchase@bikecare.erp',
-    role: 'purchase_operator',
-    roleDisplayName: 'Purchase Operator',
-    branch: 'Main Branch - Chennai Central',
-    status: 'Active',
-    lastLogin: 'Today',
-    createdDate: '01 Jan 2026'
   }
 ];
 
@@ -670,7 +644,7 @@ export const INITIAL_SYSTEM_STATUS: SystemStatusItem[] = [
     name: 'RBAC Security & Authentication',
     component: 'Authentication',
     status: 'Connected',
-    details: 'Token Session Guard active, 7 user sessions verified',
+    details: 'Token Session Guard active, 1 user session verified',
     lastChecked: 'Just now'
   }
 ];

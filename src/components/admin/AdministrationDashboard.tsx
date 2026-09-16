@@ -21,7 +21,7 @@ export const AdministrationDashboard: React.FC<AdministrationDashboardProps> = (
       title: 'Users & Roles',
       desc: 'Create operator logins, passwords, contact info, and role assignment.',
       icon: 'manage_accounts',
-      badge: '8 Staff Accounts',
+      badge: 'Staff Accounts',
       category: 'Access'
     },
     {
@@ -45,7 +45,7 @@ export const AdministrationDashboard: React.FC<AdministrationDashboardProps> = (
       title: 'Branch Settings',
       desc: 'Multi-store retail counters, regional distribution warehouses, and location access.',
       icon: 'store',
-      badge: '2 Branches',
+      badge: 'Branches',
       category: 'Configuration'
     },
     {
@@ -53,7 +53,7 @@ export const AdministrationDashboard: React.FC<AdministrationDashboardProps> = (
       title: 'Invoice Templates',
       desc: 'A4 tax invoices, A5 compact counter slips, and 3" thermal POS roll receipts.',
       icon: 'receipt_long',
-      badge: '4 Print Formats',
+      badge: 'Print Formats',
       category: 'Printing'
     },
     {
@@ -61,7 +61,7 @@ export const AdministrationDashboard: React.FC<AdministrationDashboardProps> = (
       title: 'Numbering & Prefixes',
       desc: 'Sequential document numbering, FY prefixes, padding, and collision prevention.',
       icon: 'pin',
-      badge: '8 Document Types',
+      badge: 'Document Types',
       category: 'Configuration'
     },
     {
@@ -77,7 +77,7 @@ export const AdministrationDashboard: React.FC<AdministrationDashboardProps> = (
       title: 'Payment Modes',
       desc: 'Cash, UPI QR, Bank Transfer, Cheque, Card POS, and Chart of Accounts mapping.',
       icon: 'payments',
-      badge: '6 Modes Active',
+      badge: 'Modes Active',
       category: 'Finance'
     },
     {
