@@ -38,12 +38,12 @@ export const ReceivablesView: React.FC<ReceivablesViewProps> = ({
 
   // Totals
   const totalReceivableAmount = receivables.reduce((sum, r) => sum + r.outstanding, 0);
-  const totalCurrent = 124000;
-  const total1_30 = 82000;
-  const total31_60 = 45000;
-  const total61_90 = 28000;
-  const total90Plus = 63800;
-  const grandTotal = 342800;
+  const totalCurrent = receivables.reduce((sum, r) => sum + (r.ageing?.current || 0), 0);
+  const total1_30 = receivables.reduce((sum, r) => sum + (r.ageing?.d1_30 || 0), 0);
+  const total31_60 = receivables.reduce((sum, r) => sum + (r.ageing?.d31_60 || 0), 0);
+  const total61_90 = receivables.reduce((sum, r) => sum + (r.ageing?.d61_90 || 0), 0);
+  const total90Plus = receivables.reduce((sum, r) => sum + (r.ageing?.d90Plus || 0), 0);
+  const grandTotal = totalCurrent + total1_30 + total31_60 + total61_90 + total90Plus;
 
   return (
     <div className="flex flex-col w-full pb-10 space-y-gutter animate-in fade-in duration-150">
@@ -217,6 +217,17 @@ export const ReceivablesView: React.FC<ReceivablesViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-high font-table-cell">
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="py-12 text-center text-outline">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-4xl opacity-50">receipt_long</span>
+                        <p className="font-semibold text-on-surface text-base">No customer receivables found.</p>
+                        <p className="text-xs">Outstanding balances will appear here when you create credit sales invoices.</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
                 {filtered.map(rec => (
                   <tr key={rec.id} className="hover:bg-surface-container-low transition-colors">
                     <td className="p-2.5">
@@ -325,6 +336,17 @@ export const ReceivablesView: React.FC<ReceivablesViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-high font-table-cell">
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center text-outline">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-4xl opacity-50">receipt_long</span>
+                        <p className="font-semibold text-on-surface text-base">No ageing records found.</p>
+                        <p className="text-xs">Receivable ageing will appear here when you have outstanding invoices.</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
                 {filtered.map(rec => (
                   <tr key={rec.id} className="hover:bg-surface-container-low transition-colors">
                     <td className="p-2.5">

@@ -133,6 +133,17 @@ export const ReceiptsListView: React.FC<ReceiptsListViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high font-table-cell">
+              {filteredReceipts.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-outline">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl opacity-50">receipt</span>
+                      <p className="font-semibold text-on-surface text-base">No receipt vouchers found.</p>
+                      <p className="text-xs">Receipts generated from customer collections will appear here.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
               {filteredReceipts.map(r => (
                 <tr key={r.id} className="hover:bg-surface-container-low transition-colors">
                   <td className="p-2.5 font-mono font-bold text-secondary">

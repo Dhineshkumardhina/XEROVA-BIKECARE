@@ -126,6 +126,17 @@ export const PaymentsListView: React.FC<PaymentsListViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high font-table-cell">
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-outline">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl opacity-50">payments</span>
+                      <p className="font-semibold text-on-surface text-base">No payment vouchers found.</p>
+                      <p className="text-xs">Supplier payments and disbursements will appear here.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
               {filtered.map(p => (
                 <tr key={p.id} className="hover:bg-surface-container-low transition-colors">
                   <td className="p-2.5 font-mono font-bold text-primary">

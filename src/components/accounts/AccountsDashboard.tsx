@@ -59,13 +59,14 @@ export const AccountsDashboard: React.FC<AccountsDashboardProps> = ({
   const upiBalance = upiAcc ? upiAcc.balance : 0;
   const todaysCollections = receipts.reduce((sum, r) => sum + (r.amount || 0), 0);
 
+  const currentMonthStr = new Date().toLocaleString('default', { month: 'short', year: 'numeric' });
   const trendMonths = [
-    { month: 'Oct 2025', rec: 245000, pay: 180000, net: 65000 },
-    { month: 'Nov 2025', rec: 290000, pay: 210000, net: 80000 },
-    { month: 'Dec 2025', rec: 320000, pay: 240000, net: 80000 },
-    { month: 'Jan 2026', rec: 350000, pay: 285000, net: 65000 },
-    { month: 'Feb 2026', rec: 310000, pay: 230000, net: 80000 },
-    { month: 'Mar 2026', rec: totalReceivables || 380000, pay: totalPayables || 295000, net: (totalReceivables || 380000) - (totalPayables || 295000) }
+    { 
+      month: currentMonthStr, 
+      rec: totalReceivables, 
+      pay: totalPayables, 
+      net: totalReceivables - totalPayables 
+    }
   ];
 
   // Accounting Search Results
@@ -490,7 +491,7 @@ export const AccountsDashboard: React.FC<AccountsDashboardProps> = ({
                       <div className="font-mono text-[11px] space-x-3">
                         <span className="text-amber-700 font-bold">Rec: ₹{m.rec.toLocaleString('en-IN')}</span>
                         <span className="text-error font-bold">Pay: ₹{m.pay.toLocaleString('en-IN')}</span>
-                        <span className="text-outline">Net: ₹{m.net.toLocaleString('en-IN')}</span>
+                        <span className="text-outline">Net: {m.net < 0 ? '-' : ''}₹{Math.abs(m.net).toLocaleString('en-IN')}</span>
                       </div>
                     </div>
                     <div className="space-y-1">

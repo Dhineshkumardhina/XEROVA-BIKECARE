@@ -36,24 +36,12 @@ export const SupplierLedgerView: React.FC<SupplierLedgerViewProps> = ({
   onPrintLedger,
   userRole
 }) => {
-  const fallbackSupplier: PayableRecord = {
-    id: 'sup-demo',
-    supplierId: 'SUP-001',
-    supplierName: 'General Spares Distributor',
-    purchasesCount: 14,
-    totalPurchase: 185000,
-    paid: 133000,
-    outstanding: 52000,
-    lastPaymentDate: '10-Sep-2026',
-    status: 'PENDING'
-  };
-
   const payables = propPayables || propSuppliers || [];
-  const selectedSupplierId = propSupplierId || propSelectedSupplierId || 'sup-1';
+  const selectedSupplierId = propSupplierId || propSelectedSupplierId || '';
   const ledgerEntries = propLedgerEntries || propEntries || [];
   const handlePayment = onMakePayment || onOpenPaymentModal || (() => {});
   const handleRowDetail = onOpenRowDetailDrawer || onViewEntryDetails || (() => {});
-  const currentSupplier = (payables || []).find(p => p.supplierId === selectedSupplierId) || payables[0] || fallbackSupplier;
+  const currentSupplier = payables.find(p => p.supplierId === selectedSupplierId) || payables[0];
   const [searchTerm, setSearchTerm] = useState('');
 
   if (userRole === 'billing_operator') {
@@ -68,8 +56,20 @@ export const SupplierLedgerView: React.FC<SupplierLedgerViewProps> = ({
     );
   }
 
-  const openingBalance = 12000;
-  const currentPayable = currentSupplier ? currentSupplier.outstanding : 52000;
+  if (payables.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 bg-surface-container-lowest rounded shadow-xs border border-surface-container-high text-center space-y-3">
+        <span className="material-symbols-outlined text-4xl opacity-50">receipt_long</span>
+        <h2 className="text-base font-bold text-on-surface">No Suppliers Found</h2>
+        <p className="text-xs text-outline max-w-sm">
+          Supplier accounts will be created automatically when you process Purchase Orders.
+        </p>
+      </div>
+    );
+  }
+
+  const openingBalance = 0;
+  const currentPayable = currentSupplier ? currentSupplier.outstanding : 0;
 
   const filtered = ledgerEntries.filter(e => {
     if (searchTerm) {

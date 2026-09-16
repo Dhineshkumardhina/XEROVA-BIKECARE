@@ -40,30 +40,29 @@ export const CustomerLedgerView: React.FC<CustomerLedgerViewProps> = ({
   onPrintLedger
 }) => {
   const receivables = propReceivables || propCustomers || [];
-  const selectedCustomerId = propCustomerId || propSelectedCustomerId || 'cust-1';
+  const selectedCustomerId = propCustomerId || propSelectedCustomerId || '';
   const ledgerEntries = propLedgerEntries || propEntries || [];
-  const fallbackCustomer: ReceivableRecord = {
-    id: 'cust-fallback',
-    customerId: 'cust-1',
-    customerName: 'General Workshop Customer',
-    mobile: '9840123456',
-    invoicesCount: 1,
-    totalSales: 25000,
-    received: 15000,
-    outstanding: 10000,
-    lastPaymentDate: '10-Sep-2026',
-    status: 'PENDING',
-    ageing: { current: 10000, d1_30: 0, d31_60: 0, d61_90: 0, d90Plus: 0 }
-  };
 
   const handleReceivePayment = onReceivePayment || onOpenReceiptModal || (() => {});
   const handleRowDetail = onOpenRowDetailDrawer || onViewEntryDetails || (() => {});
-  const currentCustomer = (receivables || []).find(r => r.customerId === selectedCustomerId) || receivables[0] || fallbackCustomer;
+  const currentCustomer = receivables.find(r => r.customerId === selectedCustomerId) || receivables[0];
   const [dateFilter, setDateFilter] = useState<'ALL' | 'THIS_MONTH' | 'LAST_MONTH'>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const openingBalance = 8500;
-  const currentBalance = currentCustomer ? currentCustomer.outstanding : 42000;
+  if (receivables.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 bg-surface-container-lowest rounded shadow-xs border border-surface-container-high text-center space-y-3">
+        <span className="material-symbols-outlined text-4xl opacity-50">receipt_long</span>
+        <h2 className="text-base font-bold text-on-surface">No Customers Found</h2>
+        <p className="text-xs text-outline max-w-sm">
+          Customer ledger accounts will be created automatically when you process Credit Sales.
+        </p>
+      </div>
+    );
+  }
+
+  const openingBalance = 0;
+  const currentBalance = currentCustomer ? currentCustomer.outstanding : 0;
 
   // Filter entries
   const filteredEntries = ledgerEntries.filter(entry => {
