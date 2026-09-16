@@ -73,7 +73,7 @@ export const PayablesView: React.FC<PayablesViewProps> = ({
           <div className="font-mono text-xl font-bold text-error mt-0.5">
             ₹{totalOutstanding.toLocaleString('en-IN')}
           </div>
-          <div className="text-[10px] text-outline mt-1">Across 5 Primary OEM Vendors</div>
+          <div className="text-[10px] text-outline mt-1">Across {payables.length} OEM Vendors</div>
         </div>
 
         <div className="bg-surface-container-lowest p-3 rounded shadow-xs border border-surface-container-high">
@@ -81,7 +81,7 @@ export const PayablesView: React.FC<PayablesViewProps> = ({
           <div className="font-mono text-xl font-bold text-on-surface mt-0.5">
             ₹{totalPurchases.toLocaleString('en-IN')}
           </div>
-          <div className="text-[10px] text-outline mt-1">59 Verified GRN Consignments</div>
+          <div className="text-[10px] text-outline mt-1">{payables.reduce((s, p) => s + (p.purchasesCount || 0), 0)} Verified GRN Consignments</div>
         </div>
 
         <div className="bg-surface-container-lowest p-3 rounded shadow-xs border border-surface-container-high">
@@ -89,7 +89,7 @@ export const PayablesView: React.FC<PayablesViewProps> = ({
           <div className="font-mono text-xl font-bold text-tertiary mt-0.5">
             ₹{totalPaid.toLocaleString('en-IN')}
           </div>
-          <div className="text-[10px] text-outline mt-1">94.2% Settlement Rate</div>
+          <div className="text-[10px] text-outline mt-1">{totalPurchases > 0 ? ((totalPaid / totalPurchases) * 100).toFixed(1) : '0.0'}% Settlement Rate</div>
         </div>
 
         <div className="bg-surface-container-lowest p-3 rounded shadow-xs border border-surface-container-high">
@@ -97,7 +97,7 @@ export const PayablesView: React.FC<PayablesViewProps> = ({
           <div className="font-mono text-xl font-bold text-secondary mt-0.5">
             30 Days Net
           </div>
-          <div className="text-[10px] text-outline mt-1">Next Payout: 15 Sep 2026</div>
+          <div className="text-[10px] text-outline mt-1">Next Payout: {payables.some(p => p.status === 'OVERDUE' || p.status === 'PENDING') ? 'Pending' : 'N/A'}</div>
         </div>
       </div>
 
@@ -149,6 +149,17 @@ export const PayablesView: React.FC<PayablesViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high font-table-cell">
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-outline">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl opacity-50">account_balance</span>
+                      <p className="font-semibold text-on-surface text-base">No supplier payables found.</p>
+                      <p className="text-xs">Supplier balances are created automatically when processing Purchase Orders (GRN).</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
               {filtered.map(p => (
                 <tr key={p.id} className="hover:bg-surface-container-low transition-colors">
                   <td className="p-2.5">
