@@ -132,7 +132,18 @@ export const ReferralSystemView: React.FC<ReferralSystemViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high font-table-cell">
-              {filteredReferrals.map(ref => (
+              {filteredReferrals.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-outline">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl opacity-50">share_reviews</span>
+                      <p className="font-semibold text-on-surface text-base">No referrals tracked.</p>
+                      <p className="text-xs">Mechanic and customer referrals will appear here.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredReferrals.map(ref => (
                 <tr key={ref.id} className="hover:bg-surface-container-low transition-colors">
                   <td className="py-2.5 px-3 font-mono text-outline">{ref.date}</td>
 
@@ -207,7 +218,7 @@ export const ReferralSystemView: React.FC<ReferralSystemViewProps> = ({
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

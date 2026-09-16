@@ -180,7 +180,18 @@ export const PaymentRemindersView: React.FC<PaymentRemindersViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high font-table-cell">
-              {filteredReminders.map(r => {
+              {filteredReminders.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="py-12 text-center text-outline">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl opacity-50">notifications_active</span>
+                      <p className="font-semibold text-on-surface text-base">No payment reminders pending.</p>
+                      <p className="text-xs">Customers with outstanding dues will appear here.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredReminders.map(r => {
                 const isSelected = selectedCustomerIds.includes(r.customerId);
                 return (
                   <tr key={r.customerId} className={`hover:bg-surface-container-low transition-colors ${isSelected ? 'bg-surface-container-low' : ''}`}>
@@ -274,7 +285,7 @@ export const PaymentRemindersView: React.FC<PaymentRemindersViewProps> = ({
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>

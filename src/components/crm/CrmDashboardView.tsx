@@ -41,23 +41,18 @@ export const CrmDashboardView: React.FC<CrmDashboardViewProps> = ({
   const topMechanics = [...mechanics].sort((a, b) => b.totalReferredSales - a.totalReferredSales).slice(0, 5);
 
   // Customer Acquisition Trend Data (Weekly / Monthly breakdown)
-  const acquisitionTrend = [
-    { label: 'Week 1', count: 4, sales: 84000 },
-    { label: 'Week 2', count: 7, sales: 142000 },
-    { label: 'Week 3', count: 9, sales: 198000 },
-    { label: 'Week 4', count: 12, sales: 245000 },
-    { label: 'Current', count: 15, sales: 284000 }
-  ];
+  const acquisitionTrend: any[] = [];
 
   // Outstanding Trend by Category
-  const outstandingByType = [
-    { type: 'Wholesale', amount: 34200, count: 1, percent: 28 },
-    { type: 'Dealer', amount: 45000, count: 1, percent: 37 },
-    { type: 'Fleet', amount: 18500, count: 1, percent: 15 },
-    { type: 'Workshop', amount: 12500, count: 1, percent: 10 },
-    { type: 'Mechanic', amount: 8920, count: 1, percent: 7 },
-    { type: 'Retail', amount: 1850, count: 1, percent: 3 }
-  ];
+  const outstandingByType: any[] = [];
+
+  const whatsAppCount = communicationLogs.filter(l => l.channel === 'WhatsApp').length;
+  const whatsAppDelivered = communicationLogs.filter(l => l.channel === 'WhatsApp' && l.status === 'Delivered').length;
+  const whatsAppRate = whatsAppCount > 0 ? ((whatsAppDelivered / whatsAppCount) * 100).toFixed(1) : '0.0';
+
+  const smsCount = communicationLogs.filter(l => l.channel === 'SMS').length;
+  const smsDelivered = communicationLogs.filter(l => l.channel === 'SMS' && l.status === 'Delivered').length;
+  const smsRate = smsCount > 0 ? ((smsDelivered / smsCount) * 100).toFixed(1) : '0.0';
 
   return (
     <div className="flex flex-col w-full pb-12 space-y-gutter animate-in fade-in duration-150">
@@ -204,27 +199,33 @@ export const CrmDashboardView: React.FC<CrmDashboardViewProps> = ({
 
           {/* Structured Bars */}
           <div className="space-y-2 pt-2">
-            {acquisitionTrend.map((item, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="flex justify-between text-xs font-table-cell">
-                  <span className="text-on-surface-variant font-medium">{item.label}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-outline text-[11px]">+{item.count} new</span>
-                    <span className="font-mono font-bold text-on-surface">₹{(item.sales / 1000).toFixed(0)}k</span>
+            {acquisitionTrend.length === 0 ? (
+              <div className="py-8 text-center text-outline text-[11px] italic">
+                No customer acquisition data available for this period.
+              </div>
+            ) : (
+              acquisitionTrend.map((item, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex justify-between text-xs font-table-cell">
+                    <span className="text-on-surface-variant font-medium">{item.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-outline text-[11px]">+{item.count} new</span>
+                      <span className="font-mono font-bold text-on-surface">₹{(item.sales / 1000).toFixed(0)}k</span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-surface-container-high h-2 rounded overflow-hidden flex">
+                    <div
+                      className="bg-secondary h-full rounded"
+                      style={{ width: `${(item.sales / 300000) * 100}%` }}
+                    />
                   </div>
                 </div>
-                <div className="w-full bg-surface-container-high h-2 rounded overflow-hidden flex">
-                  <div
-                    className="bg-secondary h-full rounded"
-                    style={{ width: `${(item.sales / 300000) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           <div className="pt-2 border-t border-surface-container-high flex items-center justify-between text-[11px] text-outline">
             <span>Month-on-Month Growth:</span>
-            <span className="text-on-tertiary-container font-bold">+18.4% Customer Inflow</span>
+            <span className="text-on-tertiary-container font-bold">{acquisitionTrend.length > 0 ? '+18.4%' : '0.0%'} Customer Inflow</span>
           </div>
         </div>
 
@@ -245,23 +246,29 @@ export const CrmDashboardView: React.FC<CrmDashboardViewProps> = ({
           </div>
 
           <div className="space-y-2.5 pt-1">
-            {outstandingByType.map((item, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="flex justify-between text-xs font-table-cell">
-                  <span className="text-on-surface font-medium">{item.type}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-outline text-[11px]">{item.percent}%</span>
-                    <span className="font-mono font-bold text-error">₹{item.amount.toLocaleString('en-IN')}</span>
+            {outstandingByType.length === 0 ? (
+              <div className="py-8 text-center text-outline text-[11px] italic">
+                No outstanding balances found across any categories.
+              </div>
+            ) : (
+              outstandingByType.map((item, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex justify-between text-xs font-table-cell">
+                    <span className="text-on-surface font-medium">{item.type}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-outline text-[11px]">{item.percent}%</span>
+                      <span className="font-mono font-bold text-error">₹{item.amount.toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-surface-container-high h-2 rounded overflow-hidden">
+                    <div
+                      className="bg-error h-full rounded"
+                      style={{ width: `${item.percent}%` }}
+                    />
                   </div>
                 </div>
-                <div className="w-full bg-surface-container-high h-2 rounded overflow-hidden">
-                  <div
-                    className="bg-error h-full rounded"
-                    style={{ width: `${item.percent}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           <div className="pt-2 border-t border-surface-container-high flex items-center justify-between text-[11px]">
@@ -281,8 +288,8 @@ export const CrmDashboardView: React.FC<CrmDashboardViewProps> = ({
                 <span className="material-symbols-outlined text-[16px]">chat</span>
                 <span>WhatsApp</span>
               </div>
-              <div className="font-mono text-base font-bold text-on-surface mt-1">98.4%</div>
-              <div className="text-[10px] text-outline">142 delivered this week</div>
+              <div className="font-mono text-base font-bold text-on-surface mt-1">{whatsAppRate}%</div>
+              <div className="text-[10px] text-outline">{whatsAppDelivered} delivered this week</div>
             </div>
 
             <div className="p-2.5 rounded bg-surface-container-low border border-surface-container-high">
@@ -290,8 +297,8 @@ export const CrmDashboardView: React.FC<CrmDashboardViewProps> = ({
                 <span className="material-symbols-outlined text-[16px]">sms</span>
                 <span>SMS Gateway</span>
               </div>
-              <div className="font-mono text-base font-bold text-on-surface mt-1">96.8%</div>
-              <div className="text-[10px] text-outline">68 SMS reminders</div>
+              <div className="font-mono text-base font-bold text-on-surface mt-1">{smsRate}%</div>
+              <div className="text-[10px] text-outline">{smsDelivered} SMS reminders</div>
             </div>
           </div>
 

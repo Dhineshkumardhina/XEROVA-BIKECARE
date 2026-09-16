@@ -167,8 +167,15 @@ export const LoyaltyProgramDashboardView: React.FC<LoyaltyProgramDashboardViewPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-high font-table-cell">
-                {customers.map(c => (
-                  <tr key={c.id} className="hover:bg-surface-container-low">
+                {customers.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-outline text-[11px] italic">
+                      No loyalty members found.
+                    </td>
+                  </tr>
+                ) : (
+                  customers.map(c => (
+                    <tr key={c.id} className="hover:bg-surface-container-low">
                     <td className="py-2 px-3">
                       <strong className="text-on-surface">{c.name}</strong>
                       <div className="text-[11px] text-outline">Card #{c.loyaltyCardNumber || 'N/A'}</div>
@@ -213,7 +220,7 @@ export const LoyaltyProgramDashboardView: React.FC<LoyaltyProgramDashboardViewPr
                       </div>
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
@@ -417,8 +424,15 @@ export const LoyaltyProgramDashboardView: React.FC<LoyaltyProgramDashboardViewPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-high font-table-cell">
-                {filteredTransactions.map(t => (
-                  <tr key={t.id} className="hover:bg-surface-container-low">
+                {filteredTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-outline text-[11px] italic">
+                      No loyalty transactions logged yet.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTransactions.map(t => (
+                    <tr key={t.id} className="hover:bg-surface-container-low">
                     <td className="p-2.5 text-outline font-mono">{t.date} {t.time}</td>
                     <td className="p-2.5 font-bold text-on-surface">{t.customerName}</td>
                     <td className="p-2.5 font-mono text-secondary font-bold">{t.reference}</td>
@@ -444,7 +458,7 @@ export const LoyaltyProgramDashboardView: React.FC<LoyaltyProgramDashboardViewPr
                     <td className="p-2.5 text-outline">{t.notes || '—'}</td>
                     <td className="p-2.5 text-[11px] text-outline font-mono">{t.auditedBy}</td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>

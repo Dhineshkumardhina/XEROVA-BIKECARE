@@ -418,7 +418,18 @@ export const MessagingDashboardView: React.FC<MessagingDashboardViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high font-table-cell">
-              {communicationLogs.map(log => (
+              {communicationLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-outline">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl opacity-50">chat</span>
+                      <p className="font-semibold text-on-surface text-base">No communications logged.</p>
+                      <p className="text-xs">WhatsApp and SMS message logs will appear here.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                communicationLogs.map(log => (
                 <tr key={log.id} className="hover:bg-surface-container-low">
                   <td className="p-2.5 text-outline font-mono">{log.date} {log.time}</td>
                   <td className="p-2.5">
@@ -441,7 +452,7 @@ export const MessagingDashboardView: React.FC<MessagingDashboardViewProps> = ({
                   </td>
                   <td className="p-2.5 text-outline text-[11px]">{log.user}</td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

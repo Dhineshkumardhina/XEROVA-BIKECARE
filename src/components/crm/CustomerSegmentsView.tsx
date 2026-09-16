@@ -229,7 +229,18 @@ export const CustomerSegmentsView: React.FC<CustomerSegmentsViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high font-table-cell">
-              {segmentCustomers.map(c => (
+              {segmentCustomers.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-outline">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl opacity-50">group_off</span>
+                      <p className="font-semibold text-on-surface text-base">No customers in this segment.</p>
+                      <p className="text-xs">Adjust your segment filter criteria to match customers.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                segmentCustomers.map(c => (
                 <tr key={c.id} className="hover:bg-surface-container-low transition-colors">
                   <td className="py-2.5 px-3">
                     <strong className="text-on-surface">{c.name}</strong>
@@ -263,7 +274,7 @@ export const CustomerSegmentsView: React.FC<CustomerSegmentsViewProps> = ({
                     </button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

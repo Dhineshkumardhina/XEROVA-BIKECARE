@@ -122,25 +122,31 @@ export const MechanicManagementView: React.FC<MechanicManagementViewProps> = ({
           </div>
 
           <div className="space-y-2.5">
-            {topMechanics.slice(0, 3).map((m, idx) => (
-              <div key={m.id} className="p-2.5 rounded bg-surface-container-low border border-surface-container-high space-y-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-secondary text-on-secondary text-[11px] font-bold flex items-center justify-center font-mono">
-                      #{idx + 1}
-                    </span>
-                    <strong className="text-xs text-on-surface">{m.name}</strong>
-                  </div>
-                  <span className="font-mono text-xs font-bold text-secondary">
-                    ₹{m.totalReferredSales.toLocaleString('en-IN')}
-                  </span>
-                </div>
-                <div className="text-[11px] text-outline flex justify-between">
-                  <span>{m.workshopName}</span>
-                  <span>{m.referralCount} referrals</span>
-                </div>
+            {topMechanics.length === 0 ? (
+              <div className="py-6 text-center text-outline text-[11px] italic">
+                No active mechanics found.
               </div>
-            ))}
+            ) : (
+              topMechanics.slice(0, 3).map((m, idx) => (
+                <div key={m.id} className="p-2.5 rounded bg-surface-container-low border border-surface-container-high space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-full bg-secondary text-on-secondary text-[11px] font-bold flex items-center justify-center font-mono">
+                        #{idx + 1}
+                      </span>
+                      <strong className="text-xs text-on-surface">{m.name}</strong>
+                    </div>
+                    <span className="font-mono text-xs font-bold text-secondary">
+                      ₹{m.totalReferredSales.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-outline flex justify-between">
+                    <span>{m.workshopName}</span>
+                    <span>{m.referralCount} referrals</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -165,29 +171,37 @@ export const MechanicManagementView: React.FC<MechanicManagementViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-high font-table-cell">
-                {referrals.slice(0, 4).map(r => (
-                  <tr key={r.id} className="hover:bg-surface-container-low">
-                    <td className="p-2 text-outline font-mono">{r.date}</td>
-                    <td className="p-2 font-bold text-on-surface">{r.referrerName}</td>
-                    <td className="p-2 text-on-surface-variant">{r.referredCustomerName}</td>
-                    <td className="p-2 font-mono text-secondary font-bold">{r.invoiceNo}</td>
-                    <td className="p-2 text-right font-mono font-bold">₹{r.salesAmount.toLocaleString('en-IN')}</td>
-                    <td className="p-2 text-right font-mono text-on-tertiary-container font-semibold">
-                      +{r.rewardPoints} pts {r.rewardCash > 0 ? `(₹${r.rewardCash})` : ''}
-                    </td>
-                    <td className="p-2 text-center">
-                      <span className={`px-1.5 py-0.2 rounded font-bold text-[9px] uppercase ${
-                        r.status === 'Rewarded' || r.status === 'Successful'
-                          ? 'bg-tertiary-fixed text-on-tertiary-fixed'
-                          : r.status === 'Pending'
-                          ? 'bg-secondary-fixed text-on-secondary-fixed'
-                          : 'bg-error-container text-on-error-container'
-                      }`}>
-                        {r.status}
-                      </span>
+                {referrals.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-outline text-[11px] italic">
+                      No recent referral sales logged.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  referrals.slice(0, 4).map(r => (
+                    <tr key={r.id} className="hover:bg-surface-container-low">
+                      <td className="p-2 text-outline font-mono">{r.date}</td>
+                      <td className="p-2 font-bold text-on-surface">{r.referrerName}</td>
+                      <td className="p-2 text-on-surface-variant">{r.referredCustomerName}</td>
+                      <td className="p-2 font-mono text-secondary font-bold">{r.invoiceNo}</td>
+                      <td className="p-2 text-right font-mono font-bold">₹{r.salesAmount.toLocaleString('en-IN')}</td>
+                      <td className="p-2 text-right font-mono text-on-tertiary-container font-semibold">
+                        +{r.rewardPoints} pts {r.rewardCash > 0 ? `(₹${r.rewardCash})` : ''}
+                      </td>
+                      <td className="p-2 text-center">
+                        <span className={`px-1.5 py-0.2 rounded font-bold text-[9px] uppercase ${
+                          r.status === 'Rewarded' || r.status === 'Successful'
+                            ? 'bg-tertiary-fixed text-on-tertiary-fixed'
+                            : r.status === 'Pending'
+                            ? 'bg-secondary-fixed text-on-secondary-fixed'
+                            : 'bg-error-container text-on-error-container'
+                        }`}>
+                          {r.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -238,6 +252,17 @@ export const MechanicManagementView: React.FC<MechanicManagementViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-high font-table-cell">
+              {filteredMechanics.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-outline">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-4xl opacity-50">engineering</span>
+                      <p className="font-semibold text-on-surface text-base">No mechanics found.</p>
+                      <p className="text-xs">Try adjusting your filters or add a new mechanic.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
               {filteredMechanics.map(m => (
                 <tr key={m.id} className="hover:bg-surface-container-low transition-colors">
                   <td className="py-2.5 px-3">
