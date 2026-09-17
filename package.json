@@ -82,7 +82,7 @@
     "appId": "com.xerova.bikecare",
     "productName": "XEROVA",
     "directories": {
-      "output": "dist_electron"
+      "output": "C:/temp/bike_dist"
     },
     "publish": {
       "provider": "github",

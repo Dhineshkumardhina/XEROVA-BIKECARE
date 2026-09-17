@@ -38,6 +38,13 @@ function createWindow() {
     }
   });
 
+  // Security: Restrict Hardware Permissions (Camera, Mic, Clipboard, etc.)
+  const { session } = require('electron');
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    console.warn(`[Security] Blocked permission request: ${permission}`);
+    callback(false); // Deny all permissions by default
+  });
+
   const isDev = !app.isPackaged;
 
   if (isDev) {
@@ -61,19 +68,19 @@ function startBackend() {
   
   if (isDev) {
     console.log('Starting backend in development mode...');
-    backendProcess = spawn('npm', ['run', 'dev:backend'], {
+    backendProcess = spawn('npm.cmd', ['run', 'dev:backend'], {
       cwd: path.join(__dirname, '..'),
-      shell: true,
-      stdio: 'inherit'
+      stdio: 'inherit',
+      shell: false
     });
   } else {
     console.log('Starting backend in production mode...');
     // In production, we assume the backend is compiled to a JS file
     // Note: this will need adjustment depending on how we package Prisma and the backend
-    backendProcess = spawn('node', [path.join(__dirname, '../backend/dist/server.js')], {
+    backendProcess = spawn(process.execPath, [path.join(__dirname, '../backend/dist/server.js')], {
       cwd: path.join(__dirname, '..'),
-      shell: true,
-      stdio: 'inherit'
+      stdio: 'inherit',
+      shell: false
     });
   }
 
