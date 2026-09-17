@@ -122,9 +122,7 @@ export class StockService {
         // Outbound movement (SALE, PURCHASE_RETURN, OUTWARD_TRANSFER, LOSS)
         // Pessimistic Row Lock to guarantee race-condition safety under high concurrency
         if (stock?.id) {
-          const lockedRows: any = await tx.$queryRawUnsafe(
-            `SELECT id, quantity FROM "Stock" WHERE id = '${stock.id}' FOR UPDATE`
-          );
+          const lockedRows: any = await tx.$queryRaw`SELECT id, quantity FROM "Stock" WHERE id = ${stock.id}::uuid FOR UPDATE`;
           if (lockedRows && lockedRows.length > 0) {
             currentQty = Number(lockedRows[0].quantity);
           }

@@ -68,30 +68,44 @@ export const itemSearchQuerySchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).default('asc')
 });
 
+const FORMULA_PREFIXES = ['=', '+', '-', '@', '\t', '\r'];
+export const sanitizeFormula = (val: string): string => {
+  const trimmed = val.trim();
+  if (FORMULA_PREFIXES.some((prefix) => trimmed.startsWith(prefix))) {
+    return `'${trimmed}`;
+  }
+  return trimmed;
+};
+
+export const sanitizeOptionalFormula = (val?: string): string | undefined => {
+  if (!val) return val;
+  return sanitizeFormula(val);
+};
+
 export const importItemRowSchema = z.object({
-  sku: z.string().min(1).max(50).trim().toUpperCase(),
-  name: z.string().min(2).max(200).trim(),
-  shortName: z.string().optional(),
-  partNumber: z.string().optional(),
+  sku: z.string().min(1).max(50).trim().toUpperCase().transform(sanitizeFormula),
+  name: z.string().min(2).max(200).trim().transform(sanitizeFormula),
+  shortName: z.string().optional().transform(sanitizeOptionalFormula),
+  partNumber: z.string().optional().transform(sanitizeOptionalFormula),
   hsn: z.string().default('8714'),
   gstRate: z.coerce.number().default(18),
-  brand: z.string().min(1),
-  category: z.string().min(1),
+  brand: z.string().min(1).transform(sanitizeFormula),
+  category: z.string().min(1).transform(sanitizeFormula),
   unit: z.string().default('PCS'),
   mrp: z.coerce.number().positive(),
   purchaseRate: z.coerce.number().positive(),
   sellingRate: z.coerce.number().positive(),
   barcode: z.string().optional(),
   maintainStock: z.coerce.boolean().default(true),
-  customField1: z.string().optional(),
-  customField2: z.string().optional(),
-  customField3: z.string().optional(),
-  customField4: z.string().optional(),
-  customField5: z.string().optional()
+  customField1: z.string().optional().transform(sanitizeOptionalFormula),
+  customField2: z.string().optional().transform(sanitizeOptionalFormula),
+  customField3: z.string().optional().transform(sanitizeOptionalFormula),
+  customField4: z.string().optional().transform(sanitizeOptionalFormula),
+  customField5: z.string().optional().transform(sanitizeOptionalFormula)
 });
 
 export const importItemsBatchSchema = z.object({
-  items: z.array(importItemRowSchema).min(1, 'At least one item row is required')
+  items: z.array(importItemRowSchema).min(1, 'At least one item row is required').max(1000, 'Batch import cannot exceed 1000 items per request')
 });
 
 export const exportItemsQuerySchema = z.object({

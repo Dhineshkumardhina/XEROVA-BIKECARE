@@ -46,8 +46,7 @@ export const errorHandler = (
         res,
         `Duplicate record error: A record with this ${target.join(', ')} already exists`,
         409,
-        'DUPLICATE_RESOURCE',
-        err.meta
+        'DUPLICATE_RESOURCE'
       );
     }
     // Foreign key constraint failure
@@ -57,6 +56,15 @@ export const errorHandler = (
         'Cannot complete operation: Referenced entity does not exist',
         400,
         'FOREIGN_KEY_VIOLATION'
+      );
+    }
+    // Invalid UUID / column data format
+    if (err.code === 'P2023') {
+      return sendError(
+        res,
+        'Invalid identifier format (expected standard UUID)',
+        400,
+        'INVALID_IDENTIFIER'
       );
     }
     // Record not found

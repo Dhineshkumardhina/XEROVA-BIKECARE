@@ -86,7 +86,11 @@ export class SearchService {
    * Fast, indexed, multi-entity search across entire ERP database.
    * Returns max top 5-10 records per group to prevent client memory bloat.
    */
-  async globalSearch(query: string, limitPerGroup: number = 6): Promise<GroupedSearchResults> {
+  async globalSearch(
+    query: string,
+    limitPerGroup: number = 6,
+    userContext?: { permissions: string[]; isSuperAdmin: boolean }
+  ): Promise<GroupedSearchResults> {
     const q = query.trim();
     if (!q) {
       return {
@@ -101,6 +105,18 @@ export class SearchService {
       };
     }
 
+    const perms = userContext?.permissions || [];
+    const isSuper = userContext?.isSuperAdmin || false;
+
+    const canViewItems = isSuper || perms.includes('inventory.view') || perms.includes('sales.view') || perms.includes('sales.create');
+    const canViewCustomers = isSuper || perms.includes('customers.view') || perms.includes('sales.view') || perms.includes('sales.create');
+    const canViewSuppliers = isSuper || perms.includes('purchase.view') || perms.includes('purchase.create');
+    const canViewInvoices = isSuper || perms.includes('sales.view') || perms.includes('reports.sales.view');
+    const canViewPurchases = isSuper || perms.includes('purchase.view') || perms.includes('reports.purchase.view');
+    const canViewQuotations = isSuper || perms.includes('sales.view') || perms.includes('quotations.view') || perms.includes('sales.create');
+    const canViewVehicles = isSuper || perms.includes('customers.view') || perms.includes('sales.view') || perms.includes('sales.create');
+    const canViewVouchers = isSuper || perms.includes('accounts.ledger.view') || perms.includes('accounts.financial.view');
+
     try {
       const [
         items,
@@ -114,122 +130,140 @@ export class SearchService {
         payments
       ] = await Promise.all([
         // 1. Items & Spare Parts (SKU, Name, OEM, Barcode)
-        prisma.item.findMany({
-          where: {
-            OR: [
-              { name: { contains: q, mode: 'insensitive' } },
-              { sku: { contains: q, mode: 'insensitive' } },
-              { oemPartNumber: { contains: q, mode: 'insensitive' } },
-              { shortName: { contains: q, mode: 'insensitive' } }
-            ]
-          },
-          take: limitPerGroup,
-          include: {
-            brand: { select: { name: true } },
-            prices: { where: { isCurrent: true }, take: 1 },
-            stocks: { take: 1 }
-          }
-        }).catch(() => []),
+        canViewItems
+          ? prisma.item.findMany({
+              where: {
+                OR: [
+                  { name: { contains: q, mode: 'insensitive' } },
+                  { sku: { contains: q, mode: 'insensitive' } },
+                  { oemPartNumber: { contains: q, mode: 'insensitive' } },
+                  { shortName: { contains: q, mode: 'insensitive' } }
+                ]
+              },
+              take: limitPerGroup,
+              include: {
+                brand: { select: { name: true } },
+                prices: { where: { isCurrent: true }, take: 1 },
+                stocks: { take: 1 }
+              }
+            }).catch(() => [])
+          : Promise.resolve([]),
 
         // 2. Customers
-        prisma.customer.findMany({
-          where: {
-            OR: [
-              { name: { contains: q, mode: 'insensitive' } },
-              { customerCode: { contains: q, mode: 'insensitive' } },
-              { mobile: { contains: q } },
-              { gstin: { contains: q, mode: 'insensitive' } }
-            ]
-          },
-          take: limitPerGroup
-        }).catch(() => []),
+        canViewCustomers
+          ? prisma.customer.findMany({
+              where: {
+                OR: [
+                  { name: { contains: q, mode: 'insensitive' } },
+                  { customerCode: { contains: q, mode: 'insensitive' } },
+                  { mobile: { contains: q } },
+                  { gstin: { contains: q, mode: 'insensitive' } }
+                ]
+              },
+              take: limitPerGroup
+            }).catch(() => [])
+          : Promise.resolve([]),
 
         // 3. Suppliers
-        prisma.supplier.findMany({
-          where: {
-            OR: [
-              { name: { contains: q, mode: 'insensitive' } },
-              { supplierCode: { contains: q, mode: 'insensitive' } },
-              { mobile: { contains: q } },
-              { gstin: { contains: q, mode: 'insensitive' } }
-            ]
-          },
-          take: limitPerGroup
-        }).catch(() => []),
+        canViewSuppliers
+          ? prisma.supplier.findMany({
+              where: {
+                OR: [
+                  { name: { contains: q, mode: 'insensitive' } },
+                  { supplierCode: { contains: q, mode: 'insensitive' } },
+                  { mobile: { contains: q } },
+                  { gstin: { contains: q, mode: 'insensitive' } }
+                ]
+              },
+              take: limitPerGroup
+            }).catch(() => [])
+          : Promise.resolve([]),
 
         // 4. Sales Invoices
-        prisma.sale.findMany({
-          where: {
-            OR: [
-              { invoiceNumber: { contains: q, mode: 'insensitive' } },
-              { customerName: { contains: q, mode: 'insensitive' } }
-            ]
-          },
-          take: limitPerGroup,
-          include: { customer: { select: { name: true } } }
-        }).catch(() => []),
+        canViewInvoices
+          ? prisma.sale.findMany({
+              where: {
+                OR: [
+                  { invoiceNumber: { contains: q, mode: 'insensitive' } },
+                  { customerName: { contains: q, mode: 'insensitive' } }
+                ]
+              },
+              take: limitPerGroup,
+              include: { customer: { select: { name: true } } }
+            }).catch(() => [])
+          : Promise.resolve([]),
 
         // 5. Purchases
-        prisma.purchase.findMany({
-          where: {
-            OR: [
-              { poNumber: { contains: q, mode: 'insensitive' } },
-              { supplierInvoiceNo: { contains: q, mode: 'insensitive' } },
-              { supplier: { name: { contains: q, mode: 'insensitive' } } }
-            ]
-          },
-          take: limitPerGroup,
-          include: { supplier: { select: { name: true } } }
-        }).catch(() => []),
+        canViewPurchases
+          ? prisma.purchase.findMany({
+              where: {
+                OR: [
+                  { poNumber: { contains: q, mode: 'insensitive' } },
+                  { supplierInvoiceNo: { contains: q, mode: 'insensitive' } },
+                  { supplier: { name: { contains: q, mode: 'insensitive' } } }
+                ]
+              },
+              take: limitPerGroup,
+              include: { supplier: { select: { name: true } } }
+            }).catch(() => [])
+          : Promise.resolve([]),
 
         // 6. Quotations
-        prisma.quotation.findMany({
-          where: {
-            OR: [
-              { quotationNumber: { contains: q, mode: 'insensitive' } },
-              { customerName: { contains: q, mode: 'insensitive' } },
-              { vehicleDetails: { contains: q, mode: 'insensitive' } }
-            ]
-          },
-          take: limitPerGroup
-        }).catch(() => []),
+        canViewQuotations
+          ? prisma.quotation.findMany({
+              where: {
+                OR: [
+                  { quotationNumber: { contains: q, mode: 'insensitive' } },
+                  { customerName: { contains: q, mode: 'insensitive' } },
+                  { vehicleDetails: { contains: q, mode: 'insensitive' } }
+                ]
+              },
+              take: limitPerGroup
+            }).catch(() => [])
+          : Promise.resolve([]),
 
         // 7. Vehicles
-        prisma.customerVehicle.findMany({
-          where: {
-            OR: [
-              { regNo: { contains: q, mode: 'insensitive' } },
-              { chassisNo: { contains: q, mode: 'insensitive' } },
-              { customer: { name: { contains: q, mode: 'insensitive' } } }
-            ]
-          },
-          take: limitPerGroup,
-          include: { customer: { select: { name: true } } }
-        }).catch(() => []),
+        canViewVehicles
+          ? prisma.customerVehicle.findMany({
+              where: {
+                OR: [
+                  { regNo: { contains: q, mode: 'insensitive' } },
+                  { chassisNo: { contains: q, mode: 'insensitive' } },
+                  { customer: { name: { contains: q, mode: 'insensitive' } } }
+                ]
+              },
+              take: limitPerGroup,
+              include: { customer: { select: { name: true } } }
+            }).catch(() => [])
+          : Promise.resolve([]),
 
         // 8. Receipts
-        (prisma as any).receiptVoucher?.findMany ? (prisma as any).receiptVoucher.findMany({
-          where: {
-            OR: [
-              { receiptNo: { contains: q, mode: 'insensitive' } },
-              { customer: { name: { contains: q, mode: 'insensitive' } } }
-            ]
-          },
-          take: limitPerGroup,
-          include: { customer: { select: { name: true } } }
-        }).catch(() => []) : Promise.resolve([]),
+        canViewVouchers && (prisma as any).receiptVoucher?.findMany
+          ? (prisma as any).receiptVoucher.findMany({
+              where: {
+                OR: [
+                  { receiptNo: { contains: q, mode: 'insensitive' } },
+                  { customer: { name: { contains: q, mode: 'insensitive' } } }
+                ]
+              },
+              take: limitPerGroup,
+              include: { customer: { select: { name: true } } }
+            }).catch(() => [])
+          : Promise.resolve([]),
 
         // 9. Payments
-        (prisma as any).paymentVoucher?.findMany ? (prisma as any).paymentVoucher.findMany({
-          where: {
-            OR: [
-              { paymentNo: { contains: q, mode: 'insensitive' } },
-              { supplier: { name: { contains: q, mode: 'insensitive' } } }
-            ]
-          },
-          take: limitPerGroup,
-          include: { supplier: { select: { name: true } } }
-        }).catch(() => []) : Promise.resolve([])
+        canViewVouchers && (prisma as any).paymentVoucher?.findMany
+          ? (prisma as any).paymentVoucher.findMany({
+              where: {
+                OR: [
+                  { paymentNo: { contains: q, mode: 'insensitive' } },
+                  { supplier: { name: { contains: q, mode: 'insensitive' } } }
+                ]
+              },
+              take: limitPerGroup,
+              include: { supplier: { select: { name: true } } }
+            }).catch(() => [])
+          : Promise.resolve([])
       ]);
 
       return {

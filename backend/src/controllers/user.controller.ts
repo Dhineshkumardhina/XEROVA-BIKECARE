@@ -41,7 +41,7 @@ export class UserController {
   async createUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const validatedInput = createUserSchema.parse(req.body);
-      const actor = req.user ? { userId: req.user.userId, username: req.user.username } : undefined;
+      const actor = req.user ? { userId: req.user.userId, username: req.user.username, role: req.user.role } : undefined;
       const user = await userService.createUser(validatedInput, actor);
       return sendCreated(res, user, `User @${user.username} created successfully`);
     } catch (error) {
@@ -53,7 +53,7 @@ export class UserController {
     try {
       const { id } = req.params;
       const validatedInput = updateUserSchema.parse(req.body);
-      const actor = req.user ? { userId: req.user.userId, username: req.user.username } : undefined;
+      const actor = req.user ? { userId: req.user.userId, username: req.user.username, role: req.user.role } : undefined;
       const user = await userService.updateUser(id, validatedInput, actor);
       return sendSuccess(res, user, `User updated successfully`);
     } catch (error) {

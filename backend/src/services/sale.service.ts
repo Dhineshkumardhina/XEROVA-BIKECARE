@@ -7,6 +7,7 @@ import {
 import { StockMovementType, StockDirection, RecordStatus, PaymentMode } from '@prisma/client';
 import { stockService } from './stock.service.js';
 import { recordAuditLog } from '../middleware/auditLogger.js';
+import { isValidUuid } from '../utils/uuid.js';
 
 export class SaleService {
   /**
@@ -20,7 +21,11 @@ export class SaleService {
    * 6. GSTR-1 B2B / B2C filing records
    * 7. System audit logging
    */
-  async createSale(input: CreateSaleInput, actor?: { userId?: string; username?: string }, branchIdParam?: string) {
+  async createSale(
+    input: CreateSaleInput,
+    actor?: { userId?: string; username?: string; permissions?: string[]; role?: string },
+    branchIdParam?: string
+  ) {
     return await prisma.$transaction(async (tx) => {
       // 1. Determine Branch
       let targetBranchId = input.branchId || branchIdParam;
@@ -83,25 +88,60 @@ export class SaleService {
         totalAmount: number;
       }> = [];
 
+      // Security Check: Applying invoice-level discount requires sales.apply_discount permission
+      if (input.invoiceDiscount && input.invoiceDiscount > 0) {
+        const userPerms = actor?.permissions || [];
+        const isSuperAdmin = actor?.role === 'SUPER_ADMIN';
+        if (!isSuperAdmin && !userPerms.includes('sales.apply_discount')) {
+          throw {
+            statusCode: 403,
+            message: 'Unauthorized discount: Applying an invoice discount requires [sales.apply_discount] permission.',
+            code: 'UNAUTHORIZED_DISCOUNT'
+          };
+        }
+      }
+
       // 2. Line Items Calculation & Validation
       for (const line of input.items) {
-        let resolvedItemId = line.itemId;
-        try {
-          const itemExists = await tx.item.findUnique({ where: { id: line.itemId } }).catch(() => null);
-          if (!itemExists) {
-            const fallbackItem = await tx.item.findFirst({
-              where: {
-                OR: [
-                  { sku: line.partNumber || line.itemId },
-                  { name: line.name || '' }
-                ]
-              }
-            }) || await tx.item.findFirst();
-            if (fallbackItem) resolvedItemId = fallbackItem.id;
+        const itemExists = await tx.item.findUnique({
+          where: { id: line.itemId },
+          include: { prices: { where: { isCurrent: true }, take: 1 } }
+        }).catch(() => null);
+
+        if (!itemExists) {
+          throw {
+            statusCode: 404,
+            message: `Item with ID '${line.itemId}' does not exist in the inventory catalog.`,
+            code: 'ITEM_NOT_FOUND'
+          };
+        }
+
+        const resolvedItemId = itemExists.id;
+        const masterSellingRate = Number(itemExists.prices[0]?.sellingRate || 0);
+
+        const userPerms = actor?.permissions || [];
+        const isSuperAdmin = actor?.role === 'SUPER_ADMIN';
+
+        // Security Check: Modifying rate below master selling rate requires sales.change_rate permission
+        if (line.unitRate < masterSellingRate && masterSellingRate > 0) {
+          if (!isSuperAdmin && !userPerms.includes('sales.change_rate')) {
+            throw {
+              statusCode: 403,
+              message: `Unauthorized rate change: Modifying selling rate below standard catalog rate requires [sales.change_rate] permission. Item: ${itemExists.sku}`,
+              code: 'UNAUTHORIZED_RATE_CHANGE'
+            };
           }
-        } catch {
-          const fallbackItem = await tx.item.findFirst();
-          if (fallbackItem) resolvedItemId = fallbackItem.id;
+        }
+
+        // Security Check: Applying line item discount requires sales.apply_discount permission
+        if ((line.discountAmount && line.discountAmount > 0) || (line.discountPercent && line.discountPercent > 0)) {
+          if (!isSuperAdmin && !userPerms.includes('sales.apply_discount')) {
+            throw {
+              statusCode: 403,
+              message: `Unauthorized discount: Applying line discount requires [sales.apply_discount] permission. Item: ${itemExists.sku}`,
+              code: 'UNAUTHORIZED_DISCOUNT'
+            };
+          }
         }
 
         const qty = line.quantity;
@@ -451,8 +491,8 @@ export class SaleService {
     const skip = (page - 1) * limit;
 
     const where: any = {};
-    if (customerId) where.customerId = customerId;
-    if (branchId) where.branchId = branchId;
+    if (customerId && isValidUuid(customerId)) where.customerId = customerId;
+    if (branchId && isValidUuid(branchId)) where.branchId = branchId;
     if (status) where.status = status;
     if (paymentMode) where.paymentMode = paymentMode;
 
@@ -633,6 +673,18 @@ export class SaleService {
         isRestocked: boolean;
       }> = [];
 
+      // Cumulative prior returns check across previous return vouchers
+      const priorReturnItems = await tx.saleReturnItem.findMany({
+        where: {
+          saleReturn: { saleId: input.saleId }
+        }
+      });
+      const priorReturnedQtyMap = new Map<string, number>();
+      for (const pr of priorReturnItems) {
+        const curr = priorReturnedQtyMap.get(pr.itemId) || 0;
+        priorReturnedQtyMap.set(pr.itemId, curr + Number(pr.quantity));
+      }
+
       for (const retLine of input.items) {
         const origItem = sale.items.find((it) => it.itemId === retLine.itemId);
         if (!origItem) {
@@ -644,10 +696,13 @@ export class SaleService {
         }
 
         const maxQty = Number(origItem.quantity);
-        if (retLine.quantity > maxQty) {
+        const alreadyReturned = priorReturnedQtyMap.get(retLine.itemId) || 0;
+        const availableToReturn = maxQty - alreadyReturned;
+
+        if (retLine.quantity > availableToReturn) {
           throw {
             statusCode: 400,
-            message: `Return quantity (${retLine.quantity}) exceeds invoiced quantity (${maxQty})`,
+            message: `Return quantity (${retLine.quantity}) exceeds remaining returnable quantity (${availableToReturn}). Total purchased: ${maxQty}, previously returned: ${alreadyReturned}`,
             code: 'RETURN_EXCEEDS_INVOICE'
           };
         }

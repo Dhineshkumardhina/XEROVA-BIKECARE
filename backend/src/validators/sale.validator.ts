@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { PaymentMode, RecordStatus } from '@prisma/client';
 
 export const saleItemInputSchema = z.object({
-  itemId: z.string().min(1, 'Item ID is required'),
+  itemId: z.string().uuid('Item ID must be a valid UUID'),
   partNumber: z.string().optional(),
   name: z.string().optional(),
   quantity: z.coerce.number().positive('Quantity must be greater than zero'),
@@ -24,13 +24,13 @@ export const splitPaymentItemSchema = z.object({
 
 export const createSaleSchema = z.object({
   invoiceNumber: z.string().optional(),
-  customerId: z.string().optional().nullable(),
+  customerId: z.string().uuid('Customer ID must be a valid UUID').optional().nullable(),
   customerName: z.string().min(1, 'Customer name is required').default('Walk-in Customer'),
   customerMobile: z.string().optional().nullable(),
   customerGstin: z.string().optional().nullable(),
-  customerVehicleId: z.string().optional().nullable(),
+  customerVehicleId: z.string().uuid('Vehicle ID must be a valid UUID').optional().nullable(),
   vehicleRegNo: z.string().optional().nullable(),
-  branchId: z.string().optional(),
+  branchId: z.string().uuid('Branch ID must be a valid UUID').optional(),
   invoiceDate: z.string().optional(),
   isInterstate: z.boolean().default(false),
   isB2B: z.boolean().default(false),
@@ -55,13 +55,13 @@ export const createSaleSchema = z.object({
 });
 
 export const createSaleReturnSchema = z.object({
-  saleId: z.string().min(1, 'Original Sale ID is required'),
+  saleId: z.string().uuid('Sale ID must be a valid UUID'),
   creditNoteNumber: z.string().optional(),
   returnDate: z.string().optional(),
   reason: z.string().min(2, 'Return reason is required').max(255),
   refundMode: z.nativeEnum(PaymentMode).default(PaymentMode.CASH),
   items: z.array(z.object({
-    itemId: z.string().min(1, 'Item ID is required'),
+    itemId: z.string().uuid('Item ID must be a valid UUID'),
     quantity: z.coerce.number().positive('Return quantity must be positive'),
     unitRate: z.coerce.number().positive('Unit rate must be positive'),
     isRestocked: z.boolean().default(true)

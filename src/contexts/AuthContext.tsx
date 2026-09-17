@@ -47,30 +47,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Default fallback user for offline resilience
-const DEFAULT_FALLBACK_USER: AuthUser = {
-  id: 'usr-admin-01',
-  username: 'admin',
-  email: 'admin@bikecare.erp',
-  fullName: 'Rajesh Kumar (Super Admin)',
-  role: 'SUPER_ADMIN',
-  roleDisplayName: 'Store Admin',
-  branch: {
-    id: 'br-01',
-    name: 'Main Branch - Chennai Central',
-    code: 'BR-01'
-  },
-  permissions: [
-    'sales.create', 'sales.view', 'sales.edit', 'sales.cancel', 'sales.void', 'sales.change_rate', 'sales.apply_discount', 'sales.view_profit', 'sales.returns',
-    'purchase.create', 'purchase.view', 'purchase.edit', 'purchase.cancel', 'purchase.view_cost', 'purchase.returns',
-    'inventory.view', 'inventory.create', 'inventory.create_item', 'inventory.edit', 'inventory.edit_item', 'inventory.adjust', 'inventory.adjust_stock', 'inventory.barcode_print',
-    'accounts.receipt.create', 'accounts.payment.create', 'accounts.ledger.view', 'accounts.view_ledger', 'accounts.create_receipt', 'accounts.create_payment', 'accounts.banking', 'accounts.reversal',
-    'gst.view', 'gst.export',
-    'crm.customers', 'crm.mechanics', 'crm.loyalty', 'crm.messaging',
-    'reports.sales.view', 'reports.purchase.view', 'reports.profit.view', 'reports.financial.view', 'reports.sales', 'reports.inventory', 'reports.financial', 'reports.profitability',
-    'admin.users.manage', 'admin.roles.manage', 'admin.settings.manage', 'admin.backup', 'admin.restore', 'admin.audit.view', 'admin.manage_users', 'admin.manage_roles', 'admin.settings', 'admin.audit_logs'
-  ]
-};
+
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -175,14 +152,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoginState(determinedState);
       setLoginErrorMessage(message);
 
-      // Fallback local resilience for local development if server unreachable
-      if (determinedState === 'server_unavailable' && username === 'admin' && (password.includes('Admin') || password === 'admin')) {
-        setUser(DEFAULT_FALLBACK_USER);
-        localStorage.setItem('bike_erp_user', JSON.stringify(DEFAULT_FALLBACK_USER));
-        setLoginState('success');
-        setIsSessionExpired(false);
-        return { success: true, state: 'success' };
-      }
+
 
       return { success: false, state: determinedState, message };
     } finally {
@@ -209,15 +179,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const switchRoleSimulated = (roleName: string) => {
     if (!user) return;
+    const allPerms = [
+      'sales.create', 'sales.view', 'sales.edit', 'sales.cancel', 'sales.void', 'sales.change_rate', 'sales.apply_discount', 'sales.view_profit', 'sales.returns',
+      'purchase.create', 'purchase.view', 'purchase.edit', 'purchase.cancel', 'purchase.view_cost', 'purchase.returns',
+      'inventory.view', 'inventory.create', 'inventory.create_item', 'inventory.edit', 'inventory.edit_item', 'inventory.adjust', 'inventory.adjust_stock', 'inventory.barcode_print',
+      'accounts.receipt.create', 'accounts.payment.create', 'accounts.ledger.view', 'accounts.view_ledger', 'accounts.create_receipt', 'accounts.create_payment', 'accounts.banking', 'accounts.reversal',
+      'gst.view', 'gst.export',
+      'crm.customers', 'crm.mechanics', 'crm.loyalty', 'crm.messaging',
+      'reports.sales.view', 'reports.purchase.view', 'reports.profit.view', 'reports.financial.view', 'reports.sales', 'reports.inventory', 'reports.financial', 'reports.profitability',
+      'admin.users.manage', 'admin.roles.manage', 'admin.settings.manage', 'admin.backup', 'admin.restore', 'admin.audit.view', 'admin.manage_users', 'admin.manage_roles', 'admin.settings', 'admin.audit_logs'
+    ];
     let displayName = 'Store Admin';
-    let permissions = DEFAULT_FALLBACK_USER.permissions;
+    let permissions = allPerms;
 
     if (roleName === 'billing_operator' || roleName === 'BILLING_OPERATOR') {
       displayName = 'Billing Operator';
       permissions = ['sales.create', 'sales.view', 'sales.apply_discount', 'sales.returns', 'inventory.view', 'accounts.receipt.create', 'accounts.create_receipt', 'crm.customers'];
     } else if (roleName === 'manager' || roleName === 'MANAGER') {
       displayName = 'Store Manager';
-      permissions = DEFAULT_FALLBACK_USER.permissions.filter((p) => p !== 'admin.restore');
+      permissions = allPerms.filter((p) => p !== 'admin.restore');
     }
 
     const updated: AuthUser = {

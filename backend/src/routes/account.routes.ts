@@ -10,20 +10,20 @@ router.use(authenticate);
 // Financial Dashboard & Metrics
 router.get(
   '/dashboard',
-  requirePermission('accounts.financial.view', 'reports.view', 'sales.view'),
+  requirePermission('accounts.financial.view', 'reports.financial.view'),
   accountController.getDashboardSummary
 );
 
 // Customer & Supplier Summaries
 router.get(
   '/receivables',
-  requirePermission('accounts.ledger.view', 'sales.view', 'customers.view'),
+  requirePermission('accounts.ledger.view', 'accounts.financial.view'),
   accountController.getReceivables
 );
 
 router.get(
   '/payables',
-  requirePermission('accounts.ledger.view', 'purchase.view', 'purchases.create'),
+  requirePermission('accounts.ledger.view', 'accounts.financial.view'),
   accountController.getPayables
 );
 
@@ -75,7 +75,7 @@ router.post(
 
 router.post(
   '/receipts/reverse',
-  requirePermission('accounts.receipt.create', 'accounts.financial.view'),
+  requirePermission('accounts.reversal', 'admin.all'),
   accountController.reverseReceipt
 );
 
@@ -88,7 +88,7 @@ router.post(
 
 router.post(
   '/payments/reverse',
-  requirePermission('accounts.payment.create', 'accounts.financial.view'),
+  requirePermission('accounts.reversal', 'admin.all'),
   accountController.reversePayment
 );
 

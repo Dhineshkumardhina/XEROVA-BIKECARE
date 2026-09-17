@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { SparePart } from '../types';
 import { exportToCsv, triggerPrintWindow } from '../utils/exportUtils';
+import { formatCurrency } from '../utils/formatters';
 
 interface ItemMasterViewProps {
   parts: SparePart[];

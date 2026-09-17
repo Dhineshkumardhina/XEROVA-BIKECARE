@@ -33,7 +33,7 @@ export class SaleController {
   async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const validated = createSaleSchema.parse(req.body);
-      const actor = req.user ? { userId: req.user.userId, username: req.user.username } : undefined;
+      const actor = req.user ? { userId: req.user.userId, username: req.user.username, permissions: req.user.permissions, role: req.user.role } : undefined;
       const branchId = req.user?.branchId || undefined;
 
       const sale = await saleService.createSale(validated, actor, branchId);
@@ -46,7 +46,7 @@ export class SaleController {
   async createReturn(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const validated = createSaleReturnSchema.parse(req.body);
-      const actor = req.user ? { userId: req.user.userId, username: req.user.username } : undefined;
+      const actor = req.user ? { userId: req.user.userId, username: req.user.username, permissions: req.user.permissions, role: req.user.role } : undefined;
 
       const saleReturn = await saleService.createSaleReturn(validated, actor);
       return sendCreated(res, saleReturn, `Credit note ${saleReturn.creditNoteNumber} issued successfully`);

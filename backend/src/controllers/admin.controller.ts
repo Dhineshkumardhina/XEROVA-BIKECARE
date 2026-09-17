@@ -220,10 +220,16 @@ export class AdminController {
   async clearTestData(req: Request, res: Response) {
     const validatedData = clearTestDataSchema.parse(req.body);
     const user = (req as any).user;
+    const userRole = typeof user?.role === 'string' ? user.role : (user?.role?.name || 'VIEWER');
+
+    if (userRole !== 'SUPER_ADMIN') {
+      throw { statusCode: 403, message: 'Permission Denied: Danger Zone operations require SUPER_ADMIN role.', code: 'FORBIDDEN' };
+    }
+
     const userContext = {
-      userId: user?.id,
+      userId: user?.userId || user?.id,
       username: user?.username || 'admin',
-      userRole: user?.role?.name || user?.roleName || 'SUPER_ADMIN'
+      userRole
     };
 
     const result = await adminService.clearTestData({
@@ -238,10 +244,16 @@ export class AdminController {
   async resetSystemConfig(req: Request, res: Response) {
     const validatedData = resetConfigSchema.parse(req.body);
     const user = (req as any).user;
+    const userRole = typeof user?.role === 'string' ? user.role : (user?.role?.name || 'VIEWER');
+
+    if (userRole !== 'SUPER_ADMIN') {
+      throw { statusCode: 403, message: 'Permission Denied: Resetting system config requires SUPER_ADMIN role.', code: 'FORBIDDEN' };
+    }
+
     const userContext = {
-      userId: user?.id,
+      userId: user?.userId || user?.id,
       username: user?.username || 'admin',
-      userRole: user?.role?.name || user?.roleName || 'SUPER_ADMIN'
+      userRole
     };
 
     const result = await adminService.resetSystemConfig({

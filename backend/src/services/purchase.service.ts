@@ -607,6 +607,18 @@ export class PurchaseService {
         defectNote?: string;
       }> = [];
 
+      // Cumulative prior returns check across previous return vouchers
+      const priorReturnItems = await tx.purchaseReturnItem.findMany({
+        where: {
+          purchaseReturn: { purchaseId: input.purchaseId }
+        }
+      });
+      const priorReturnedQtyMap = new Map<string, number>();
+      for (const pr of priorReturnItems) {
+        const curr = priorReturnedQtyMap.get(pr.itemId) || 0;
+        priorReturnedQtyMap.set(pr.itemId, curr + Number(pr.quantity));
+      }
+
       for (const retLine of input.items) {
         const origItem = purchase.items.find((it) => it.itemId === retLine.itemId);
         if (!origItem) {
@@ -618,10 +630,13 @@ export class PurchaseService {
         }
 
         const maxQty = Number(origItem.quantity);
-        if (retLine.quantity > maxQty) {
+        const alreadyReturned = priorReturnedQtyMap.get(retLine.itemId) || 0;
+        const availableToReturn = maxQty - alreadyReturned;
+
+        if (retLine.quantity > availableToReturn) {
           throw {
             statusCode: 400,
-            message: `Return quantity (${retLine.quantity}) cannot exceed purchased quantity (${maxQty})`,
+            message: `Return quantity (${retLine.quantity}) cannot exceed remaining returnable quantity (${availableToReturn}). Total purchased: ${maxQty}, previously returned: ${alreadyReturned}`,
             code: 'RETURN_EXCEEDS_PURCHASE'
           };
         }

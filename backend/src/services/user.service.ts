@@ -136,7 +136,13 @@ export class UserService {
   /**
    * Create a new user with password hash and audit logging.
    */
-  async createUser(input: CreateUserInput, actor?: { userId: string; username: string }) {
+  async createUser(input: CreateUserInput, actor?: { userId: string; username: string; role?: string }) {
+    // Check privilege escalation: Only SUPER_ADMIN can assign the SUPER_ADMIN role
+    const targetRole = await prisma.role.findUnique({ where: { id: input.roleId } });
+    if (targetRole && targetRole.name === UserRoleType.SUPER_ADMIN && actor?.role !== 'SUPER_ADMIN') {
+      throw { statusCode: 403, message: 'Permission Denied: Only a Super Admin can create Super Admin accounts.', code: 'FORBIDDEN' };
+    }
+
     // Check unique username and email
     const existing = await prisma.user.findFirst({
       where: {
@@ -201,12 +207,20 @@ export class UserService {
   /**
    * Update user details and record audit log.
    */
-  async updateUser(id: string, input: UpdateUserInput, actor?: { userId: string; username: string }) {
+  async updateUser(id: string, input: UpdateUserInput, actor?: { userId: string; username: string; role?: string }) {
     const existing = await prisma.user.findUnique({
       where: { id },
       include: { role: true }
     });
     if (!existing) throw { statusCode: 404, message: 'User not found' };
+
+    // Prevent non-SUPER_ADMIN from elevating any user to SUPER_ADMIN
+    if (input.roleId && input.roleId !== existing.roleId) {
+      const targetRole = await prisma.role.findUnique({ where: { id: input.roleId } });
+      if (targetRole && targetRole.name === UserRoleType.SUPER_ADMIN && actor?.role !== 'SUPER_ADMIN') {
+        throw { statusCode: 403, message: 'Permission Denied: Only a Super Admin can assign the Super Admin role.', code: 'FORBIDDEN' };
+      }
+    }
 
     // Prevent changing role if this is the only active SUPER_ADMIN
     if (input.roleId && input.roleId !== existing.roleId && existing.role.name === UserRoleType.SUPER_ADMIN) {

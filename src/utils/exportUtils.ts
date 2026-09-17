@@ -11,10 +11,18 @@ export function exportToCsv(
   headers: string[],
   rows: (string | number | boolean | null | undefined)[][]
 ): void {
+  const FORMULA_PREFIXES = ['=', '+', '-', '@', '\t', '\r'];
+
   const escapeCell = (val: string | number | boolean | null | undefined): string => {
     if (val === null || val === undefined) return '""';
-    const str = String(val).replace(/"/g, '""');
-    return `"${str}"`;
+    let str = String(val);
+    const trimmed = str.trim();
+    // Neutralize spreadsheet formula injection (CWE-1236)
+    if (FORMULA_PREFIXES.some((prefix) => trimmed.startsWith(prefix))) {
+      str = `'${str}`;
+    }
+    const escaped = str.replace(/"/g, '""');
+    return `"${escaped}"`;
   };
 
   const csvContent = [
@@ -53,6 +61,11 @@ export function downloadJsonFile(filename: string, data: any): void {
  * Triggers clean printable HTML window for thermal vouchers, A4 invoices, or returns.
  */
 export function triggerPrintWindow(title: string, htmlContent: string): void {
+  // Sanitize external/dynamic inputs against DOM XSS in the print window
+  const sanitizedHtml = htmlContent
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi, '');
+
   const printWindow = window.open('', '_blank', 'width=800,height=900,menubar=no,toolbar=no,location=no,status=no');
   if (!printWindow) {
     window.print();
@@ -63,7 +76,7 @@ export function triggerPrintWindow(title: string, htmlContent: string): void {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>${title}</title>
+        <title>${title.replace(/[<>&"]/g, '')}</title>
         <style>
           @page { size: auto; margin: 15mm; }
           body {
@@ -89,7 +102,7 @@ export function triggerPrintWindow(title: string, htmlContent: string): void {
         </style>
       </head>
       <body>
-        ${htmlContent}
+        ${sanitizedHtml}
         <script>
           window.onload = function() {
             window.focus();
