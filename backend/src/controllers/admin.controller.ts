@@ -170,9 +170,15 @@ export class AdminController {
   async restoreBackup(req: Request, res: Response) {
     const validatedData = restoreDatabaseSchema.parse(req.body);
     const user = (req as any).user;
+    const userRole = typeof user?.role === 'string' ? user.role : (user?.role?.name || 'VIEWER');
+
+    if (userRole !== 'SUPER_ADMIN') {
+      throw { statusCode: 403, message: 'Permission Denied: Database restore requires SUPER_ADMIN role.', code: 'FORBIDDEN' };
+    }
+
     const userContext = {
       backupId: validatedData.backupId,
-      userId: user?.id || 'admin-id',
+      userId: user?.userId || user?.id || 'admin-id',
       username: user?.username || 'admin',
       confirmationPhrase: validatedData.confirmationPhrase,
       reason: validatedData.reason
