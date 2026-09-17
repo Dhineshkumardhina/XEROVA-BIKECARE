@@ -97,9 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => onNavigate('dashboard')}
           title="Go to Dashboard"
         >
-          <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shadow-xs group-hover:bg-blue-600 transition-colors">
-            <span className="material-symbols-outlined text-[19px]">two_wheeler</span>
-          </div>
+          <img src="/logo.png" alt="Xerova Logo" className="w-9 h-9 object-contain drop-shadow-sm group-hover:scale-105 transition-transform" />
           <div className="flex flex-col">
             <span className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5 leading-none">
               <span>XEROVA</span>

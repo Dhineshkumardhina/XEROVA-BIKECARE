@@ -5,6 +5,11 @@ const { spawn } = require('child_process');
 let mainWindow;
 let backendProcess;
 
+// Set up dynamic Database URL for local offline SQLite
+const userDataPath = app.getPath('userData');
+const dbPath = path.join(userDataPath, 'database.db');
+process.env.DATABASE_URL = `file:${dbPath}`;
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -14,7 +19,8 @@ function createWindow() {
       contextIsolation: true,
       sandbox: true,
       webSecurity: true,
-      allowRunningInsecureContent: false
+      allowRunningInsecureContent: false,
+      preload: path.join(__dirname, 'preload.cjs')
     }
   });
 
@@ -82,6 +88,27 @@ app.whenReady().then(() => {
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+
+  // Setup auto-updater
+  const { autoUpdater } = require('electron-updater');
+  autoUpdater.checkForUpdatesAndNotify();
+
+  autoUpdater.on('update-available', () => {
+    if (mainWindow) mainWindow.webContents.send('update-available');
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    if (mainWindow) mainWindow.webContents.send('download-progress', progressObj.percent);
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    if (mainWindow) mainWindow.webContents.send('update-downloaded');
+  });
+
+  const { ipcMain } = require('electron');
+  ipcMain.on('install-update', () => {
+    autoUpdater.quitAndInstall();
   });
 });
 

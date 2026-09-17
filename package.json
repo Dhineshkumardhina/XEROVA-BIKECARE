@@ -44,6 +44,7 @@
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "electron-updater": "^6.8.9",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
@@ -73,5 +74,25 @@
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2"
+  },
+  "build": {
+    "appId": "com.xerova.bikecare",
+    "productName": "XEROVA",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "DhineshkumarDhina",
+      "repo": "XEROVA-BIKECARE"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "extraResources": [
+      "prisma/**/*",
+      "node_modules/@prisma/client/**/*",
+      "node_modules/prisma/**/*"
+    ]
   }
 }
