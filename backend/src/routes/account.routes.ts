@@ -95,25 +95,25 @@ router.post(
 // Banking Operations: Deposit, Withdrawal, Transfer & Reconciliation
 router.post(
   '/banking/deposit',
-  requirePermission('accounts.financial.view', 'accounts.receipt.create'),
+  requirePermission('accounts.banking', 'admin.all'),
   accountController.createDeposit
 );
 
 router.post(
   '/banking/withdrawal',
-  requirePermission('accounts.financial.view', 'accounts.payment.create'),
+  requirePermission('accounts.banking', 'admin.all'),
   accountController.createWithdrawal
 );
 
 router.post(
   '/banking/transfer',
-  requirePermission('accounts.financial.view', 'accounts.payment.create'),
+  requirePermission('accounts.banking', 'admin.all'),
   accountController.createTransfer
 );
 
 router.post(
   '/banking/reconcile',
-  requirePermission('accounts.financial.view', 'accounts.ledger.view'),
+  requirePermission('accounts.banking', 'admin.all'),
   accountController.reconcileTransaction
 );
 

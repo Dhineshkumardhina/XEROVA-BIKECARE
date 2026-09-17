@@ -298,9 +298,10 @@ export class BackupService {
       throw new AppError(404, 'Backup record not found.');
     }
 
-    const filePath = path.join(this.backupDir, backupRecord.filename);
-    if (!fs.existsSync(filePath)) {
-      throw new AppError(404, `Backup archive file ${backupRecord.filename} does not exist on disk.`);
+    const safeFilename = path.basename(backupRecord.filename);
+    const filePath = path.resolve(this.backupDir, safeFilename);
+    if (!filePath.startsWith(path.resolve(this.backupDir)) || !fs.existsSync(filePath)) {
+      throw new AppError(404, `Backup archive file ${safeFilename} does not exist on disk.`);
     }
 
     // 1. Create Pre-Restore Safety Snapshot

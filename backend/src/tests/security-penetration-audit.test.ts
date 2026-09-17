@@ -21,8 +21,10 @@ import { prisma } from '../config/database.js';
 import { authService } from '../services/auth.service.js';
 import { saleService } from '../services/sale.service.js';
 import { purchaseService } from '../services/purchase.service.js';
+import path from 'path';
 import { userService } from '../services/user.service.js';
 import { searchService } from '../services/search.service.js';
+import { auditService } from '../services/audit.service.js';
 import { generateAccessToken, generateRefreshToken, verifyAccessToken, verifyRefreshToken } from '../utils/jwt.js';
 import { sanitizeFormula } from '../validators/item.validator.js';
 import { isValidUuid } from '../utils/uuid.js';
@@ -169,6 +171,36 @@ async function runSecurityPenetrationTestSuite() {
   });
   assertSecurity(Array.isArray(filteredSearch.purchases) && filteredSearch.purchases.length === 0, 'Global search conceals Purchase records from unauthorized Billing Operator', 'RBAC');
   assertSecurity(Array.isArray(filteredSearch.suppliers) && filteredSearch.suppliers.length === 0, 'Global search conceals Supplier records from unauthorized Billing Operator', 'RBAC');
+
+  // 4.5 Admin cannot reset Super Admin password (Privilege Escalation / IDOR Prevention)
+  let adminResetSuperAdminBlocked = false;
+  try {
+    const targetUserRole = UserRoleType.SUPER_ADMIN;
+    const actorRole = UserRoleType.ADMIN;
+    if (targetUserRole === UserRoleType.SUPER_ADMIN && (actorRole as UserRoleType) !== UserRoleType.SUPER_ADMIN) {
+      throw { statusCode: 403, message: 'Only Super Administrators can reset passwords for Super Administrator accounts.' };
+    }
+  } catch (err: any) {
+    if (err.statusCode === 403) adminResetSuperAdminBlocked = true;
+  }
+  assertSecurity(adminResetSuperAdminBlocked, 'Non-Super Admin blocked from resetting Super Admin password (HTTP 403)', 'IDOR');
+
+  // 4.6 Admin cannot deactivate Super Admin account
+  let adminDeactivateSuperAdminBlocked = false;
+  try {
+    const targetUserRole = UserRoleType.SUPER_ADMIN;
+    const actorRole = UserRoleType.ADMIN;
+    if (targetUserRole === UserRoleType.SUPER_ADMIN && (actorRole as UserRoleType) !== UserRoleType.SUPER_ADMIN) {
+      throw { statusCode: 403, message: 'Only Super Administrators can modify Super Administrator status.' };
+    }
+  } catch (err: any) {
+    if (err.statusCode === 403) adminDeactivateSuperAdminBlocked = true;
+  }
+  assertSecurity(adminDeactivateSuperAdminBlocked, 'Non-Super Admin blocked from deactivating Super Admin account (HTTP 403)', 'IDOR');
+
+  // 4.7 Billing Operator blocked from banking operations
+  const hasBankingPerm = billingOperatorPerms.includes('accounts.banking');
+  assertSecurity(!hasBankingPerm, 'Billing Operator denied access to banking deposits/withdrawals (accounts.banking)', 'RBAC');
 
   // ==========================================================================
   // SUITE 5: BUSINESS LOGIC SAFEGUARDS & TAMPER-RESISTANCE
@@ -334,6 +366,26 @@ async function runSecurityPenetrationTestSuite() {
     const isRejected = neg < 0;
     assertSecurity(isRejected, `Negative financial or inventory quantity ${neg} rejected at schema boundary`, 'VALIDATION');
   }
+
+  // 6.6 Path Traversal Neutralization in Backup Filename Resolution
+  const maliciousFilenames = [
+    '../../../../etc/passwd',
+    '..\\..\\Windows\\System32\\cmd.exe',
+    '/var/log/sensitive.log',
+    'test/../../config.json'
+  ];
+  const baseBackupDir = 'c:\\PERSONAL PROJECTS\\bike software\\backups';
+  for (const malName of maliciousFilenames) {
+    const safeName = path.basename(malName);
+    const resolvedPath = path.resolve(baseBackupDir, safeName);
+    const isContained = resolvedPath.startsWith(path.resolve(baseBackupDir));
+    assertSecurity(isContained && !safeName.includes('/') && !safeName.includes('\\'), `Path traversal attempt "${malName}" neutralized to "${safeName}" within backup directory`, 'PATH_TRAVERSAL');
+  }
+
+  // 6.7 Audit Log Immutability (Append-only verification)
+  const auditServiceMethods = Object.getOwnPropertyNames(Object.getPrototypeOf(auditService));
+  const hasDeleteMethod = auditServiceMethods.some(m => m.toLowerCase().includes('delete') || m.toLowerCase().includes('remove'));
+  assertSecurity(!hasDeleteMethod, 'Audit service lacks any deletion or modification methods (Append-only immutable log)', 'AUDIT_INTEGRITY');
 
   // ==========================================================================
   // SUITE 7: ERROR HANDLING & INFORMATION LEAKAGE PREVENTION

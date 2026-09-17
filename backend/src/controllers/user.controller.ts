@@ -64,7 +64,7 @@ export class UserController {
   async toggleStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const actor = req.user ? { userId: req.user.userId, username: req.user.username } : undefined;
+      const actor = req.user ? { userId: req.user.userId, username: req.user.username, role: req.user.role } : undefined;
       const user = await userService.toggleUserStatus(id, actor);
       return sendSuccess(res, user, `User status updated to ${user.status}`);
     } catch (error) {
@@ -76,7 +76,7 @@ export class UserController {
     try {
       const { id } = req.params;
       const validatedInput = resetUserPasswordSchema.parse(req.body);
-      const actor = req.user ? { userId: req.user.userId, username: req.user.username } : undefined;
+      const actor = req.user ? { userId: req.user.userId, username: req.user.username, role: req.user.role } : undefined;
       const result = await userService.resetPassword(id, validatedInput.newPassword, actor);
       return sendSuccess(res, result, 'User password reset successfully');
     } catch (error) {

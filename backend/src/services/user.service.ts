@@ -288,12 +288,16 @@ export class UserService {
   /**
    * Toggle user active/inactive status with safeguard against deactivating sole Super Admin.
    */
-  async toggleUserStatus(id: string, actor?: { userId: string; username: string }) {
+  async toggleUserStatus(id: string, actor?: { userId: string; username: string; role?: UserRoleType }) {
     const user = await prisma.user.findUnique({
       where: { id },
       include: { role: true }
     });
     if (!user) throw { statusCode: 404, message: 'User not found' };
+
+    if (user.role.name === UserRoleType.SUPER_ADMIN && actor && actor.role !== UserRoleType.SUPER_ADMIN) {
+      throw { statusCode: 403, message: 'Only Super Administrators can modify Super Administrator status.' };
+    }
 
     const newStatus = user.status === RecordStatus.ACTIVE ? RecordStatus.INACTIVE : RecordStatus.ACTIVE;
 
@@ -347,9 +351,16 @@ export class UserService {
   /**
    * Administrative reset of user password.
    */
-  async resetPassword(id: string, newPass: string, actor?: { userId: string; username: string }) {
-    const user = await prisma.user.findUnique({ where: { id } });
+  async resetPassword(id: string, newPass: string, actor?: { userId: string; username: string; role?: UserRoleType }) {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: { role: true }
+    });
     if (!user) throw { statusCode: 404, message: 'User not found' };
+
+    if (user.role.name === UserRoleType.SUPER_ADMIN && actor && actor.role !== UserRoleType.SUPER_ADMIN) {
+      throw { statusCode: 403, message: 'Only Super Administrators can reset passwords for Super Administrator accounts.' };
+    }
 
     const passwordHash = await hashPassword(newPass);
     const updated = await prisma.user.update({

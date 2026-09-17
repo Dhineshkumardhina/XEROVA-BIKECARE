@@ -39,6 +39,9 @@
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
+  "overrides": {
+    "deepmerge-ts": "^8.0.0"
+  },
   "dependencies": {
     "@google/genai": "^2.4.0",
     "@prisma/client": "^6.4.1",
