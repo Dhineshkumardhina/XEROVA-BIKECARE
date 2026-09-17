@@ -408,6 +408,12 @@ export class UserService {
       data: { passwordHash }
     });
 
+    // Invalidate all active sessions across all devices upon password change
+    await prisma.refreshToken.updateMany({
+      where: { userId, isRevoked: false },
+      data: { isRevoked: true }
+    });
+
     await recordAuditLog({
       userId: user.id,
       username: user.username,

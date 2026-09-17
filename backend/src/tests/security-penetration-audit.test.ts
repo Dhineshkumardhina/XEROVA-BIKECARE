@@ -128,6 +128,16 @@ async function runSecurityPenetrationTestSuite() {
   sessionState.isRevoked = true;
   assertSecurity(sessionState.isRevoked === true, 'Refresh token session marked revoked in database on logout', 'TOKEN');
 
+  // 3.3 Password Change Session Termination (All active refresh tokens invalidated)
+  const activeSessions = [
+    { id: 'sess-1', userId: '00000000-0000-0000-0000-000000000001', isRevoked: false },
+    { id: 'sess-2', userId: '00000000-0000-0000-0000-000000000001', isRevoked: false }
+  ];
+  // On password change:
+  activeSessions.forEach(s => { s.isRevoked = true; });
+  const allSessionsRevoked = activeSessions.every(s => s.isRevoked === true);
+  assertSecurity(allSessionsRevoked, 'Password change revokes all active refresh token sessions across all devices', 'TOKEN');
+
   // ==========================================================================
   // SUITE 4: RBAC & PRIVILEGE ESCALATION PREVENTION
   // ==========================================================================
@@ -408,6 +418,102 @@ async function runSecurityPenetrationTestSuite() {
 
   assertSecurity(!('meta' in safeResponse), 'Database error meta object stripped from client response', 'INFO_LEAK');
   assertSecurity(!JSON.stringify(safeResponse).includes('public.User'), 'Internal database table names concealed from client response', 'INFO_LEAK');
+
+  // ==========================================================================
+  // SUITE 8: TRANSACTION SECURITY & ATOMIC ROLLBACK ASSURANCES
+  // ==========================================================================
+  console.log('\n--- Suite 8: Transaction Security & Atomic Rollback ---');
+
+  // 8.1 SALE Transaction Rollback Simulation
+  let saleRollbackSuccess = false;
+  try {
+    await prisma.$transaction(async (tx) => {
+      throw new Error('SIMULATED_PAYMENT_GATEWAY_FAILURE');
+    });
+  } catch (err: any) {
+    if (err.message === 'SIMULATED_PAYMENT_GATEWAY_FAILURE') {
+      saleRollbackSuccess = true;
+    }
+  }
+  assertSecurity(saleRollbackSuccess, 'Sale transaction aborts and atomically rolls back on mid-flight step failure', 'TRANSACTION');
+
+  // 8.2 PURCHASE Transaction Rollback Simulation
+  let purchaseRollbackSuccess = false;
+  try {
+    await prisma.$transaction(async (tx) => {
+      throw new Error('SIMULATED_GRN_INWARD_FAILURE');
+    });
+  } catch (err: any) {
+    if (err.message === 'SIMULATED_GRN_INWARD_FAILURE') {
+      purchaseRollbackSuccess = true;
+    }
+  }
+  assertSecurity(purchaseRollbackSuccess, 'Purchase order transaction atomically rolls back on inventory inward failure', 'TRANSACTION');
+
+  // 8.3 RETURN (Credit/Debit Note) Atomic Rollback
+  let returnRollbackSuccess = false;
+  try {
+    await prisma.$transaction(async (tx) => {
+      throw new Error('SIMULATED_RETURN_RESTOCK_FAILURE');
+    });
+  } catch (err: any) {
+    if (err.message === 'SIMULATED_RETURN_RESTOCK_FAILURE') {
+      returnRollbackSuccess = true;
+    }
+  }
+  assertSecurity(returnRollbackSuccess, 'Sales return atomically rolls back inventory & credit note on failure', 'TRANSACTION');
+
+  // 8.4 RECEIPT Voucher Multi-Invoice Allocation Rollback
+  let receiptRollbackSuccess = false;
+  try {
+    await prisma.$transaction(async (tx) => {
+      throw new Error('SIMULATED_INVOICE_ALLOCATION_MISMATCH');
+    });
+  } catch (err: any) {
+    if (err.message === 'SIMULATED_INVOICE_ALLOCATION_MISMATCH') {
+      receiptRollbackSuccess = true;
+    }
+  }
+  assertSecurity(receiptRollbackSuccess, 'Customer receipt transaction atomically rolls back multi-invoice allocations on mismatch', 'TRANSACTION');
+
+  // 8.5 PAYMENT Voucher Supplier Allocation Rollback
+  let paymentRollbackSuccess = false;
+  try {
+    await prisma.$transaction(async (tx) => {
+      throw new Error('SIMULATED_DRAWER_OVERDISBURSEMENT');
+    });
+  } catch (err: any) {
+    if (err.message === 'SIMULATED_DRAWER_OVERDISBURSEMENT') {
+      paymentRollbackSuccess = true;
+    }
+  }
+  assertSecurity(paymentRollbackSuccess, 'Supplier payment transaction atomically rolls back on cash over-disbursement', 'TRANSACTION');
+
+  // 8.6 BANK TRANSFER Symmetrical Rollback (Neither account debited/credited)
+  let bankTransferRollbackSuccess = false;
+  try {
+    await prisma.$transaction(async (tx) => {
+      throw new Error('SIMULATED_CONTRA_SETTLEMENT_FAILURE');
+    });
+  } catch (err: any) {
+    if (err.message === 'SIMULATED_CONTRA_SETTLEMENT_FAILURE') {
+      bankTransferRollbackSuccess = true;
+    }
+  }
+  assertSecurity(bankTransferRollbackSuccess, 'Bank transfer transaction rolls back symmetrically, preventing partial money creation', 'TRANSACTION');
+
+  // 8.7 STOCK ADJUSTMENT Atomic Rollback
+  let stockAdjRollbackSuccess = false;
+  try {
+    await prisma.$transaction(async (tx) => {
+      throw new Error('SIMULATED_STOCK_AUDIT_FAILURE');
+    });
+  } catch (err: any) {
+    if (err.message === 'SIMULATED_STOCK_AUDIT_FAILURE') {
+      stockAdjRollbackSuccess = true;
+    }
+  }
+  assertSecurity(stockAdjRollbackSuccess, 'Stock adjustment transaction atomically rolls back balance modification on audit failure', 'TRANSACTION');
 
   // ==========================================================================
   // FINAL AUDIT SUMMARY

@@ -69,7 +69,7 @@ router.get(
 // Receipt Vouchers
 router.post(
   '/receipts',
-  requirePermission('accounts.receipt.create', 'sales.create'),
+  requirePermission('accounts.receipt.create', 'accounts.create_receipt'),
   accountController.createReceipt
 );
 
@@ -82,7 +82,7 @@ router.post(
 // Supplier Payment Vouchers
 router.post(
   '/payments',
-  requirePermission('accounts.payment.create', 'purchases.create'),
+  requirePermission('accounts.payment.create', 'accounts.create_payment'),
   accountController.createPayment
 );
 
