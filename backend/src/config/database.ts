@@ -1,12 +1,13 @@
 import { PrismaClient } from '@prisma/client';
+import type { PrismaClient as PrismaClientType } from '@prisma/client';
 import { env } from './env.js';
 
 declare global {
   // eslint-disable-next-line no-var
-  var prismaGlobal: PrismaClient | undefined;
+  var prismaGlobal: PrismaClientType | undefined;
 }
 
-export const prisma =
+export const prisma: PrismaClientType =
   global.prismaGlobal ||
   new PrismaClient({
     log: env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error']

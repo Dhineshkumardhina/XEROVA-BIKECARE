@@ -1,7 +1,7 @@
 {
   "name": "bike-erp",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
@@ -13,7 +13,7 @@
     "dist": "npm run build:all && electron-builder",
     "dist:win": "npm run build:all && electron-builder --win",
     "build": "vite build",
-    "build:backend": "tsc -p backend/tsconfig.json",
+    "build:backend": "esbuild backend/src/server.ts --bundle --platform=node --target=node20 --format=cjs --outfile=backend/dist/server.cjs --external:@prisma/client --external:.prisma/client",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
@@ -108,10 +108,19 @@
       "createStartMenuShortcut": true,
       "shortcutName": "XEROVA BIKE ERP"
     },
+    "asarUnpack": [
+      "backend/**/*"
+    ],
     "extraResources": [
-      "prisma/**/*",
-      "node_modules/@prisma/client/**/*",
-      "node_modules/prisma/**/*"
+      {
+        "from": "node_modules/.prisma",
+        "to": "app.asar.unpacked/node_modules/.prisma"
+      },
+      {
+        "from": "node_modules/@prisma",
+        "to": "app.asar.unpacked/node_modules/@prisma"
+      },
+      "prisma/**/*"
     ]
   }
 }

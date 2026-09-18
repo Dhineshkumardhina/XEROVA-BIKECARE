@@ -16,8 +16,16 @@ const userDataPath = app.getPath('userData');
 const dbPath = path.join(userDataPath, 'database.db');
 const backupsDir = path.join(userDataPath, 'backups', 'pre-update');
 
-// Set dynamic Database URL for local offline SQLite engine
-process.env.DATABASE_URL = `file:${dbPath}`;
+// Database connection configuration (PostgreSQL offline/local engine)
+if (!process.env.DATABASE_URL || process.env.DATABASE_URL.startsWith('file:')) {
+  process.env.DATABASE_URL = 'postgresql://postgres:dhina18@localhost:5432/bike_erp?schema=public';
+}
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = 'bike-erp-super-secure-jwt-secret-key-production-change-this-2026';
+}
+if (!process.env.JWT_REFRESH_SECRET) {
+  process.env.JWT_REFRESH_SECRET = 'bike-erp-refresh-token-secret-key-production-change-this-2026';
+}
 
 /**
  * Gracefully stop backend child process and kill entire process tree on Windows
@@ -264,16 +272,36 @@ function startBackend() {
       shell: false
     });
   } else {
-    console.log('[Backend] Starting backend in production mode...');
-    const serverPath = path.join(__dirname, '../backend/dist/server.js');
+    let serverPath = path.join(__dirname, '../backend/dist/server.cjs');
+    if (!fs.existsSync(serverPath)) {
+      serverPath = path.join(__dirname, '../backend/dist/server.js');
+    }
+    let backendCwd = path.join(__dirname, '..');
+
+    // If backend is unpacked via asarUnpack, resolve real filesystem path
+    const unpackedCjs = path.join(__dirname, '../backend/dist/server.cjs').replace('app.asar', 'app.asar.unpacked');
+    const unpackedJs = path.join(__dirname, '../backend/dist/server.js').replace('app.asar', 'app.asar.unpacked');
+    if (fs.existsSync(unpackedCjs)) {
+      serverPath = unpackedCjs;
+      backendCwd = backendCwd.replace('app.asar', 'app.asar.unpacked');
+    } else if (fs.existsSync(unpackedJs)) {
+      serverPath = unpackedJs;
+      backendCwd = backendCwd.replace('app.asar', 'app.asar.unpacked');
+    }
+
+    console.log(`[Backend] Resolved production server path: ${serverPath}`);
     backendProcess = spawn(process.execPath, [serverPath], {
-      cwd: path.join(__dirname, '..'),
+      cwd: backendCwd,
       stdio: 'inherit',
       shell: false,
       env: {
         ...process.env,
         ELECTRON_RUN_AS_NODE: '1',
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        PORT: '5000',
+        DATABASE_URL: process.env.DATABASE_URL,
+        JWT_SECRET: process.env.JWT_SECRET,
+        JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET
       }
     });
   }
