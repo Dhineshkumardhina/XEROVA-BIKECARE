@@ -240,12 +240,15 @@ async function main() {
   const billingRoleId = roleMap.get(UserRoleType.BILLING_OPERATOR)!;
   const managerRoleId = roleMap.get(UserRoleType.MANAGER)!;
 
-  const adminPasswordHash = await bcrypt.hash('Admin@BikeERP2026!', 10);
+  const adminPasswordHash = await bcrypt.hash('Admin@123', 10);
+  const billingPasswordHash = await bcrypt.hash('Billing@123', 10);
+  const purchasePasswordHash = await bcrypt.hash('Purchase@123', 10);
   const operatorPasswordHash = await bcrypt.hash('Operator@123', 10);
+  const purchaseRoleId = roleMap.get(UserRoleType.PURCHASE_OPERATOR)!;
 
   const superAdminUser = await prisma.user.upsert({
     where: { username: 'admin' },
-    update: { passwordHash: adminPasswordHash, roleId: superAdminRoleId, branchId: mainBranch.id },
+    update: { passwordHash: adminPasswordHash, roleId: superAdminRoleId, branchId: mainBranch.id, failedAttempts: 0, lockedUntil: null },
     create: {
       username: 'admin',
       email: 'admin@bikecare.erp',
@@ -253,6 +256,36 @@ async function main() {
       phone: '+91 98401 11223',
       passwordHash: adminPasswordHash,
       roleId: superAdminRoleId,
+      branchId: mainBranch.id,
+      status: RecordStatus.ACTIVE
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { username: 'billing' },
+    update: { passwordHash: billingPasswordHash, roleId: billingRoleId, branchId: mainBranch.id, failedAttempts: 0, lockedUntil: null },
+    create: {
+      username: 'billing',
+      email: 'billing@bikecare.erp',
+      fullName: 'Counter Billing Desk',
+      phone: '+91 98402 33445',
+      passwordHash: billingPasswordHash,
+      roleId: billingRoleId,
+      branchId: mainBranch.id,
+      status: RecordStatus.ACTIVE
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { username: 'purchase' },
+    update: { passwordHash: purchasePasswordHash, roleId: purchaseRoleId, branchId: mainBranch.id, failedAttempts: 0, lockedUntil: null },
+    create: {
+      username: 'purchase',
+      email: 'purchase@bikecare.erp',
+      fullName: 'Purchase Department Manager',
+      phone: '+91 98403 44556',
+      passwordHash: purchasePasswordHash,
+      roleId: purchaseRoleId,
       branchId: mainBranch.id,
       status: RecordStatus.ACTIVE
     }
@@ -287,7 +320,7 @@ async function main() {
       status: RecordStatus.ACTIVE
     }
   });
-  console.log('✅ Seeded Users (admin, kavitha, suresh)');
+  console.log('✅ Seeded Users (admin, billing, purchase, kavitha, suresh)');
 
   // 5. Document Numbering Sequences
   const sequences = [
