@@ -119,6 +119,14 @@ export const AdministrationDashboard: React.FC<AdministrationDashboardProps> = (
       icon: 'security',
       badge: 'ISO Controls',
       category: 'Security'
+    },
+    {
+      id: 'system-updates',
+      title: 'System Updates & About',
+      desc: 'Version management, manual update check, GitHub Releases distribution, and pre-update database snapshots.',
+      icon: 'system_update',
+      badge: 'Version Core',
+      category: 'Configuration'
     }
   ];
 

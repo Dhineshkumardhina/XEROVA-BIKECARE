@@ -20,7 +20,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) =>
     if (['purchase-orders', 'suppliers-master', 'purchase-returns'].includes(activeScreen)) return 'purchases';
     if (['accounts-dashboard', 'receivables', 'payables', 'payment-receipts', 'payment-vouchers', 'customer-ledgers', 'banking', 'gst-dashboard', 'gstr-1', 'gstr-3b', 'hsn-tax-report'].includes(activeScreen)) return 'accounts';
     if (['customers', 'mechanics', 'loyalty-program', 'referral-system', 'messaging', 'crm-dashboard'].includes(activeScreen)) return 'crm';
-    if (['company-settings', 'sales-reports', 'purchase-reports', 'inventory-reports', 'profitability-dashboard', 'financial-reports', 'users-roles', 'tax-settings', 'backup-restore', 'audit-logs', 'security-settings', 'admin-dashboard'].includes(activeScreen)) return 'settings';
+    if (['company-settings', 'sales-reports', 'purchase-reports', 'inventory-reports', 'profitability-dashboard', 'financial-reports', 'users-roles', 'tax-settings', 'backup-restore', 'audit-logs', 'security-settings', 'admin-dashboard', 'system-updates'].includes(activeScreen)) return 'settings';
     return null;
   });
 
@@ -141,7 +141,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeScreen, onNavigate }) =>
           { id: 'company-settings', label: 'Company Profile' },
           { id: 'users-roles', label: 'Users & Permissions' },
           { id: 'backup-restore', label: 'Backup & Restore' },
-          { id: 'audit-logs', label: 'Audit Trail' }
+          { id: 'audit-logs', label: 'Audit Trail' },
+          { id: 'system-updates', label: 'System Updates' }
         ]
       }
     }

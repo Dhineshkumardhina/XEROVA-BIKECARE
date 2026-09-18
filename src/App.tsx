@@ -62,6 +62,8 @@ import { AuditLogsView } from './components/admin/AuditLogsView';
 import { SystemActivityTimelineView } from './components/admin/SystemActivityTimelineView';
 import { SecuritySettingsView } from './components/admin/SecuritySettingsView';
 import { PermissionRequiredModal } from './components/admin/PermissionRequiredModal';
+import { SystemUpdatesView } from './components/admin/SystemUpdatesView';
+import { UpdateAlert } from './components/common/UpdateAlert';
 
 // CRM & Loyalty Module Components
 import { CrmDashboardView } from './components/crm/CrmDashboardView';
@@ -3242,6 +3244,13 @@ export function MainERPContent() {
             />
           )}
 
+          {activeScreen === 'system-updates' && (
+            <SystemUpdatesView
+              userRole={userRole}
+              onNavigateBack={() => setActiveScreen('admin-dashboard')}
+            />
+          )}
+
           {/* Safe Fallback for any unmatched screen */}
           {![
             'dashboard',
@@ -3315,7 +3324,8 @@ export function MainERPContent() {
             'audit-logs',
             'audit-trail',
             'system-activity',
-            'security-settings'
+            'security-settings',
+            'system-updates'
           ].includes(activeScreen) && (
             <DashboardView
               invoices={invoices}
@@ -3808,6 +3818,9 @@ export function MainERPContent() {
           showToast('Authentication successful. Terminal session active.');
         }}
       />
+
+      {/* Production Automatic Update Notification Modal */}
+      <UpdateAlert />
     </div>
   );
 }

@@ -1,0 +1,58 @@
+name: Build & Publish BIKE ERP Release
+
+# ==============================================================================
+# IMPORTANT NOTICE:
+# Git push alone does NOT publish an application update.
+# An application update requires:
+# 1. Bumping version in package.json (e.g. 1.0.0 -> 1.1.0)
+# 2. Creating a Git tag (e.g. git tag v1.1.0 && git push origin v1.1.0)
+# 3. Compiling the Windows installer (XEROVA Setup <version>.exe)
+# 4. Generating electron-updater metadata (latest.yml, blockmaps)
+# 5. Publishing an official GitHub Release with attached installer artifacts
+# ==============================================================================
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Version tag to release (e.g., v1.1.0)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Windows Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Typechecks & Code Quality
+        run: npm run lint
+
+      - name: Build Frontend & Backend
+        run: npm run build:all
+
+      - name: Build & Publish Windows Installer Artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx electron-builder --win --publish always

@@ -9,7 +9,9 @@
     "dev:frontend": "vite --port=3000 --host=0.0.0.0",
     "dev:backend": "tsx watch backend/src/server.ts",
     "start:electron": "electron .",
-    "dist": "npm run build && electron-builder",
+    "build:all": "npm run build && npm run build:backend",
+    "dist": "npm run build:all && electron-builder",
+    "dist:win": "npm run build:all && electron-builder --win",
     "build": "vite build",
     "build:backend": "tsc -p backend/tsconfig.json",
     "preview": "vite preview",
@@ -30,6 +32,7 @@
     "test:integration": "tsx backend/src/tests/erp-integration-pass.test.ts",
     "test:production": "tsx backend/src/tests/production-readiness.test.ts",
     "test:security": "tsx backend/src/tests/security-penetration-audit.test.ts",
+    "test:updater": "node scripts/test-updater-lifecycle.mjs",
     "test": "tsx backend/src/tests/auth-rbac.test.ts && tsx backend/src/tests/item-master.test.ts && tsx backend/src/tests/inventory.test.ts && tsx backend/src/tests/purchase.test.ts && tsx backend/src/tests/pos-sales.test.ts && tsx backend/src/tests/quotations-returns.test.ts && tsx backend/src/tests/accounts.test.ts && tsx backend/src/tests/banking.test.ts && tsx backend/src/tests/gst-engine.test.ts && tsx backend/src/tests/crm-loyalty-messaging.test.ts && tsx backend/src/tests/reports-bi.test.ts && tsx backend/src/tests/admin-management.test.ts && tsx backend/src/tests/erp-integration-pass.test.ts && tsx backend/src/tests/production-readiness.test.ts && tsx backend/src/tests/security-penetration-audit.test.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -87,7 +90,7 @@
     "appId": "com.xerova.bikecare",
     "productName": "XEROVA",
     "directories": {
-      "output": "C:/temp/bike_dist"
+      "output": "dist_electron"
     },
     "publish": {
       "provider": "github",
@@ -96,6 +99,14 @@
     },
     "win": {
       "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "XEROVA BIKE ERP"
     },
     "extraResources": [
       "prisma/**/*",
