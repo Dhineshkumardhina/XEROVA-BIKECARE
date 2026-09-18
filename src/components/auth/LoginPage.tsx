@@ -37,7 +37,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         <div className="relative z-10 max-w-lg">
           {/* Logo & Header */}
           <div className="flex items-center gap-3.5 mb-6">
-            <img src="/logo.png" alt="Xerova Logo" className="w-16 h-16 object-contain drop-shadow-md" />
+            <img src="./logo.png" alt="Xerova Logo" className="w-16 h-16 object-contain drop-shadow-md" />
             <div className="flex flex-col">
               <span className="text-2xl text-slate-900 tracking-tight font-extrabold flex items-center gap-1.5">
                 <span className="text-blue-600 font-black">XEROVA</span> BIKE SOFTWARE
