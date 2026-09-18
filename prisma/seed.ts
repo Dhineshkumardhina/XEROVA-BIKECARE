@@ -165,6 +165,11 @@ async function main() {
 
   const roleMap = new Map<UserRoleType, string>();
 
+  // Pre-fetch all permissions into map to avoid hundreds of sequential roundtrips
+  const allPermissions = await prisma.permission.findMany();
+  const permMap = new Map(allPermissions.map((p) => [p.code, p.id]));
+  const rolePermissionRecords: { roleId: string; permissionId: string }[] = [];
+
   for (const r of rolesData) {
     const role = await prisma.role.upsert({
       where: { name: r.name },
@@ -173,18 +178,19 @@ async function main() {
     });
     roleMap.set(r.name, role.id);
 
-    // Link permissions to role
+    // Collect permissions to role
     for (const permCode of r.permissions) {
-      const perm = await prisma.permission.findUnique({ where: { code: permCode } });
-      if (perm) {
-        await prisma.rolePermission.upsert({
-          where: { roleId_permissionId: { roleId: role.id, permissionId: perm.id } },
-          update: {},
-          create: { roleId: role.id, permissionId: perm.id }
-        });
+      const permId = permMap.get(permCode);
+      if (permId) {
+        rolePermissionRecords.push({ roleId: role.id, permissionId: permId });
       }
     }
   }
+
+  await prisma.rolePermission.createMany({
+    data: rolePermissionRecords,
+    skipDuplicates: true
+  });
   console.log(`✅ Seeded ${rolesData.length} roles with full permissions matrix`);
 
   // 3. Company & Branches
