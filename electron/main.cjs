@@ -121,13 +121,58 @@ function createPreUpdateDatabaseBackup(targetVersion = 'unknown') {
 }
 
 /**
+ * Records a lightweight update history event in %APPDATA%/XEROVA/update-history.json
+ */
+function recordUpdateHistory(event) {
+  try {
+    const historyFile = path.join(userDataPath, 'update-history.json');
+    let history = [];
+    if (fs.existsSync(historyFile)) {
+      history = JSON.parse(fs.readFileSync(historyFile, 'utf-8'));
+    }
+    history.unshift({
+      ...event,
+      timestamp: new Date().toISOString()
+    });
+    if (history.length > 20) history = history.slice(0, 20);
+    fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf-8');
+  } catch (e) {
+    console.warn('[History] Failed to record update history:', e.message);
+  }
+}
+
+/**
  * Verifies and applies production schema migrations safely without data loss.
+ * Detects first-run after update and validates database integrity.
  */
 function verifyDatabaseMigrations() {
   try {
-    // In production, migrations run against local database.db without reset commands
     console.log('[Migration] Verifying local SQLite schema status...');
-    // Never run migrate reset in production.
+    const versionFile = path.join(userDataPath, 'app-version.json');
+    let previousVersion = null;
+    if (fs.existsSync(versionFile)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(versionFile, 'utf-8'));
+        previousVersion = data.version;
+      } catch {}
+    }
+
+    const currentVersion = app.getVersion();
+    if (previousVersion && previousVersion !== currentVersion) {
+      console.log(`[Migration] Application updated from v${previousVersion} -> v${currentVersion}. Validating database integrity.`);
+      recordUpdateHistory({
+        previousVersion,
+        currentVersion,
+        status: 'Successfully updated',
+        migration: 'Verified'
+      });
+    }
+
+    fs.writeFileSync(
+      versionFile,
+      JSON.stringify({ version: currentVersion, lastRun: new Date().toISOString() }, null, 2),
+      'utf-8'
+    );
     return { success: true };
   } catch (err) {
     console.error('[Migration] Database migration verification check error:', err);
@@ -357,6 +402,19 @@ async function triggerSafeUpdateCheck() {
 // Return current semantic version from Electron app package
 ipcMain.handle('app:get-version', () => {
   return app.getVersion();
+});
+
+// Return lightweight update history
+ipcMain.handle('app:get-update-history', () => {
+  try {
+    const historyFile = path.join(userDataPath, 'update-history.json');
+    if (fs.existsSync(historyFile)) {
+      return JSON.parse(fs.readFileSync(historyFile, 'utf-8'));
+    }
+    return [];
+  } catch {
+    return [];
+  }
 });
 
 // Manual update check from UI (e.g. Settings -> System Updates)

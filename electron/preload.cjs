@@ -4,6 +4,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('api', {
   // Application Information
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
+  getUpdateHistory: () => ipcRenderer.invoke('app:get-update-history'),
 
   // Updater Trigger Actions
   checkForUpdates: () => ipcRenderer.invoke('updater:check-for-updates'),
