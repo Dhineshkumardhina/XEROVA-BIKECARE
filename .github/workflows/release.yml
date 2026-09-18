@@ -45,6 +45,11 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Generate Prisma Client
+        env:
+          DATABASE_URL: "postgresql://postgres:dummy@localhost:5432/dummy?schema=public"
+        run: npx prisma generate
+
       - name: Run Typechecks & Code Quality
         run: npm run lint
 
