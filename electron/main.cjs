@@ -16,9 +16,11 @@ const userDataPath = app.getPath('userData');
 const dbPath = path.join(userDataPath, 'database.db');
 const backupsDir = path.join(userDataPath, 'backups', 'pre-update');
 
-// Database connection configuration (PostgreSQL offline/local engine)
+const NEON_CLOUD_DATABASE_URL = 'postgresql://neondb_owner:npg_3nBTXN5YwIqj@ep-floral-leaf-b5r82avv-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require';
+
+// Database connection configuration (defaults to linked Neon cloud database)
 if (!process.env.DATABASE_URL || process.env.DATABASE_URL.startsWith('file:')) {
-  process.env.DATABASE_URL = 'postgresql://postgres:dhina18@localhost:5432/bike_erp?schema=public';
+  process.env.DATABASE_URL = NEON_CLOUD_DATABASE_URL;
 }
 if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'bike-erp-super-secure-jwt-secret-key-production-change-this-2026';
