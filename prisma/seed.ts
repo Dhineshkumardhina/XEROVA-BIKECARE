@@ -366,6 +366,194 @@ async function main() {
   }
   console.log('✅ Seeded Tax Rates');
 
+  // 7. Units of Measurement
+  const unitsData = [
+    { code: 'PCS', name: 'Pieces', allowDecimals: false },
+    { code: 'SET', name: 'Set', allowDecimals: false },
+    { code: 'LTR', name: 'Liters', allowDecimals: true },
+    { code: 'BOX', name: 'Box', allowDecimals: false },
+    { code: 'PAIR', name: 'Pair', allowDecimals: false },
+    { code: 'MTR', name: 'Meters', allowDecimals: true }
+  ];
+
+  const unitMap = new Map<string, string>();
+  for (const u of unitsData) {
+    const unit = await prisma.unit.upsert({
+      where: { code: u.code },
+      update: u,
+      create: u
+    });
+    unitMap.set(u.code, unit.id);
+  }
+  console.log('✅ Seeded Units of Measurement');
+
+  // 8. Product Categories
+  const categoriesData = [
+    { code: 'BRK', name: 'Brakes & Hydraulics', description: 'Disc pads, brake shoes, master cylinders, cables' },
+    { code: 'ENG', name: 'Engine & Transmission', description: 'Clutch plates, pistons, valves, spark plugs, chains' },
+    { code: 'ELE', name: 'Electrical & Lighting', description: 'Batteries, bulbs, headlamps, wiring harness, relays' },
+    { code: 'FLT', name: 'Filters & Lubricants', description: 'Engine oils, air filters, oil filters, brake fluid' },
+    { code: 'SUS', name: 'Suspension & Steering', description: 'Front forks, shock absorbers, bushes, bearings' },
+    { code: 'BDY', name: 'Body & Chassis', description: 'Mirrors, levers, crash guards, visors, footrests' }
+  ];
+
+  const categoryMap = new Map<string, string>();
+  for (const c of categoriesData) {
+    const cat = await prisma.category.upsert({
+      where: { code: c.code },
+      update: c,
+      create: c
+    });
+    categoryMap.set(c.code, cat.id);
+  }
+  console.log('✅ Seeded Product Categories');
+
+  // 9. Brands
+  const brandsData = [
+    { code: 'BAJAJ', name: 'Bajaj Genuine Spares', isOem: true },
+    { code: 'HERO', name: 'Hero Genuine Parts', isOem: true },
+    { code: 'TVS', name: 'TVS Genuine Spares', isOem: true },
+    { code: 'HONDA', name: 'Honda Genuine Spares', isOem: true },
+    { code: 'BOSCH', name: 'Bosch Automotive', isOem: false },
+    { code: 'CASTROL', name: 'Castrol India', isOem: false },
+    { code: 'ENDURANCE', name: 'Endurance Technologies', isOem: false }
+  ];
+
+  const brandMap = new Map<string, string>();
+  for (const b of brandsData) {
+    const brand = await prisma.brand.upsert({
+      where: { code: b.code },
+      update: b,
+      create: b
+    });
+    brandMap.set(b.code, brand.id);
+  }
+  console.log('✅ Seeded Spare Part Brands');
+
+  // 10. Sample Spare Parts Catalog Items
+  const sampleItems = [
+    {
+      sku: 'BP-PUL-001',
+      name: 'Pulsar 150/180 Front Disc Pad Set',
+      shortName: 'Pulsar Front Pad',
+      hsnCode: '8714',
+      categoryId: categoryMap.get('BRK')!,
+      brandId: brandMap.get('BAJAJ')!,
+      unitId: unitMap.get('SET')!,
+      gstRate: 18,
+      mrp: 450,
+      purchaseRate: 240,
+      sellingRate: 380,
+      stock: 45
+    },
+    {
+      sku: 'CP-SPL-002',
+      name: 'Hero Splendor Clutch Plate Assembly (5-Plate)',
+      shortName: 'Splendor Clutch Plate',
+      hsnCode: '8714',
+      categoryId: categoryMap.get('ENG')!,
+      brandId: brandMap.get('HERO')!,
+      unitId: unitMap.get('SET')!,
+      gstRate: 18,
+      mrp: 620,
+      purchaseRate: 350,
+      sellingRate: 520,
+      stock: 30
+    },
+    {
+      sku: 'OIL-CAS-003',
+      name: 'Castrol Activ 4T 20W-40 1L Engine Oil',
+      shortName: 'Castrol 4T 1L',
+      hsnCode: '2710',
+      categoryId: categoryMap.get('FLT')!,
+      brandId: brandMap.get('CASTROL')!,
+      unitId: unitMap.get('LTR')!,
+      gstRate: 18,
+      mrp: 490,
+      purchaseRate: 320,
+      sellingRate: 440,
+      stock: 60
+    },
+    {
+      sku: 'SP-BOS-004',
+      name: 'Bosch Spark Plug UR4DC Twin-Tip',
+      shortName: 'Bosch Spark Plug',
+      hsnCode: '8511',
+      categoryId: categoryMap.get('ENG')!,
+      brandId: brandMap.get('BOSCH')!,
+      unitId: unitMap.get('PCS')!,
+      gstRate: 18,
+      mrp: 180,
+      purchaseRate: 95,
+      sellingRate: 150,
+      stock: 100
+    },
+    {
+      sku: 'AF-APA-005',
+      name: 'TVS Apache RTR 160/180 Air Filter Foam',
+      shortName: 'Apache Air Filter',
+      hsnCode: '8421',
+      categoryId: categoryMap.get('FLT')!,
+      brandId: brandMap.get('TVS')!,
+      unitId: unitMap.get('PCS')!,
+      gstRate: 18,
+      mrp: 280,
+      purchaseRate: 140,
+      sellingRate: 230,
+      stock: 25
+    }
+  ];
+
+  for (const it of sampleItems) {
+    const item = await prisma.item.upsert({
+      where: { sku: it.sku },
+      update: {
+        name: it.name,
+        shortName: it.shortName,
+        hsnCode: it.hsnCode,
+        categoryId: it.categoryId,
+        brandId: it.brandId,
+        unitId: it.unitId,
+        gstRate: it.gstRate
+      },
+      create: {
+        sku: it.sku,
+        name: it.name,
+        shortName: it.shortName,
+        hsnCode: it.hsnCode,
+        categoryId: it.categoryId,
+        brandId: it.brandId,
+        unitId: it.unitId,
+        gstRate: it.gstRate
+      }
+    });
+
+    // Create current price
+    await prisma.itemPrice.deleteMany({ where: { itemId: item.id } });
+    await prisma.itemPrice.create({
+      data: {
+        itemId: item.id,
+        mrp: it.mrp,
+        purchaseRate: it.purchaseRate,
+        sellingRate: it.sellingRate,
+        isCurrent: true
+      }
+    });
+
+    // Create stock in main branch
+    await prisma.stock.upsert({
+      where: { itemId_branchId: { itemId: item.id, branchId: mainBranch.id } },
+      update: { quantity: it.stock, avgCostRate: it.purchaseRate },
+      create: {
+        itemId: item.id,
+        branchId: mainBranch.id,
+        quantity: it.stock,
+        avgCostRate: it.purchaseRate
+      }
+    });
+  }
+  console.log('✅ Seeded 5 High-Moving Spare Parts Catalog Items & Initial Stock');
+
   // Initial Audit Log
   await prisma.auditLog.create({
     data: {

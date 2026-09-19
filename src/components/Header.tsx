@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UserRole } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { CloudSyncBadge } from './common/CloudSyncBadge';
 
 export interface ErpNotification {
   id: string;
@@ -208,6 +209,9 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right: Quick Action + Notifications + User Avatar */}
       <div className="flex items-center gap-2.5 flex-shrink-0">
+        {/* Cloud Auto-Sync Indicator */}
+        <CloudSyncBadge />
+
         {/* Quick Add Button */}
         <button
           onClick={onOpenQuickActions}

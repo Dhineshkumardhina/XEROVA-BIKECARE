@@ -114,6 +114,9 @@ import { purchaseService } from './services/purchase.service';
 import { crmService } from './services/crm.service';
 import { accountService } from './services/account.service';
 import { supplierService } from './services/supplier.service';
+import { NetworkBanner } from './components/common/NetworkBanner';
+import { syncEngine } from './services/SyncEngine';
+import { offlineDB } from './lib/offline-db';
 
 import {
   INITIAL_PARTS,
@@ -388,6 +391,12 @@ export function MainERPContent() {
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [invoices]);
 
+  // Start Cloud Sync Worker on mount
+  useEffect(() => {
+    syncEngine.start(15000);
+    return () => syncEngine.stop();
+  }, []);
+
   // =========================================================================
   // POSTGRESQL STATE HYDRATION ON AUTHENTICATION
   // =========================================================================
@@ -435,9 +444,15 @@ export function MainERPContent() {
             })) || []
           }));
           setParts(mappedParts);
+          offlineDB.cacheItems(mappedParts).catch(() => {});
         }
       } catch (e) {
-        console.warn('Hydration: items fetch deferred', e);
+        console.warn('Hydration: items fetch deferred, attempting offline cache', e);
+        const cachedParts = await offlineDB.getCachedItems().catch(() => []);
+        if (isMounted && cachedParts.length > 0) {
+          console.log(`[Hydration] Loaded ${cachedParts.length} parts from offline cache.`);
+          setParts(cachedParts);
+        }
       }
 
       try {
@@ -488,9 +503,14 @@ export function MainERPContent() {
             createdAt: s.invoiceDate ? new Date(s.invoiceDate).toLocaleDateString('en-GB') : 'Today'
           })) as any;
           setInvoices(mappedInvoices);
+          offlineDB.cacheInvoices(mappedInvoices).catch(() => {});
         }
       } catch (e) {
-        console.warn('Hydration: sales fetch deferred', e);
+        console.warn('Hydration: sales fetch deferred, attempting offline cache', e);
+        const cachedInv = await offlineDB.getCachedInvoices().catch(() => []);
+        if (isMounted && cachedInv.length > 0) {
+          setInvoices(cachedInv);
+        }
       }
 
       try {
@@ -717,36 +737,49 @@ export function MainERPContent() {
       })
     );
 
+    // Deduct stock from local offline DB as well
+    for (const lineItem of newInvoice.lineItems) {
+      offlineDB.updateCachedItemStock(lineItem.partId || lineItem.sku, lineItem.qty).catch(() => {});
+    }
+    offlineDB.cacheInvoices([newInvoice]).catch(() => {});
+
     showToast(`Invoice ${newInvoice.id} generated for ₹${newInvoice.totalAmount.toFixed(2)} (${newInvoice.customerName})`);
 
-    // Asynchronously persist to PostgreSQL
+    const salePayload = {
+      invoiceNumber: newInvoice.id,
+      customerName: newInvoice.customerName,
+      customerMobile: newInvoice.customerPhone,
+      vehicleRegNo: newInvoice.vehicleNo,
+      customerId: newInvoice.garageAccountId,
+      items: newInvoice.lineItems.map(li => ({
+        itemId: li.partId,
+        partNumber: li.sku,
+        name: li.name,
+        quantity: li.qty,
+        unitRate: li.rate,
+        taxRate: li.gstRate || 18,
+        hsnCode: li.hsn
+      })),
+      paymentMode: newInvoice.payMode === 'Cash' ? 'CASH'
+        : newInvoice.payMode === 'UPI (GPay)' ? 'UPI'
+        : newInvoice.payMode === 'Card POS' ? 'CARD'
+        : newInvoice.payMode === 'NEFT Bank' ? 'NEFT_RTGS'
+        : newInvoice.payMode === 'Cheque' ? 'CHEQUE'
+        : newInvoice.payMode === 'Credit Ledger' ? 'CREDIT' : 'CASH',
+      paidAmount: newInvoice.totalAmount,
+      status: 'COMPLETED'
+    };
+
+    // If online, attempt direct save; otherwise queue offline for automatic sync
     try {
-      await saleService.create({
-        invoiceNumber: newInvoice.id,
-        customerName: newInvoice.customerName,
-        customerMobile: newInvoice.customerPhone,
-        vehicleRegNo: newInvoice.vehicleNo,
-        customerId: newInvoice.garageAccountId,
-        items: newInvoice.lineItems.map(li => ({
-          itemId: li.partId,
-          partNumber: li.sku,
-          name: li.name,
-          quantity: li.qty,
-          unitRate: li.rate,
-          taxRate: li.gstRate || 18,
-          hsnCode: li.hsn
-        })),
-        paymentMode: newInvoice.payMode === 'Cash' ? 'CASH'
-          : newInvoice.payMode === 'UPI (GPay)' ? 'UPI'
-          : newInvoice.payMode === 'Card POS' ? 'CARD'
-          : newInvoice.payMode === 'NEFT Bank' ? 'NEFT_RTGS'
-          : newInvoice.payMode === 'Cheque' ? 'CHEQUE'
-          : newInvoice.payMode === 'Credit Ledger' ? 'CREDIT' : 'CASH',
-        paidAmount: newInvoice.totalAmount,
-        status: 'COMPLETED'
-      });
+      if (!navigator.onLine) {
+        throw new Error('Offline Mode: Network unavailable');
+      }
+      await saleService.create(salePayload);
     } catch (err: any) {
-      console.warn('Backend sync for POS sale deferred:', err.message || err);
+      console.warn('Backend sync for POS sale queued for offline sync:', err.message || err);
+      await syncEngine.queueMutation('SALE', salePayload, newInvoice.id);
+      showToast(`📦 Invoice ${newInvoice.id} saved locally. Will auto-sync to cloud when online.`);
     }
   };
 
@@ -3821,6 +3854,9 @@ export function MainERPContent() {
 
       {/* Production Automatic Update Notification Modal */}
       <UpdateAlert />
+
+      {/* Offline Mode & Auto-Sync Real-time Status Banner */}
+      <NetworkBanner />
     </div>
   );
 }

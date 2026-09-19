@@ -478,6 +478,9 @@ export class SaleService {
         status: sale.status,
         itemCount: processedItems.length
       };
+    }, {
+      maxWait: 15000,
+      timeout: 30000
     });
   }
 

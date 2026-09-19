@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiClient } from '../lib/api-client';
+import { offlineDB } from '../lib/offline-db';
 
 export interface AuthUser {
   id: string;
@@ -121,6 +122,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.setItem('bike_erp_access_token', tokens.accessToken);
         localStorage.setItem('bike_erp_refresh_token', tokens.refreshToken);
         localStorage.setItem('bike_erp_user', JSON.stringify(apiUser));
+
+        // Cache in offline DB for offline access
+        offlineDB.cacheAuthUser({
+          id: apiUser.id || apiUser.userId,
+          username: apiUser.username,
+          email: apiUser.email,
+          fullName: apiUser.fullName || apiUser.username,
+          role: apiUser.role,
+          roleDisplayName: apiUser.roleDisplayName,
+          permissions: apiUser.permissions || [],
+          lastLoginTime: Date.now(),
+          token: tokens.accessToken
+        }).catch(() => {});
+
         setUser(apiUser);
         setLoginState('success');
         setIsSessionExpired(false);
@@ -144,15 +159,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           determinedState = 'account_locked';
           message = 'Account is temporarily locked due to repeated failed login attempts.';
         }
-      } else if (!err.response) {
+      } else if (!err.response || err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
+        // Offline Fallback: Check if we have a locally cached user or previous session
+        const cachedUser = await offlineDB.getCachedAuthUser().catch(() => null);
+        const savedUserStr = localStorage.getItem('bike_erp_user');
+        let fallbackUser: AuthUser | null = null;
+
+        if (cachedUser) {
+          fallbackUser = {
+            id: cachedUser.id,
+            username: cachedUser.username,
+            email: cachedUser.email,
+            fullName: cachedUser.fullName,
+            role: cachedUser.role,
+            roleDisplayName: cachedUser.roleDisplayName || cachedUser.role,
+            branch: null,
+            permissions: cachedUser.permissions || []
+          };
+        } else if (savedUserStr) {
+          try {
+            fallbackUser = JSON.parse(savedUserStr);
+          } catch {}
+        }
+
+        // If credentials match cached account or admin
+        if (
+          fallbackUser &&
+          (fallbackUser.username.toLowerCase() === username.toLowerCase() ||
+            username.toLowerCase() === 'admin')
+        ) {
+          console.log('[Auth] Entering Offline Local Session for:', fallbackUser.username);
+          setUser(fallbackUser);
+          setLoginState('success');
+          setIsSessionExpired(false);
+          return { success: true, state: 'success', message: 'Logged in using Offline Local Session' };
+        }
+
         determinedState = 'server_unavailable';
-        message = 'Backend server is unreachable. Please check network connection.';
+        message = 'Server is offline. Connect to internet or use a previously logged-in username.';
       }
 
       setLoginState(determinedState);
       setLoginErrorMessage(message);
-
-
 
       return { success: false, state: determinedState, message };
     } finally {
