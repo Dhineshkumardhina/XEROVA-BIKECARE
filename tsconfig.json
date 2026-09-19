@@ -22,5 +22,12 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "dist",
+    "dist_electron",
+    "node_modules",
+    "backups",
+    "scratch"
+  ]
 }

@@ -760,14 +760,21 @@ export function MainERPContent() {
         taxRate: li.gstRate || 18,
         hsnCode: li.hsn
       })),
-      paymentMode: newInvoice.payMode === 'Cash' ? 'CASH'
-        : newInvoice.payMode === 'UPI (GPay)' ? 'UPI'
-        : newInvoice.payMode === 'Card POS' ? 'CARD'
-        : newInvoice.payMode === 'NEFT Bank' ? 'NEFT_RTGS'
-        : newInvoice.payMode === 'Cheque' ? 'CHEQUE'
-        : newInvoice.payMode === 'Credit Ledger' ? 'CREDIT' : 'CASH',
+      paymentMode: (newInvoice.payMode === 'Cash'
+        ? 'CASH'
+        : newInvoice.payMode === 'UPI (GPay)'
+        ? 'UPI'
+        : newInvoice.payMode === 'Card POS'
+        ? 'CARD'
+        : newInvoice.payMode === 'NEFT Bank'
+        ? 'NEFT_RTGS'
+        : newInvoice.payMode === 'Cheque'
+        ? 'CHEQUE'
+        : newInvoice.payMode === 'Credit Ledger'
+        ? 'CREDIT'
+        : 'CASH') as 'CASH' | 'UPI' | 'CARD' | 'NEFT_RTGS' | 'CHEQUE' | 'CREDIT',
       paidAmount: newInvoice.totalAmount,
-      status: 'COMPLETED'
+      status: 'COMPLETED' as const
     };
 
     // If online, attempt direct save; otherwise queue offline for automatic sync
