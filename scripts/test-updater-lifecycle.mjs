@@ -67,8 +67,7 @@ function test2_NewerVersionAvailable() {
 
   const isUpdateAvailable = semverCompare(latest, current) > 0;
   assert(isUpdateAvailable, 'TEST 2: Current v1.0.0 + latest v1.1.0 -> update available detected');
-}
-
+add .Buffer
 // ------------------------------------------------------------------------------
 // TEST 3: Internet unavailable -> ERP continues normally
 // ------------------------------------------------------------------------------
